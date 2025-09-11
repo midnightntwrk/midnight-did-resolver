@@ -8,12 +8,14 @@ mod features;
 mod urls;
 
 pub use features::resolver_api::service::ResolverService;
+use utoipa_swagger_ui::SwaggerUi;
 
 mod oas_tags {
     pub const SYSTEM: &str = "System API";
     pub const RESOLVER: &str = "Resolver API";
 }
 
+/// Aggregator of Router from various features
 #[derive(Default)]
 pub struct Routers {
     pub app_router: Router<()>,
@@ -31,10 +33,12 @@ impl Routers {
 
 pub fn router() -> Routers {
     let home_router = Routers {
-        app_router: Router::new().route(
-            urls::Home::AXUM_PATH,
-            get(Redirect::temporary(&urls::Swagger::new_uri())),
-        ),
+        app_router: Router::new()
+            .merge(SwaggerUi::new(urls::Swagger::AXUM_PATH).url("/api/openapi.json", open_api()))
+            .route(
+                urls::Home::AXUM_PATH,
+                get(Redirect::temporary(&urls::Swagger::new_uri())),
+            ),
         ..Default::default()
     };
     let system_api_router = features::system_api::router();

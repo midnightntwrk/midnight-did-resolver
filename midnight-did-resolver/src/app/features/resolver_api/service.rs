@@ -71,7 +71,7 @@ impl ResolverService {
     async fn resolution_logic(&self, did: &Did) -> Result<DidDocument, ResolutionError> {
         let did = match MidnightDid::from_str(&did.to_string()) {
             Ok(did) => did,
-            Err(e) => Err(ResolutionError::InvalidDid { source: e.into() })?,
+            Err(e) => Err(ResolutionError::InvalidDid { source: e })?,
         };
         let contract_state = match self.indexer_client.get_contract_state(&did).await {
             Ok(state) => state,
@@ -91,7 +91,7 @@ impl ResolverService {
 #[async_trait::async_trait]
 impl DidResolver for ResolverService {
     async fn resolve(&self, did: &Did, _options: &ResolutionOptions) -> ResolutionResult {
-        match self.resolution_logic(&did).await {
+        match self.resolution_logic(did).await {
             Ok(did_doc) => ResolutionResult::success(did_doc),
             Err(e) => e.into(),
         }
