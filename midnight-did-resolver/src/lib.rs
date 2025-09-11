@@ -5,14 +5,17 @@ use axum::Router;
 use clap::Parser;
 use cli::Cli;
 use identus_did_resolver_http::DidResolverStateDyn;
+use midnight_did_sources::indexer_api::MidnightIndexerClient;
+use midnight_did_sources::serde_cli::CliContractStateDecoder;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
+use crate::app::ResolverService;
 use crate::cli::ServeArgs;
 
-mod cli;
 mod app;
+mod cli;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -42,8 +45,12 @@ async fn run_serve_command(args: ServeArgs) -> anyhow::Result<()> {
         .layer(TraceLayer::new_for_http())
         .option_layer(Some(CorsLayer::permissive()).filter(|_| args.server.cors_enabled));
 
+    let resolver_service = ResolverService::new(
+        MidnightIndexerClient::new(&args.indexer_url),
+        Arc::new(CliContractStateDecoder::new("did-midnight-serde")),
+    );
     let did_resolver_state = DidResolverStateDyn {
-        resolver: todo!(),
+        resolver: Arc::new(resolver_service),
     };
 
     let routers = app::router();
