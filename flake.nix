@@ -1,5 +1,5 @@
 {
-  description = "A rust implementation of PRISM node";
+  description = "A Midnight DID resolver";
 
   nixConfig = {
     extra-substituters = [ "https://cache.iog.io" ];
@@ -8,15 +8,12 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    rust-overlay.url = "github:oxalica/rust-overlay";
-    sbt = {
-      url = "github:zaninime/sbt-derivation";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     flake-utils.url = "github:numtide/flake-utils";
-    cardano-node.url = "github:IntersectMBO/cardano-node?ref=10.4.1";
-    cardano-db-sync.url = "github:IntersectMBO/cardano-db-sync?ref=13.6.0.5";
-    cardano-wallet.url = "github:cardano-foundation/cardano-wallet?ref=v2025-03-31";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    midnight-compactc = {
+      url = "github:midnightntwrk/compactc?ref=v0.24.0";
+      inputs.nixpkgs.follows = "nixpkgs";
+    } ;
   };
 
   outputs =
@@ -24,11 +21,8 @@
       self,
       nixpkgs,
       rust-overlay,
-      sbt,
       flake-utils,
-      cardano-node,
-      cardano-db-sync,
-      cardano-wallet,
+      midnight-compactc,
       ...
     }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-darwin" ] (
@@ -40,11 +34,12 @@
           overlays = [
             (import rust-overlay)
             (_: prev: {
-              mkSbtDerivation = sbt.mkSbtDerivation.${pkgs.system};
               rustTools = prev.callPackage ./nix/rustTools.nix { inherit rust-overlay; };
-              inherit (cardano-node.packages.${system}) cardano-cli cardano-node cardano-testnet;
-              inherit (cardano-wallet.packages.${system}) cardano-wallet;
-              cardano-db-sync = cardano-db-sync.packages.${system}.default;
+              compactc =
+                if (pkgs.lib.strings.hasSuffix "-darwin" system) then
+                  midnight-compactc.packages.${system}.compactc-binary-macos
+                else
+                  midnight-compactc.packages.${system}.compactc-binary-nixos;
             })
             (_: prev: {
               pkgsInternal = import ./nix/pkgsInternal { pkgs = prev; };
