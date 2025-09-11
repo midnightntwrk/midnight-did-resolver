@@ -1,7 +1,7 @@
 use graphql_client::{GraphQLQuery, Response};
 use identus_apollo::hex::HexStr;
-use identus_did_midnight::did::MidnightDid;
-use identus_did_midnight::dlt::ContractState;
+use midnight_did::did::MidnightDid;
+use midnight_did::dlt::ContractState;
 
 type HexEncoded = HexStr;
 

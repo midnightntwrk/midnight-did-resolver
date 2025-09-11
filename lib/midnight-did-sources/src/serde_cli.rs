@@ -4,8 +4,8 @@ use std::process::Command;
 
 use derive_more::{Display, Error};
 use identus_did_core::DidDocument;
-use identus_did_midnight::did::MidnightDid;
-use identus_did_midnight::dlt::{ContractState, ContractStateDecoder};
+use midnight_did::did::MidnightDid;
+use midnight_did::dlt::{ContractState, ContractStateDecoder};
 
 #[derive(Debug, Display, Error)]
 pub enum SerdeCliError {

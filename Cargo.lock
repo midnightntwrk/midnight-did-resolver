@@ -1129,36 +1129,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "identus-did-midnight"
-version = "0.5.0"
-dependencies = [
- "chrono",
- "derive_more",
- "identus-apollo",
- "identus-did-core",
- "serde",
- "serde_json",
- "strum 0.27.2",
- "utoipa",
-]
-
-[[package]]
-name = "identus-did-midnight-sources"
-version = "0.5.0"
-dependencies = [
- "derive_more",
- "graphql_client",
- "identus-apollo",
- "identus-did-core",
- "identus-did-midnight",
- "reqwest",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
 name = "idna"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1352,6 +1322,36 @@ name = "memchr"
 version = "2.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32a282da65faaf38286cf3be983213fcf1d2e2a58700e808f83f4ea9a4804bc0"
+
+[[package]]
+name = "midnight-did"
+version = "0.5.0"
+dependencies = [
+ "chrono",
+ "derive_more",
+ "identus-apollo",
+ "identus-did-core",
+ "serde",
+ "serde_json",
+ "strum 0.27.2",
+ "utoipa",
+]
+
+[[package]]
+name = "midnight-did-sources"
+version = "0.5.0"
+dependencies = [
+ "derive_more",
+ "graphql_client",
+ "identus-apollo",
+ "identus-did-core",
+ "midnight-did",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "miniz_oxide"
