@@ -1,0 +1,22 @@
+[package]
+name              = "midnight-did-sources"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+midnight-did = { workspace = true }
+
+derive_more      = { workspace = true }
+graphql_client   = { workspace = true, optional = true }
+identus-apollo   = { workspace = true, features = [ "hex" ] }
+identus-did-core = { workspace = true }
+reqwest          = { workspace = true, optional = true, default-features = false, features = [ "rustls-tls", "json" ] }
+serde_json       = { workspace = true, optional = true }
+serde            = { workspace = true, optional = true, features = [ "derive" ] }
+tokio            = { workspace = true, features = [ "process", "rt", "macros" ] }
+tracing          = { workspace = true }
+
+[features]
+default     = [  ]
+serde-cli   = [ "dep:serde", "dep:serde_json" ]
+indexer-api = [ "dep:graphql_client", "dep:reqwest", "dep:serde", "dep:serde_json" ]

@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
-use identus_did_midnight::did::{MidnightContractAddress, MidnightDid, MidnightNetwork};
-use identus_did_midnight::error::Error;
+use midnight_did::did::{MidnightContractAddress, MidnightDid, MidnightNetwork};
+use midnight_did::error::Error;
 
 #[test]
 fn test_midnight_network_from_str() {

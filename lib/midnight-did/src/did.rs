@@ -102,6 +102,7 @@ impl MidnightDid {
         Did::from_str(&s).expect("midnight did does not construct a valid did syntax")
     }
 
+    // TODO: confirm assumption about contract address
     pub fn global_contract_address(&self) -> [u8; 35] {
         let network_addr = self.contract_address.as_slice();
         let network_byte: u8 = self.network().as_u8_repr();
