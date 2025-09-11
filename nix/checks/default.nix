@@ -1,5 +1,5 @@
 { pkgs, ... }:
 
 {
-  default = pkgs.callPackage ./neoprism-checks.nix { };
+  default = pkgs.callPackage ./resolver-checks.nix { };
 }
