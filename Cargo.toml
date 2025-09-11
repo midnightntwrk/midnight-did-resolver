@@ -2,8 +2,8 @@
 resolver = "3"
 members = [
   # "bin/neoprism-node", # TODO: bring this back
-  "lib/midnight-did",
-  "lib/midnight-did-sources",
+  "midnight-did",
+  "midnight-did-sources",
 ]
 
 [workspace.package]
@@ -12,9 +12,8 @@ edition = "2024"
 license = "Apache-2.0"
 
 [workspace.dependencies]
-# internal
-midnight-did         = { path = "lib/midnight-did" }
-midnight-did-sources = { path = "lib/midnight-did-sources" }
+midnight-did         = { path = "midnight-did" }
+midnight-did-sources = { path = "midnight-did-sources" }
 
 identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
 identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
