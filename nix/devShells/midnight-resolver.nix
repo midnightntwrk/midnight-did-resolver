@@ -58,10 +58,9 @@ pkgs.mkShell {
       cargo-license
       cargo-udeps
       rust
-      # TODO: use compactc flake
-      # midnight - uncomment for midnight packages, only available for x86_64-linux
-      # pkgsInternal.compactc
-      # pkgsInternal.did-midnight-serde
+      # midnight
+      compactc
+      pkgsInternal.did-midnight-serde
     ]
     ++ (builtins.attrValues scripts);
 
