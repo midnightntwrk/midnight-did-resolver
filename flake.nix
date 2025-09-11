@@ -13,7 +13,7 @@
     midnight-compactc = {
       url = "github:midnightntwrk/compactc?ref=v0.24.0";
       inputs.nixpkgs.follows = "nixpkgs";
-    } ;
+    };
   };
 
   outputs =
