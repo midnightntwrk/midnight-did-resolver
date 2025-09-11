@@ -13,8 +13,8 @@ let
     name = "did-midnight-serde";
     src = ../..;
 
-    npmRoot = "./bin/did-midnight-serde";
-    npmDeps = importNpmLock { npmRoot = ../../bin/did-midnight-serde; };
+    npmRoot = "./did-midnight-serde";
+    npmDeps = importNpmLock { npmRoot = ../../did-midnight-serde; };
     inherit (importNpmLock) npmConfigHook;
 
     nativeBuildInputs = [
@@ -23,7 +23,7 @@ let
     ];
 
     buildPhase = ''
-      cd ./bin/did-midnight-serde
+      cd ./did-midnight-serde
 
       # run typecheck
       npm run build

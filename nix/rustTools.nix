@@ -39,6 +39,10 @@ rec {
 
   cargoLock = {
     lockFile = ../Cargo.lock;
-    outputHashes = { };
+    outputHashes = {
+      "identus-apollo-0.5.0" = "sha256-XWzEfonB+lg3VB3I9BvKPsgOi9fa3x5suW32sXNv42Y=";
+      "identus-did-core-0.5.0" = "";
+      "identus-did-resolver-http-0.5.0" = "";
+    };
   };
 }

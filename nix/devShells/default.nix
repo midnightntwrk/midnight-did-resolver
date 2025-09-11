@@ -1,4 +1,4 @@
-{ self, pkgs }:
+{ pkgs }:
 
 let
   rootDir = "$ROOT_DIR";
