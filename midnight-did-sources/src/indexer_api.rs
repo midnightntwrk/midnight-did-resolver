@@ -6,7 +6,7 @@ use midnight_did::dlt::ContractState;
 type HexEncoded = HexStr;
 
 #[derive(Debug, derive_more::Display, derive_more::Error)]
-pub enum IndexerApiError {
+pub enum IndexerClientError {
     #[display("http error when calling {url}: {source}")]
     HttpError { source: reqwest::Error, url: String },
     #[display("json error when parsing response from {url}: {source}")]
@@ -21,6 +21,43 @@ pub enum IndexerApiError {
     },
 }
 
+#[derive(Clone)]
+pub struct MidnightIndexerClient {
+    url: String,
+    client: reqwest::Client,
+}
+
+impl MidnightIndexerClient {
+    pub fn new(url: &str) -> Self {
+        Self {
+            url: url.to_string(),
+            client: reqwest::Client::new(),
+        }
+    }
+
+    pub async fn get_contract_state(&self, did: &MidnightDid) -> Result<ContractState, IndexerClientError> {
+        let address_bytes = did.global_contract_address();
+        let address = HexStr::from(address_bytes);
+        let variables = contract_state_query::Variables {
+            address: Some(address.clone()),
+        };
+        let request_body = ContractStateQuery::build_query(variables);
+        let response_body =
+            execute_graphql_query::<contract_state_query::ResponseData>(&self.client, &self.url, &request_body).await?;
+        let data = response_body.data.ok_or(IndexerClientError::MissingDataFields {
+            url: self.url.to_string(),
+            address: address.clone(),
+            fields: vec!["data"],
+        })?;
+        let contract = data.contract_action.ok_or(IndexerClientError::MissingDataFields {
+            url: self.url.to_string(),
+            address,
+            fields: vec!["contract_action"],
+        })?;
+        Ok(contract.state.into())
+    }
+}
+
 #[derive(GraphQLQuery)]
 #[graphql(
     schema_path = "graphql/schema.gql",
@@ -29,52 +66,31 @@ pub enum IndexerApiError {
 )]
 struct ContractStateQuery;
 
-pub async fn get_contract_state(url: &str, did: &MidnightDid) -> Result<ContractState, IndexerApiError> {
-    let address_bytes = did.global_contract_address();
-    let address = HexStr::from(address_bytes);
-    let variables = contract_state_query::Variables {
-        address: Some(address.clone()),
-    };
-    let request_body = ContractStateQuery::build_query(variables);
-    let response_body = execute_graphql_query::<contract_state_query::ResponseData>(url, &request_body).await?;
-    let data = response_body.data.ok_or(IndexerApiError::MissingDataFields {
-        url: url.to_string(),
-        address: address.clone(),
-        fields: vec!["data"],
-    })?;
-    let contract = data.contract_action.ok_or(IndexerApiError::MissingDataFields {
-        url: url.to_string(),
-        address,
-        fields: vec!["contract_action"],
-    })?;
-    Ok(contract.state.into())
-}
-
 async fn execute_graphql_query<T: serde::de::DeserializeOwned>(
+    client: &reqwest::Client,
     url: &str,
     request_body: &impl serde::Serialize,
-) -> Result<Response<T>, IndexerApiError> {
-    let client = reqwest::Client::new();
+) -> Result<Response<T>, IndexerClientError> {
     let res = client
         .post(url)
         .json(request_body)
         .send()
         .await
-        .map_err(|e| IndexerApiError::HttpError {
+        .map_err(|e| IndexerClientError::HttpError {
             source: e,
             url: url.to_string(),
         })?;
     let response_body = res
         .json::<Response<T>>()
         .await
-        .map_err(|e| IndexerApiError::JsonError {
+        .map_err(|e| IndexerClientError::JsonError {
             source: e,
             url: url.to_string(),
         })?;
     if let Some(errors) = &response_body.errors
         && !errors.is_empty()
     {
-        return Err(IndexerApiError::GraphqlError {
+        return Err(IndexerClientError::GraphqlError {
             messages: errors.iter().map(|i| i.to_string()).collect(),
             url: url.to_string(),
         });
