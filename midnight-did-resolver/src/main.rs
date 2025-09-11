@@ -1,4 +1,4 @@
-use neoprism_node::run_command;
+use midnight_did_resolver::run_command;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
