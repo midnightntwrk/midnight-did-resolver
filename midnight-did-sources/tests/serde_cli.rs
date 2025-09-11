@@ -2,9 +2,9 @@
 
 use std::str::FromStr;
 
-use identus_did_midnight::did::MidnightDid;
-use identus_did_midnight::dlt::{ContractState, ContractStateDecoder};
-use identus_did_midnight_sources::serde_cli::CliContractStateDecoder;
+use midnight_did::did::MidnightDid;
+use midnight_did::dlt::{ContractState, ContractStateDecoder};
+use midnight_did_sources::serde_cli::CliContractStateDecoder;
 
 const CLI_PATH: &str = "did-midnight-serde";
 

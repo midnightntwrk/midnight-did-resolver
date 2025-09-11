@@ -1,8 +1,8 @@
 [workspace]
 resolver = "3"
 members = [
-  # "bin/neoprism-node", # TODO: bring this back
   "midnight-did",
+  "midnight-did-resolver",
   "midnight-did-sources",
 ]
 
