@@ -37,7 +37,7 @@ rustPlatform.buildRustPackage {
 
     echo "checking feature gate for identus-did-midnight-sources"
     cargo clippy -p midnight-did-sources --all-targets --features serde-cli -- -D warnings
-    cargo clippy -p midnight-did-sources --all-targets --features indexer-api -- -D warnings
+    cargo clippy -p midnight-did-serde --all-targets --features indexer-api -- -D warnings
   '';
   installPhase = "touch $out";
 }

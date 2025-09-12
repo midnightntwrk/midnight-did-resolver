@@ -26,7 +26,7 @@ utoipa                    = { workspace = true, features = [ "chrono" ] }
 utoipa-swagger-ui         = { workspace = true, features = [ "axum", "vendored" ] }
 
 midnight-did                = { workspace = true, features = [ "openapi" ] }
-midnight-did-sources        = { workspace = true, features = [ "serde-cli" ] }
+midnight-did-serde          = { workspace = true, features = [ "serde-cli" ] }
 midnight-did-indexer-client = { workspace = true }
 
 [features]

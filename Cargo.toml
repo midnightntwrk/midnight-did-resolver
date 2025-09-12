@@ -4,7 +4,7 @@ members = [
   "midnight-did",
   "midnight-did-indexer-client",
   "midnight-did-resolver",
-  "midnight-did-sources",
+  "midnight-did-serde",
 ]
 
 [workspace.package]
@@ -14,7 +14,7 @@ license = "Apache-2.0"
 
 [workspace.dependencies]
 midnight-did                = { path = "midnight-did" }
-midnight-did-sources        = { path = "midnight-did-sources" }
+midnight-did-serde          = { path = "midnight-did-serde" }
 midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 
 identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }

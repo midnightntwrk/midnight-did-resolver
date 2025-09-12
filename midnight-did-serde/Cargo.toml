@@ -1,5 +1,5 @@
 [package]
-name              = "midnight-did-sources"
+name              = "midnight-did-serde"
 version.workspace = true
 edition.workspace = true
 
