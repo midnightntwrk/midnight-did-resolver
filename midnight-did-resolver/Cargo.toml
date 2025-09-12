@@ -17,7 +17,6 @@ identus-did-core          = { workspace = true, features = [ "openapi" ] }
 identus-did-resolver-http = { workspace = true, features = [ "openapi" ] }
 lazybe                    = { workspace = true }
 serde                     = { workspace = true, features = [ "derive" ] }
-serde_json                = { workspace = true }
 tokio                     = { workspace = true, features = [ "full" ] }
 tower-http                = { workspace = true, features = [ "fs", "trace", "cors" ] }
 tower                     = { workspace = true }

@@ -12,7 +12,6 @@ chrono           = { workspace = true }
 derive_more      = { workspace = true, features = [ "as_ref", "from", "into", "debug", "display", "error" ] }
 identus-apollo   = { workspace = true, features = [ "hex" ] }
 identus-did-core = { workspace = true }
-serde_json       = { workspace = true }
 serde            = { workspace = true, features = [ "derive" ] }
 strum            = { workspace = true, features = [ "derive" ] }
 utoipa           = { workspace = true, optional = true }
