@@ -1,24 +1,24 @@
 {
   curl,
   dockerTools,
-  midnight-resolver,
+  midnight-did-resolver,
   tagSuffix ? "",
   version,
   extraPackages ? [ ],
 }:
 
 dockerTools.buildLayeredImage {
-  name = "midnight-resolver";
+  name = "midnight-did-resolver";
   tag = "${version}${tagSuffix}";
   contents = [
     curl
-    midnight-resolver
+    midnight-did-resolver
   ] ++ extraPackages;
   config = {
     Env = [
       "RUST_LOG=info,oura=warn"
     ];
-    Entrypoint = [ "/bin/midnight-resolver" ];
+    Entrypoint = [ "/bin/midnight-did-resolver" ];
     Cmd = [ ];
     WorkingDir = "/";
   };

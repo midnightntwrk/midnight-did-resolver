@@ -17,5 +17,5 @@ let
   };
 in
 {
-  default = import ./midnight-resolver.nix { inherit pkgs buildConfig; };
+  default = import ./midnight-did-resolver.nix { inherit pkgs buildConfig; };
 }
