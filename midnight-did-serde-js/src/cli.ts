@@ -1,7 +1,7 @@
 import { decodeContractState } from './index';
 
 function usageAndExit() {
-  console.error('Usage: did-midnight-serde <did> <network> <hex>');
+  console.error('Usage: midnight-did-serde-js <did> <network> <hex>');
   process.exit(2);
 }
 

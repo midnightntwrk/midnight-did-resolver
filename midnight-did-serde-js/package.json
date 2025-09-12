@@ -1,7 +1,7 @@
 {
-  "name": "did-midnight-serde",
-  "version": "1.0.0",
-  "description": "Migration from Deno to Node.js runtime for did-midnight-serde",
+  "name": "midnight-did-serde-js",
+  "version": "0.1.0",
+  "description": "Utilities for serializing and deserializing DID documents from smart Midnight contract",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {

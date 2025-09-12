@@ -19,7 +19,7 @@ rustPlatform.buildRustPackage {
   inherit (rustTools) cargoLock;
   nativeBuildInputs = [
     deadnix
-    pkgsInternal.did-midnight-serde
+    pkgsInternal.midnight-did-serde-js
   ];
   buildPhase = "cargo b --all-features --all-targets";
   checkPhase = ''

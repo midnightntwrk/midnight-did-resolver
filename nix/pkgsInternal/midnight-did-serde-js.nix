@@ -10,11 +10,11 @@
 
 let
   bundle = buildNpmPackage {
-    name = "did-midnight-serde";
+    name = "midnight-did-serde-js";
     src = ../..;
 
-    npmRoot = "./did-midnight-serde";
-    npmDeps = importNpmLock { npmRoot = ../../did-midnight-serde; };
+    npmRoot = "./midnight-did-serde-js";
+    npmDeps = importNpmLock { npmRoot = ../../midnight-did-serde-js; };
     inherit (importNpmLock) npmConfigHook;
 
     nativeBuildInputs = [
@@ -23,7 +23,7 @@ let
     ];
 
     buildPhase = ''
-      cd ./did-midnight-serde
+      cd ./midnight-did-serde-js
 
       # run typecheck
       npm run build
@@ -47,7 +47,7 @@ let
     '';
   };
   wrapper = writeShellApplication {
-    name = "did-midnight-serde";
+    name = "midnight-did-serde-js";
     runtimeInputs = [ nodejs_22 ];
     text = ''
       export NODE_PATH=${bundle}/node_modules
@@ -56,7 +56,7 @@ let
   };
 in
 symlinkJoin {
-  name = "did-midnight-serde";
+  name = "midnight-did-serde-js";
   paths = [
     bundle
     wrapper
