@@ -14,7 +14,7 @@ let
 in
 rustPlatform.buildRustPackage {
   inherit cargoLock buildFeatures;
-  name = "midnight-resolver";
+  name = "midnight-did-resolver";
   src = lib.cleanSourceWith {
     filter =
       path: _:
