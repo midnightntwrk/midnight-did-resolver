@@ -80,13 +80,10 @@ async fn execute_graphql_query<T: serde::de::DeserializeOwned>(
             source: e,
             url: url.to_string(),
         })?;
-    let response_body = res
-        .json::<Response<T>>()
-        .await
-        .map_err(|e| Error::JsonError {
-            source: e,
-            url: url.to_string(),
-        })?;
+    let response_body = res.json::<Response<T>>().await.map_err(|e| Error::JsonError {
+        source: e,
+        url: url.to_string(),
+    })?;
     if let Some(errors) = &response_body.errors
         && !errors.is_empty()
     {

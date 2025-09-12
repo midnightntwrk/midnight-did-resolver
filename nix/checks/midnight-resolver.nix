@@ -32,12 +32,11 @@ rustPlatform.buildRustPackage {
     cargo clippy --all-targets --all-features -- -D warnings
 
     # check individual feature if properly gated
-    echo "checking feature gate for identus-did-midnight"
+    echo "checking feature gate for midnight-did"
     cargo clippy -p midnight-did --all-targets --features openapi -- -D warnings
 
-    echo "checking feature gate for identus-did-midnight-sources"
-    cargo clippy -p midnight-did-sources --all-targets --features serde-cli -- -D warnings
-    cargo clippy -p midnight-did-serde --all-targets --features indexer-api -- -D warnings
+    echo "checking feature gate for midnight-did-serde"
+    cargo clippy -p midnight-did-serde --all-targets --features serde-cli -- -D warnings
   '';
   installPhase = "touch $out";
 }
