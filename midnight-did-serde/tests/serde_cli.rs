@@ -4,7 +4,7 @@ use std::str::FromStr;
 
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::{ContractState, ContractStateDecoder};
-use midnight_did_sources::serde_cli::CliContractStateDecoder;
+use midnight_did_serde::serde_cli::CliContractStateDecoder;
 
 const CLI_PATH: &str = "did-midnight-serde";
 
