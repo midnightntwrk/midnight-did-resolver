@@ -1,2 +1,2 @@
-#[cfg(feature = "serde-cli")]
+#[cfg(feature = "js-cli")]
 pub mod serde_cli;

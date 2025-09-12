@@ -36,7 +36,7 @@ rustPlatform.buildRustPackage {
     cargo clippy -p midnight-did --all-targets --features openapi -- -D warnings
 
     echo "checking feature gate for midnight-did-serde"
-    cargo clippy -p midnight-did-serde --all-targets --features serde-cli -- -D warnings
+    cargo clippy -p midnight-did-serde --all-targets --features js-cli -- -D warnings
   '';
   installPhase = "touch $out";
 }

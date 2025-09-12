@@ -1,4 +1,4 @@
-#![cfg(feature = "serde-cli")]
+#![cfg(feature = "js-cli")]
 
 use std::str::FromStr;
 
