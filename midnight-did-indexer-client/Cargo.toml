@@ -1,0 +1,13 @@
+[package]
+name              = "midnight-did-indexer-client"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+midnight-did = { workspace = true }
+
+derive_more    = { workspace = true }
+graphql_client = { workspace = true }
+reqwest        = { workspace = true, features = [ "json", "rustls-tls" ] }
+identus-apollo = { workspace = true }
+serde          = { workspace = true, features = [ "derive" ] }

@@ -7,7 +7,7 @@ use identus_did_core::{
 };
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDecoder;
-use midnight_did_sources::indexer_api::{IndexerClientError, MidnightIndexerClient};
+use midnight_did_indexer_client::{Error as IndexerClientError, MidnightIndexerClient};
 
 #[derive(Debug, derive_more::Display, derive_more::From, derive_more::Error)]
 enum ResolutionError {

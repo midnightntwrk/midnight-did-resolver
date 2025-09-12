@@ -5,7 +5,7 @@ use axum::Router;
 use clap::Parser;
 use cli::Cli;
 use identus_did_resolver_http::DidResolverStateDyn;
-use midnight_did_sources::indexer_api::MidnightIndexerClient;
+use midnight_did_indexer_client::MidnightIndexerClient;
 use midnight_did_sources::serde_cli::CliContractStateDecoder;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;

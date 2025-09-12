@@ -1888,6 +1888,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "midnight-did-indexer-client"
+version = "0.5.0"
+dependencies = [
+ "derive_more",
+ "graphql_client",
+ "identus-apollo",
+ "midnight-did",
+ "reqwest",
+ "serde",
+]
+
+[[package]]
 name = "midnight-did-resolver"
 version = "0.5.0"
 dependencies = [
@@ -1902,6 +1914,7 @@ dependencies = [
  "identus-did-resolver-http",
  "lazybe",
  "midnight-did",
+ "midnight-did-indexer-client",
  "midnight-did-sources",
  "serde",
  "serde_json",
@@ -1919,15 +1932,10 @@ name = "midnight-did-sources"
 version = "0.5.0"
 dependencies = [
  "derive_more",
- "graphql_client",
- "identus-apollo",
  "identus-did-core",
  "midnight-did",
- "reqwest",
  "serde",
  "serde_json",
- "tokio",
- "tracing",
 ]
 
 [[package]]

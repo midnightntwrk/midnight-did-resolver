@@ -2,6 +2,7 @@
 resolver = "3"
 members = [
   "midnight-did",
+  "midnight-did-indexer-client",
   "midnight-did-resolver",
   "midnight-did-sources",
 ]
@@ -12,8 +13,9 @@ edition = "2024"
 license = "Apache-2.0"
 
 [workspace.dependencies]
-midnight-did         = { path = "midnight-did" }
-midnight-did-sources = { path = "midnight-did-sources" }
+midnight-did                = { path = "midnight-did" }
+midnight-did-sources        = { path = "midnight-did-sources" }
+midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 
 identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
 identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
@@ -42,4 +44,5 @@ tracing-subscriber = { version = "0.3" }
 ts-rs              = { version = "11.0" }
 uriparse           = { version = "0.6" }
 utoipa             = { version = "5" }
+utoipa-swagger-ui  = { version = "9" }
 uuid               = { version = "1" }
