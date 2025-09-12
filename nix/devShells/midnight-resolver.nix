@@ -58,9 +58,10 @@ pkgs.mkShell {
       cargo-license
       cargo-udeps
       rust
-      # midnight
+      # midnight js
       compactc
-      pkgsInternal.did-midnight-serde
+      nodejs_22
+      pkgsInternal.midnight-did-serde-js
     ]
     ++ (builtins.attrValues scripts);
 

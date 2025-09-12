@@ -54,4 +54,4 @@ let
           };
     };
 in
-{ inherit (pkgs.pkgsInternal) did-midnight-serde; } // (mkResolverPackages { })
+{ inherit (pkgs.pkgsInternal) midnight-did-serde-js; } // (mkResolverPackages { })

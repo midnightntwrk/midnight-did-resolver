@@ -1,5 +1,5 @@
 { pkgs }:
 
 {
-  did-midnight-serde = pkgs.callPackage ./did-midnight-serde.nix { };
+  midnight-did-serde-js = pkgs.callPackage ./midnight-did-serde-js.nix { };
 }
