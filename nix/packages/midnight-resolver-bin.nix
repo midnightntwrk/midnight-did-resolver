@@ -3,7 +3,6 @@
   makeRustPlatform,
   rust,
   cargoLock,
-  buildPackages,
   buildFeatures ? [ ],
 }:
 
@@ -15,24 +14,15 @@ let
 in
 rustPlatform.buildRustPackage {
   inherit cargoLock buildFeatures;
-  name = "neoprism";
+  name = "midnight-resolver";
   src = lib.cleanSourceWith {
     filter =
       path: _:
       let
         baseName = builtins.baseNameOf path;
       in
-      !(
-        baseName == "docs"
-        || baseName == "docker"
-        || baseName == ".github"
-        || baseName == "tests"
-        || baseName == "README.md"
-        || baseName == "AGENTS.md"
-      );
+      !(baseName == "docs" || baseName == ".github" || baseName == "README.md");
     src = ./../..;
   };
-  nativeBuildInputs = with buildPackages; [ protobuf ];
   doCheck = false;
-  PROTOC = "${buildPackages.protobuf}/bin/protoc";
 }

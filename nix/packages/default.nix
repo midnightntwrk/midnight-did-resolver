@@ -13,46 +13,45 @@ let
       }
       // overrides
     );
-  mkNeoprismPackages =
+  mkResolverPackages =
     {
       buildFeatures ? [ ],
       extraPackages ? [ ],
     }:
     rec {
-      # neoprism
-      neoprism-bin = pkgs.callPackage ./neoprism-bin.nix {
+      midnight-resolver-bin = pkgs.callPackage ./midnight-resolver-bin.nix {
         inherit buildFeatures;
         rust = pkgs.rustTools.rustMinimal;
         inherit (pkgs.rustTools) cargoLock;
       };
-      neoprism-bin-x86_64-linux = callPackageRustCross "gnu64" ./neoprism-bin.nix {
+      midnight-resolver-bin-x86_64-linux = callPackageRustCross "gnu64" ./midnight-resolver-bin.nix {
         inherit buildFeatures;
         inherit (pkgs.rustTools) cargoLock;
       };
-      neoprism-bin-aarch64-linux = callPackageRustCross "aarch64-multiplatform" ./neoprism-bin.nix {
-        inherit buildFeatures;
-        inherit (pkgs.rustTools) cargoLock;
-      };
-      neoprism-docker = pkgs.callPackage ./neoprism-docker.nix {
-        inherit
-          version
-          neoprism-bin
-          extraPackages
-          ;
-      };
-      neoprism-docker-linux-amd64 = pkgs.pkgsCross.gnu64.callPackage ./neoprism-docker.nix {
+      midnight-resolver-bin-aarch64-linux =
+        callPackageRustCross "aarch64-multiplatform" ./midnight-resolver-bin.nix
+          {
+            inherit buildFeatures;
+            inherit (pkgs.rustTools) cargoLock;
+          };
+      midnight-resolver-docker = pkgs.callPackage ./midnight-resolver-docker.nix {
         inherit version extraPackages;
-        neoprism-bin = neoprism-bin-x86_64-linux;
-        tagSuffix = "-amd64";
+        midnight-resolver = midnight-resolver-bin;
       };
-      neoprism-docker-linux-arm64 =
-        pkgs.pkgsCross.aarch64-multiplatform.callPackage ./neoprism-docker.nix
+      midnight-resolver-docker-linux-amd64 =
+        pkgs.pkgsCross.gnu64.callPackage ./midnight-resolver-docker.nix
           {
             inherit version extraPackages;
-            neoprism-bin = neoprism-bin-aarch64-linux;
+            midnight-resolver = midnight-resolver-bin-x86_64-linux;
+            tagSuffix = "-amd64";
+          };
+      midnight-resolver-docker-linux-arm64 =
+        pkgs.pkgsCross.aarch64-multiplatform.callPackage ./midnight-resolver-docker.nix
+          {
+            inherit version extraPackages;
+            midnight-resolver = midnight-resolver-bin-aarch64-linux;
             tagSuffix = "-arm64";
           };
     };
-  neoprismPackages = mkNeoprismPackages { };
 in
-{ inherit (pkgs.pkgsInternal) did-midnight-serde; } // neoprismPackages
+{ inherit (pkgs.pkgsInternal) did-midnight-serde; } // (mkResolverPackages { })

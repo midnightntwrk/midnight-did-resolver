@@ -1,25 +1,24 @@
 {
   curl,
   dockerTools,
-  neoprism-bin,
+  midnight-resolver,
   tagSuffix ? "",
   version,
   extraPackages ? [ ],
 }:
 
 dockerTools.buildLayeredImage {
-  name = "identus-neoprism";
+  name = "midnight-resolver";
   tag = "${version}${tagSuffix}";
   contents = [
     curl
-    neoprism-bin
+    midnight-resolver
   ] ++ extraPackages;
   config = {
     Env = [
       "RUST_LOG=info,oura=warn"
-      "NPRISM_ASSETS_PATH=/assets"
     ];
-    Entrypoint = [ "/bin/neoprism-node" ];
+    Entrypoint = [ "/bin/midnight-resolver" ];
     Cmd = [ ];
     WorkingDir = "/";
   };

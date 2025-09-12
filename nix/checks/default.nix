@@ -1,5 +1,5 @@
 { pkgs, ... }:
 
 {
-  default = pkgs.callPackage ./resolver-checks.nix { };
+  default = pkgs.callPackage ./midnight-resolver.nix { };
 }
