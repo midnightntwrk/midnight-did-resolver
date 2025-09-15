@@ -17,9 +17,9 @@ midnight-did                = { path = "midnight-did" }
 midnight-did-serde          = { path = "midnight-did-serde" }
 midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 
-identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
-identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
-identus-did-resolver-http = { git = "https://github.com/hyperledger-identus/neoprism", rev = "a5e0c4689012bcc099e69c232475ecc5291b3d8e" }
+identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
+identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
+identus-did-resolver-http = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
 
 anyhow             = { version = "1" }
 async-trait        = { version = "0.1" }
