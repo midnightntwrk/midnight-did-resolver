@@ -62,6 +62,7 @@ pkgs.mkShell {
       compactc
       nodejs_22
       pkgsInternal.midnight-did-serde-js
+      typescript-language-server
     ]
     ++ (builtins.attrValues scripts);
 
