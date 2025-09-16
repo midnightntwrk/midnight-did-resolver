@@ -2,58 +2,68 @@
 
 let
   version = builtins.replaceStrings [ "\n" ] [ "" ] (builtins.readFile ../../version);
-  callPackageRustCross =
-    targetSystem: path: overrides:
-    pkgs.pkgsCross."${targetSystem}".callPackage path (
-      {
-        rust = pkgs.rustTools.mkRustCross {
-          pkgsCross = pkgs.pkgsCross."${targetSystem}";
-          minimal = true;
-        };
-      }
-      // overrides
-    );
-  mkResolverPackages =
+  platforms = [
     {
-      buildFeatures ? [ ],
-      extraPackages ? [ ],
-    }:
-    rec {
-      midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
-        inherit buildFeatures;
-        rust = pkgs.rustTools.rustMinimal;
-        inherit (pkgs.rustTools) cargoLock postPatch;
+      name = "x86_64-linux";
+      cross = "gnu64";
+      tagSuffix = "-amd64";
+    }
+    {
+      name = "aarch64-linux";
+      cross = "aarch64-multiplatform";
+      tagSuffix = "-arm64";
+    }
+  ];
+
+  mkBin =
+    platform:
+    pkgs.pkgsCross."${platform.cross}".callPackage ./midnight-did-resolver-bin.nix {
+      rust = pkgs.rustTools.mkRustCross {
+        pkgsCross = pkgs.pkgsCross."${platform.cross}";
+        minimal = true;
       };
-      midnight-did-resolver-bin-x86_64-linux =
-        callPackageRustCross "gnu64" ./midnight-did-resolver-bin.nix
-          {
-            inherit buildFeatures;
-            inherit (pkgs.rustTools) cargoLock postPatch;
-          };
-      midnight-did-resolver-bin-aarch64-linux =
-        callPackageRustCross "aarch64-multiplatform" ./midnight-did-resolver-bin.nix
-          {
-            inherit buildFeatures;
-            inherit (pkgs.rustTools) cargoLock postPatch;
-          };
-      midnight-did-resolver-docker = pkgs.callPackage ./midnight-did-resolver-docker.nix {
-        inherit version extraPackages;
-        midnight-did-resolver = midnight-did-resolver-bin;
-      };
-      midnight-did-resolver-docker-linux-amd64 =
-        pkgs.pkgsCross.gnu64.callPackage ./midnight-did-resolver-docker.nix
-          {
-            inherit version extraPackages;
-            midnight-did-resolver = midnight-did-resolver-bin-x86_64-linux;
-            tagSuffix = "-amd64";
-          };
-      midnight-did-resolver-docker-linux-arm64 =
-        pkgs.pkgsCross.aarch64-multiplatform.callPackage ./midnight-did-resolver-docker.nix
-          {
-            inherit version extraPackages;
-            midnight-did-resolver = midnight-did-resolver-bin-aarch64-linux;
-            tagSuffix = "-arm64";
-          };
+      inherit (pkgs.rustTools) cargoLock postPatch;
     };
+
+  mkDocker =
+    platform:
+    pkgs.pkgsCross."${platform.cross}".callPackage ./midnight-did-resolver-docker.nix {
+      inherit version;
+      midnight-did-resolver = mkBin platform;
+      tagSuffix = platform.tagSuffix;
+      extraPackages = [ pkgs.pkgsInternal.midnight-did-serde-js ];
+    };
+
+  bins = builtins.listToAttrs (
+    map (p: {
+      name = "midnight-did-resolver-bin-" + p.name;
+      value = mkBin p;
+    }) platforms
+  );
+
+  dockers = builtins.listToAttrs (
+    map (p: {
+      name = "midnight-did-resolver-docker-" + p.name;
+      value = mkDocker p;
+    }) platforms
+  );
+
+  midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
+    rust = pkgs.rustTools.rustMinimal;
+    inherit (pkgs.rustTools) cargoLock postPatch;
+  };
+
+  midnight-did-resolver-docker = pkgs.callPackage ./midnight-did-resolver-docker.nix {
+    inherit version;
+    midnight-did-resolver = midnight-did-resolver-bin;
+    extraPackages = [ pkgs.pkgsInternal.midnight-did-serde-js ];
+  };
+
 in
-{ inherit (pkgs.pkgsInternal) midnight-did-serde-js; } // (mkResolverPackages { })
+{
+  inherit (pkgs.pkgsInternal) midnight-did-serde-js;
+  midnight-did-resolver-bin = midnight-did-resolver-bin;
+  midnight-did-resolver-docker = midnight-did-resolver-docker;
+}
+// bins
+// dockers
