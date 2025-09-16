@@ -20,22 +20,21 @@ let
     }:
     rec {
       midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
-        pkgs = pkgs;
         inherit buildFeatures;
         rust = pkgs.rustTools.rustMinimal;
-        inherit (pkgs.rustTools) cargoLock;
+        inherit (pkgs.rustTools) cargoLock postPatch;
       };
       midnight-did-resolver-bin-x86_64-linux =
         callPackageRustCross "gnu64" ./midnight-did-resolver-bin.nix
           {
             inherit buildFeatures;
-            inherit (pkgs.rustTools) cargoLock;
+            inherit (pkgs.rustTools) cargoLock postPatch;
           };
       midnight-did-resolver-bin-aarch64-linux =
         callPackageRustCross "aarch64-multiplatform" ./midnight-did-resolver-bin.nix
           {
             inherit buildFeatures;
-            inherit (pkgs.rustTools) cargoLock;
+            inherit (pkgs.rustTools) cargoLock postPatch;
           };
       midnight-did-resolver-docker = pkgs.callPackage ./midnight-did-resolver-docker.nix {
         inherit version extraPackages;

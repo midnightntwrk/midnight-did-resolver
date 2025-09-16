@@ -16,7 +16,7 @@ in
 rustPlatform.buildRustPackage {
   name = "midnight-did-resolver-checks";
   src = lib.cleanSource ./../..;
-  inherit (rustTools) cargoLock;
+  inherit (rustTools) cargoLock postPatch;
 
   nativeBuildInputs = [
     deadnix
