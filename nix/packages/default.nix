@@ -20,6 +20,7 @@ let
     }:
     rec {
       midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
+        pkgs = pkgs;
         inherit buildFeatures;
         rust = pkgs.rustTools.rustMinimal;
         inherit (pkgs.rustTools) cargoLock;
