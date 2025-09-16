@@ -47,6 +47,9 @@ let
       value = mkDocker p;
     }) platforms
   );
+in
+rec {
+  inherit (pkgs.pkgsInternal) midnight-did-serde-js;
 
   midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
     rust = pkgs.rustTools.rustMinimal;
@@ -58,12 +61,6 @@ let
     midnight-did-resolver = midnight-did-resolver-bin;
     extraPackages = [ pkgs.pkgsInternal.midnight-did-serde-js ];
   };
-
-in
-{
-  inherit (pkgs.pkgsInternal) midnight-did-serde-js;
-  midnight-did-resolver-bin = midnight-did-resolver-bin;
-  midnight-did-resolver-docker = midnight-did-resolver-docker;
 }
 // bins
 // dockers
