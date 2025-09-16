@@ -6,7 +6,7 @@ use identus_did_core::{
     ResolutionOptions, ResolutionResult,
 };
 use midnight_did::did::MidnightDid;
-use midnight_did::dlt::ContractStateDecoder;
+use midnight_did::dlt::ContractStateDeserializer;
 use midnight_did_indexer_client::{Error as IndexerClientError, MidnightIndexerClient};
 
 #[derive(Debug, derive_more::Display, derive_more::From, derive_more::Error)]
@@ -54,17 +54,17 @@ impl From<ResolutionError> for ResolutionResult {
 #[derive(Clone)]
 pub struct ResolverService {
     indexer_client: MidnightIndexerClient,
-    state_decoder: Arc<dyn ContractStateDecoder + Send + Sync + 'static>,
+    state_deserializer: Arc<dyn ContractStateDeserializer + Send + Sync + 'static>,
 }
 
 impl ResolverService {
     pub fn new(
         indexer_client: MidnightIndexerClient,
-        state_decoder: Arc<dyn ContractStateDecoder + Send + Sync + 'static>,
+        state_deserializer: Arc<dyn ContractStateDeserializer + Send + Sync + 'static>,
     ) -> Self {
         Self {
             indexer_client,
-            state_decoder,
+            state_deserializer,
         }
     }
 
@@ -78,7 +78,7 @@ impl ResolverService {
             Err(IndexerClientError::MissingDataFields { .. }) => Err(ResolutionError::NotFound)?,
             Err(e) => Err(anyhow::Error::from(e))?,
         };
-        let did_doc = match self.state_decoder.decode(&did, contract_state) {
+        let did_doc = match self.state_deserializer.deserialize(&did, contract_state) {
             Ok(doc) => doc,
             Err(e) => Err(ResolutionError::InternalError {
                 source: anyhow::Error::from_boxed(e),

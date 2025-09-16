@@ -13,9 +13,13 @@ edition = "2024"
 license = "Apache-2.0"
 
 [workspace.dependencies]
+midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 midnight-did                = { path = "midnight-did" }
 midnight-did-serde          = { path = "midnight-did-serde" }
-midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
+
+midnight-onchain-runtime_v6 = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-onchain-runtime", tag = "ledger-6.1.0-alpha.2" }
+midnight-serialize_v6       = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-serialize", tag = "ledger-6.1.0-alpha.2" }
+midnight-storage_v6         = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-storage", tag = "ledger-6.1.0-alpha.2" }
 
 identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
 identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }

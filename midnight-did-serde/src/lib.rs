@@ -1,2 +1,10 @@
+mod serde_impl;
+
 #[cfg(feature = "js-cli")]
-pub mod serde_cli;
+mod serde_cli;
+
+pub use serde_impl::DefaultContractStateDeserializer;
+
+#[cfg(feature = "js-cli")]
+pub use serde_cli::CliContractStateDeserializer;
+

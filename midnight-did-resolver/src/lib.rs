@@ -6,7 +6,7 @@ use clap::Parser;
 use cli::Cli;
 use identus_did_resolver_http::DidResolverStateDyn;
 use midnight_did_indexer_client::MidnightIndexerClient;
-use midnight_did_serde::serde_cli::CliContractStateDecoder;
+use midnight_did_serde::CliContractStateDeserializer;
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
@@ -47,7 +47,7 @@ async fn run_serve_command(args: ServeArgs) -> anyhow::Result<()> {
 
     let resolver_service = ResolverService::new(
         MidnightIndexerClient::new(&args.indexer_url),
-        Arc::new(CliContractStateDecoder::new("midnight-did-serde-js")),
+        Arc::new(CliContractStateDeserializer::new("midnight-did-serde-js")),
     );
     let did_resolver_state = DidResolverStateDyn {
         resolver: Arc::new(resolver_service),

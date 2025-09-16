@@ -33,8 +33,8 @@ impl FromStr for ContractState {
     }
 }
 
-pub trait ContractStateDecoder {
-    fn decode(
+pub trait ContractStateDeserializer {
+    fn deserialize(
         &self,
         did: &MidnightDid,
         state: ContractState,

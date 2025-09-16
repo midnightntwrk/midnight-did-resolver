@@ -40,9 +40,9 @@ rec {
   cargoLock = {
     lockFile = ../Cargo.lock;
     outputHashes = {
-      "identus-apollo-0.5.0" = "sha256-XWzEfonB+lg3VB3I9BvKPsgOi9fa3x5suW32sXNv42Y=";
-      "identus-did-core-0.5.0" = "";
-      "identus-did-resolver-http-0.5.0" = "";
+      "identus-apollo-0.5.0" = "sha256-4fRIrQVDVL3h6I25I77e10v6ed9A8KsX9M7y1XO52rg=";
+      "midnight-base-crypto-1.0.0-alpha.1" = "sha256-nVIiIpuXwb1+dLD/U4F2hMXSm4ROPJ79x6FviFd3qpc=";
+      "midnight-circuits-4.0.0" = "sha256-29EYVorD4KxR/ZmSqIWsZnjZE36z1F8eZ9budGyKM3A=";
     };
   };
 }

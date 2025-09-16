@@ -17,11 +17,16 @@ rustPlatform.buildRustPackage {
   name = "midnight-did-resolver-checks";
   src = lib.cleanSource ./../..;
   inherit (rustTools) cargoLock;
+
   nativeBuildInputs = [
     deadnix
     pkgsInternal.midnight-did-serde-js
   ];
-  buildPhase = "cargo b --all-features --all-targets";
+
+  buildPhase = ''
+    cargo b --all-features --all-targets
+  '';
+
   checkPhase = ''
     deadnix -f
     cargo fmt --check
@@ -38,5 +43,6 @@ rustPlatform.buildRustPackage {
     echo "checking feature gate for midnight-did-serde"
     cargo clippy -p midnight-did-serde --all-targets --features js-cli -- -D warnings
   '';
+
   installPhase = "touch $out";
 }
