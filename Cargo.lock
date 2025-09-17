@@ -2437,6 +2437,8 @@ version = "0.1.0"
 dependencies = [
  "derive_more",
  "identus-did-core",
+ "midnight-base-crypto",
+ "midnight-coin-structure",
  "midnight-did",
  "midnight-onchain-runtime",
  "midnight-serialize",

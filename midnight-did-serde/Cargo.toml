@@ -9,6 +9,8 @@ midnight-did = { workspace = true }
 
 derive_more                 = { workspace = true }
 identus-did-core            = { workspace = true }
+midnight-base-crypto_v6     = { workspace = true }
+midnight-coin-structure_v6  = { workspace = true }
 midnight-onchain-runtime_v6 = { workspace = true }
 midnight-serialize_v6       = { workspace = true }
 midnight-storage_v6         = { workspace = true }

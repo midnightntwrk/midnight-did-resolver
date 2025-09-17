@@ -17,6 +17,8 @@ midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 midnight-did                = { path = "midnight-did" }
 midnight-did-serde          = { path = "midnight-did-serde" }
 
+midnight-base-crypto_v6     = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-base-crypto", tag = "ledger-6.1.0-alpha.2" }
+midnight-coin-structure_v6  = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-coin-structure", tag = "ledger-6.1.0-alpha.2" }
 midnight-onchain-runtime_v6 = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-onchain-runtime", tag = "ledger-6.1.0-alpha.2" }
 midnight-serialize_v6       = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-serialize", tag = "ledger-6.1.0-alpha.2" }
 midnight-storage_v6         = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-storage", tag = "ledger-6.1.0-alpha.2" }
