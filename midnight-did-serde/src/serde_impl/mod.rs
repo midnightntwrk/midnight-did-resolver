@@ -1,10 +1,8 @@
-use midnight_base_crypto_v6::fab::AlignedValue;
-// use midnight_base_crypto_v6::hash::HashOutput;
-// use midnight_coin_structure_v6::contract::ContractAddress;
-use midnight_did::dlt::{ContractState, ContractStateDeserializer};
-use midnight_onchain_runtime_v6::state::{self as state_v6, StateValue};
-use midnight_serialize_v6::tagged_deserialize as tagged_deserialize_v6;
-use midnight_storage_v6::{storage::Array, DefaultDB as DefaultDBV6};
+use midnight_did::dlt::ContractStateDeserializer;
+
+use crate::serde_impl::v6::ContractStateDeserializerV6;
+
+mod v6;
 
 #[derive(Debug, Clone)]
 pub struct DefaultContractStateDeserializer;
@@ -15,27 +13,7 @@ impl ContractStateDeserializer for DefaultContractStateDeserializer {
         did: &midnight_did::did::MidnightDid,
         state: midnight_did::dlt::ContractState,
     ) -> Result<identus_did_core::DidDocument, Box<dyn std::error::Error + Send + Sync>> {
-        // let did_contract_address = did.contract_address();
-        // let address_hash_output: &[u8; 32] = did_contract_address.as_slice().split_last_chunk::<32>().unwrap().1;
-        // let _contract_address = ContractAddress(HashOutput(address_hash_output.clone()));
-        // let contract_state = deserialize_contract_state_v6(state)?;
-        // let charged_state = contract_state.data;
-        // let _ctx = context::QueryContext::new(charged_state, contract_address);
-
-        // let state_value = &*charged_state.get();
-
-        let state_value: StateValue = StateValue::Array(
-            Array::new_from_slice(&[
-                StateValue::Null,
-                StateValue::Null,
-            ])
-        );
-        // let json = serde_json::to_value(state_value)?;
-        let json_str = serde_json::to_string_pretty(&state_value).unwrap();
-        println!("---");
-        println!("{}", json_str);
-
-        todo!("implement")
+        ContractStateDeserializerV6.deserialize(did, state)
     }
 }
 
@@ -61,11 +39,4 @@ mod tests {
         dbg!(&result);
         assert!(result.is_ok());
     }
-}
-
-pub fn deserialize_contract_state_v6(
-    contract_state: ContractState,
-) -> std::io::Result<state_v6::ContractState<DefaultDBV6>> {
-    let bytes = contract_state.inner().to_bytes();
-    tagged_deserialize_v6(&mut bytes.as_slice())
 }
