@@ -1,21 +1,19 @@
 use midnight_ledger_v4::base_crypto::fab::Value;
 
-use crate::serde_impl::compact_v081::*;
+use crate::serde_impl::compact_v08::*;
 
 macro_rules! compact_enum {
-    ($name:ident { $field1:ident $(, $fields:ident)* }) => {
+    ($name:ident { $($fields:ident),+ }) => {
         #[allow(non_camel_case_types)]
         #[derive(Debug, Clone)]
         pub enum $name {
-            $field1,
-            $($fields,)*
+            $($fields),+
         }
 
         impl CompactType for $name {
             fn from_value(value: &mut Value) -> Result<Self, CompactError> {
                 let variants = [
-                    Self::$field1,
-                    $(Self::$fields,)*
+                    $(Self::$fields),+
                 ];
                 let idx = CompactTypeEnum::from_value(value)?.0;
                 variants.get(idx as usize).cloned().ok_or(CompactError(
@@ -28,29 +26,52 @@ macro_rules! compact_enum {
 
 macro_rules! compact_struct {
     ($name:ident {
-        $field1:ident: $ty1:ty
-        $(, $fields:ident: $tys:ty)*
+        $($fields:ident: $tys:ty),+
     }) => {
         pub struct $name {
-            $field1: $ty1
-            $(, $fields: $tys)*
+            $($fields: $tys),+
         }
 
         impl CompactType for $name {
             fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-                let $field1 = <$ty1 as CompactType>::from_value(value)?;
-                $(let $fields = <$tys as CompactType>::from_value(value)?;)*
+                $(let $fields = <$tys as CompactType>::from_value(value)?;)+
                 Ok(Self {
-                    $field1
-                    $(, $fields)*
+                    $($fields),*
                 })
             }
         }
     };
 }
 
+macro_rules! ledger {
+    ($name:ident {
+        $($fields:ident: $tys:ty [$($path:literal),+]),+
+    }) => {
+        paste::paste! {
+            $(
+                #[allow(non_camel_case_types)]
+                struct [<$name _ $fields:camel>];
+
+                impl StateValuePath for [<$name _ $fields:camel>]{
+                    fn state_value_path() -> Vec<u8> {
+                        vec![$($path),+]
+                    }
+                }
+            )+
+
+            pub struct $name {
+                $($fields: LedgerTypeCell<$tys, [<$name _ $fields:camel>]>),+
+            }
+        }
+    }
+}
+
+ledger!(DidContract2 {
+    contract_version: CompactTypeUnsignedInteger [0, 0],
+    version: CompactTypeUnsignedInteger [1, 0]
+});
+
 pub struct DidContract {
-    id: CompactTypeBytes<32>,
     version: CompactTypeUnsignedInteger,
     active: CompactTypeBoolean,
     // authenticationRelation: Set<Opaque<"string">>;

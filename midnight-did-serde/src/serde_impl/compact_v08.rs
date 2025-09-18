@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::marker::PhantomData;
 
 use midnight_ledger_v4::base_crypto::fab::{Value, ValueAtom};
 use midnight_ledger_v4::onchain_runtime::state::StateValue;
@@ -8,16 +9,20 @@ use midnight_ledger_v4::transient_crypto::curve;
 pub struct CompactError(pub String);
 
 pub trait LedgerType<D: DB>: Sized {
-    fn from_state(value: StateValue<D>) -> Result<Self, CompactError>;
+    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError>;
 }
 
 pub trait CompactType: Sized {
     fn from_value(value: &mut Value) -> Result<Self, CompactError>;
 }
 
-pub struct LedgerTypeCell<T: CompactType>(pub T);
-pub struct LedgerTypeSet<T: CompactType>(pub HashSet<T>);
-pub struct LedgerTypeMap<K: CompactType, V: CompactType>(pub HashMap<K, V>);
+pub trait StateValuePath: Sized {
+    fn state_value_path() -> Vec<u8>;
+}
+
+pub struct LedgerTypeCell<T: CompactType, P: StateValuePath>(pub T, PhantomData<P>);
+pub struct LedgerTypeSet<T: CompactType, P: StateValuePath>(pub HashSet<T>, PhantomData<P>);
+pub struct LedgerTypeMap<K: CompactType, V: CompactType, P: StateValuePath>(pub HashMap<K, V>, PhantomData<P>);
 
 pub struct BigInt(pub Vec<u8>);
 pub struct CompactTypeBoolean(pub bool);
@@ -27,6 +32,41 @@ pub struct CompactTypeUnsignedInteger(pub BigInt);
 pub struct CompactTypeField(pub BigInt);
 pub struct CompactTypeEnum(pub u8);
 pub struct CompactTypeVector<const N: usize, T>(pub [T; N]);
+
+fn state_value_getter<'a, 'b, D: DB>(
+    value: &'a StateValue<D>,
+    path: &'b [u8],
+) -> Result<&'a StateValue<D>, CompactError> {
+    let mut current = value;
+    for idx in path {
+        let maybe_child = match value {
+            StateValue::Array(array) => array.get(usize::from(*idx)),
+            _ => Err(CompactError(format!("expected StateValue::Array on path {:?}", path)))?,
+        };
+        match maybe_child {
+            Some(child) => current = child,
+            None => Err(CompactError(format!("expected StateValue on path {:?}", path)))?,
+        }
+    }
+    Ok(current)
+}
+
+impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeCell<T, P> {
+    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError> {
+        let path = P::state_value_path();
+        let state_value = state_value_getter(value, &path)?;
+        match state_value {
+            StateValue::Cell(aligned_value) => {
+                let mut value = aligned_value.value.clone();
+                return Ok(Self(T::from_value(&mut value)?, PhantomData));
+            }
+            _ => Err(CompactError(format!(
+                "expected StateValue on path {:?} to be cell",
+                path
+            )))?,
+        }
+    }
+}
 
 impl CompactType for CompactTypeBoolean {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {

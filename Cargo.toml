@@ -26,6 +26,7 @@ chrono             = { version = "0.4" }
 clap               = { version = "4" }
 derive_more        = { version = "2" }
 graphql_client     = { version = "0.14" }
+paste              = { version = "1" }
 reqwest            = { version = "0.12", default-features = false }
 serde              = { version = "1" }
 serde_json         = { version = "1" }

@@ -9,6 +9,7 @@ midnight-did = { workspace = true }
 
 derive_more      = { workspace = true }
 identus-did-core = { workspace = true }
+paste            = { workspace = true }
 serde            = { workspace = true, optional = true, features = [ "derive" ] }
 serde_json       = { workspace = true }
 

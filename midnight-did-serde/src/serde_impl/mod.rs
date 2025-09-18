@@ -1,7 +1,7 @@
 use midnight_did::dlt::ContractStateDeserializer;
 
 mod ledger_v4;
-mod compact_v081;
+mod compact_v08;
 mod didcontract_v1;
 
 #[derive(Debug, Clone)]
