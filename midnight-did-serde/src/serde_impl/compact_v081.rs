@@ -1,11 +1,23 @@
-use midnight_ledger_v4::base_crypto::fab::{AlignedValue, Value, ValueAtom};
+use std::collections::{HashMap, HashSet};
+
+use midnight_ledger_v4::base_crypto::fab::{Value, ValueAtom};
+use midnight_ledger_v4::onchain_runtime::state::StateValue;
+use midnight_ledger_v4::storage::db::DB;
 use midnight_ledger_v4::transient_crypto::curve;
+
+pub struct CompactError(pub String);
+
+pub trait LedgerType<D: DB>: Sized {
+    fn from_state(value: StateValue<D>) -> Result<Self, CompactError>;
+}
 
 pub trait CompactType: Sized {
     fn from_value(value: &mut Value) -> Result<Self, CompactError>;
 }
 
-pub struct CompactError(pub String);
+pub struct LedgerTypeCell<T: CompactType>(pub T);
+pub struct LedgerTypeSet<T: CompactType>(pub HashSet<T>);
+pub struct LedgerTypeMap<K: CompactType, V: CompactType>(pub HashMap<K, V>);
 
 pub struct BigInt(pub Vec<u8>);
 pub struct CompactTypeBoolean(pub bool);

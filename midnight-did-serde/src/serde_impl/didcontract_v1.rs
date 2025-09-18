@@ -53,7 +53,12 @@ pub struct DidContract {
     id: CompactTypeBytes<32>,
     version: CompactTypeUnsignedInteger,
     active: CompactTypeBoolean,
-    verificationMethod: VerificationMethod,
+    // authenticationRelation: Set<Opaque<"string">>;
+    // assertionMethodRelation: Set<Opaque<"string">>;
+    // keyAgreementRelation: Set<Opaque<"string">>;
+    // capabilityInvocationRelation: Set<Opaque<"string">>;
+    // capabilityDelegationRelation: Set<Opaque<"string">>;
+    // services: Map<Opaque<"string">, Service>;
 }
 
 compact_enum!(VerificationMethodType { Undefined, JsonWebKey });
