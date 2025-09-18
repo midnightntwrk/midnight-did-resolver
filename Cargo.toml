@@ -17,11 +17,11 @@ midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 midnight-did                = { path = "midnight-did" }
 midnight-did-serde          = { path = "midnight-did-serde" }
 
-midnight-base-crypto_v6     = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-base-crypto", tag = "ledger-6.1.0-alpha.2" }
-midnight-coin-structure_v6  = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-coin-structure", tag = "ledger-6.1.0-alpha.2" }
-midnight-onchain-runtime_v6 = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-onchain-runtime", tag = "ledger-6.1.0-alpha.2" }
-midnight-serialize_v6       = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-serialize", tag = "ledger-6.1.0-alpha.2" }
-midnight-storage_v6         = { git = "https://github.com/midnightntwrk/midnight-ledger", package = "midnight-storage", tag = "ledger-6.1.0-alpha.2" }
+# midnight-base-crypto_v4     = { git = "https://github.com/midnightntwrk/midnight-ledger-prototype", package = "midnight-base-crypto", tag = "base-crypto-0.4.3" }
+# midnight-coin-structure_v4  = { git = "https://github.com/midnightntwrk/midnight-ledger-prototype", package = "midnight-coin-structure", tag = "coin-structure-0.4.0" }
+midnight-onchain-runtime_v4 = { git = "https://github.com/midnightntwrk/midnight-ledger-prototype", package = "midnight-onchain-runtime", tag = "onchain-runtime-0.3.0" }
+# midnight-serialize_v4       = { git = "https://github.com/midnightntwrk/midnight-ledger-prototype", package = "midnight-serialize", tag = "ledger-4.0.0" }
+# midnight-storage_v4         = { git = "https://github.com/midnightntwrk/midnight-ledger-prototype", package = "midnight-storage", tag = "storage-0.4.0" }
 
 identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
 identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
@@ -46,3 +46,6 @@ tracing            = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }
 utoipa             = { version = "5" }
 utoipa-swagger-ui  = { version = "9" }
+
+# [patch."https://github.com/midnightntwrk/midnight-ledger-prototype"]
+# midnight-base-crypto_0_4_3 = { git = "https://github.com/midnightntwrk/midnight-ledger-prototype", package = "midnight-base-crypto", tag = "base-crypto-0.4.3", version = "0.4.3" }
