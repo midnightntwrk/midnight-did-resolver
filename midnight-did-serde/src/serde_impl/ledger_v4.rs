@@ -3,9 +3,9 @@ use midnight_ledger_v4::onchain_runtime::state::{self, ContractState};
 use midnight_ledger_v4::serialize::{NetworkId, deserialize};
 use midnight_ledger_v4::storage::DefaultDB;
 
-pub struct ContractStateDeserializerImpl;
+pub struct DidV1ContractStateDeserializer;
 
-impl ContractStateDeserializer for ContractStateDeserializerImpl {
+impl ContractStateDeserializer for DidV1ContractStateDeserializer {
     fn deserialize(
         &self,
         did: &midnight_did::did::MidnightDid,

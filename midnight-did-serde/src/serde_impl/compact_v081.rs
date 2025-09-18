@@ -1,0 +1,90 @@
+use midnight_ledger_v4::base_crypto::fab::{AlignedValue, Value, ValueAtom};
+use midnight_ledger_v4::transient_crypto::curve;
+
+pub trait CompactType: Sized {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError>;
+}
+
+pub struct CompactError(pub String);
+
+pub struct BigInt(pub Vec<u8>);
+pub struct CompactTypeBoolean(pub bool);
+pub struct CompactTypeBytes<const N: usize>(pub [u8; N]);
+pub struct CompactTypeOpaqueString(pub String);
+pub struct CompactTypeUnsignedInteger(pub BigInt);
+pub struct CompactTypeField(pub BigInt);
+pub struct CompactTypeEnum(pub u8);
+
+impl CompactType for CompactTypeBoolean {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let maybe_val = value.0.pop().map(|i| i.0);
+        let Some(val) = maybe_val else {
+            Err(CompactError("expected Boolean".to_string()))?
+        };
+        if val.len() > 1 || (val.len() == 1 && val[0] != 1) {
+            Err(CompactError("expected Boolean".to_string()))?
+        }
+        Ok(Self(val.len() == 1))
+    }
+}
+
+impl<const N: usize> CompactType for CompactTypeBytes<N> {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let maybe_val = value.0.pop().map(|i| i.0);
+        let Some(val) = maybe_val else {
+            Err(CompactError(format!("expected Bytes[{N}]")))?
+        };
+        let Ok(array) = val.try_into() else {
+            Err(CompactError(format!("expected Bytes[{N}]")))?
+        };
+        Ok(Self(array))
+    }
+}
+
+impl CompactType for CompactTypeOpaqueString {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let val = value.0.pop().unwrap_or_default().0;
+        String::from_utf8(val)
+            .map(Self)
+            .map_err(|_| CompactError("expected String".to_string()))
+    }
+}
+
+impl CompactType for CompactTypeUnsignedInteger {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let maybe_val = value.0.pop();
+        let Some(val) = maybe_val else {
+            Err(CompactError(format!("expected UnsignedInteger[<=?]")))?
+        };
+        value_to_bigint(&val).map(Self)
+    }
+}
+
+impl CompactType for CompactTypeField {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let maybe_val = value.0.pop();
+        let Some(val) = maybe_val else {
+            Err(CompactError(format!("expected Field")))?
+        };
+        value_to_bigint(&val).map(Self)
+    }
+}
+
+impl CompactType for CompactTypeEnum {
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let maybe_val = value.0.pop().map(|i| i.0);
+        let Some(mut val) = maybe_val else {
+            Err(CompactError(format!("exptected Enum[<=?]")))?
+        };
+        let byte = val.pop().unwrap_or_default();
+        Ok(Self(byte))
+    }
+}
+
+fn value_to_bigint(x: &ValueAtom) -> Result<BigInt, CompactError> {
+    let mut bytes = curve::Fr::try_from(&*x)
+        .map_err(|e| CompactError(e.to_string()))?
+        .as_le_bytes();
+    bytes.reverse();
+    Ok(BigInt(bytes))
+}
