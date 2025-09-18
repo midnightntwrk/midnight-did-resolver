@@ -1,4 +1,3 @@
-use std::collections::{HashMap, HashSet};
 use std::marker::PhantomData;
 
 use midnight_ledger_v4::base_crypto::fab::{Value, ValueAtom};
@@ -21,8 +20,11 @@ pub trait StateValuePath: Sized {
 }
 
 pub struct LedgerTypeCell<T: CompactType, P: StateValuePath>(pub T, PhantomData<P>);
-pub struct LedgerTypeSet<T: CompactType, P: StateValuePath>(pub HashSet<T>, PhantomData<P>);
-pub struct LedgerTypeMap<K: CompactType, V: CompactType, P: StateValuePath>(pub HashMap<K, V>, PhantomData<P>);
+pub struct LedgerTypeSet<T: CompactType, P: StateValuePath>(pub Vec<T>, PhantomData<P>);
+pub struct LedgerTypeMap<K: CompactType, V: LedgerType<D>, D: DB, P: StateValuePath>(
+    pub Vec<(K, V)>,
+    PhantomData<(D, P)>,
+);
 
 pub struct BigInt(pub Vec<u8>);
 pub struct CompactTypeBoolean(pub bool);
@@ -59,6 +61,50 @@ impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeCell<
             StateValue::Cell(aligned_value) => {
                 let mut value = aligned_value.value.clone();
                 return Ok(Self(T::from_value(&mut value)?, PhantomData));
+            }
+            _ => Err(CompactError(format!(
+                "expected StateValue on path {:?} to be cell",
+                path
+            )))?,
+        }
+    }
+}
+
+impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeSet<T, P> {
+    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError> {
+        let path = P::state_value_path();
+        let state_value = state_value_getter(value, &path)?;
+        match state_value {
+            StateValue::Map(map) => {
+                let keys = map
+                    .iter()
+                    .map(|i| T::from_value(&mut i.0.value.clone()))
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(Self(keys, PhantomData))
+            }
+            _ => Err(CompactError(format!(
+                "expected StateValue on path {:?} to be cell",
+                path
+            )))?,
+        }
+    }
+}
+
+impl<D: DB, K: CompactType, V: LedgerType<D>, P: StateValuePath> LedgerType<D> for LedgerTypeMap<K, V, D, P> {
+    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError> {
+        let path = P::state_value_path();
+        let state_value = state_value_getter(value, &path)?;
+        match state_value {
+            StateValue::Map(map) => {
+                let keys = map
+                    .iter()
+                    .map(|i| {
+                        let key = K::from_value(&mut i.0.value.clone());
+                        let value = V::from_state(&&i.1);
+                        key.and_then(|k| value.map(|v| (k, v)))
+                    })
+                    .collect::<Result<Vec<_>, _>>()?;
+                Ok(Self(keys, PhantomData))
             }
             _ => Err(CompactError(format!(
                 "expected StateValue on path {:?} to be cell",
