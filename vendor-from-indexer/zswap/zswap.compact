@@ -1,0 +1,93 @@
+include "std";
+
+struct ZswapCoinSecretKey {
+  bytes: Bytes<32>;
+}
+
+struct CoinPreimage {
+  info: CoinInfo,
+  data_type: Boolean,
+  data: Bytes<32>,
+  sep: Bytes<6>,
+}
+
+ledger merkle_tree: HistoricMerkleTree<32, Bytes<32>>;
+ledger nullifiers: Set<Bytes<32>>;
+ledger value_com: CurvePoint;
+ledger contract_addr: ContractAddress;
+ledger public_key: ZswapCoinPublicKey;
+ledger segment: Uint<16>;
+
+export circuit spend(
+  sk: Either<ZswapCoinSecretKey, ContractAddress>,
+  path: MerkleTreePath<32, Bytes<32>>,
+  coin: CoinInfo,
+  rc: Field
+): [] {
+  merkle_tree.check_root(merkle_tree_path_root_no_leaf_hash<32>(path));
+  const pk = derive_public_key(sk.left);
+  const coin_com = persistent_hash<CoinPreimage>(
+    CoinPreimage {
+      info: coin,
+      data_type: sk.is_left,
+      data: sk.is_left? pk.bytes : sk.right.bytes,
+      sep: "mdn:cc"
+    });
+  assert (coin_com == path.leaf) "Path must be to coin commitment";
+
+  const nul = persistent_hash<CoinPreimage>(
+      CoinPreimage {
+        info: coin,
+        data_type: sk.is_left,
+        data: sk.is_left ? sk.left.bytes : sk.right.bytes,
+        sep: "mdn:cn"
+      });
+  nullifiers.insert(nul);
+  if(!sk.is_left) {
+    contract_addr = sk.right;
+  }
+  const color_base = hash_to_curve<[Bytes<32>, Uint<16>]>([coin.color, segment]);
+  const pedersen_blinding = ec_mul_generator(rc);
+  const pedersen_commit = ec_mul(color_base, coin.value);
+  value_com = ec_add(pedersen_blinding, pedersen_commit);
+}
+
+struct PublicKeyPreimage {
+  secret_key: ZswapCoinSecretKey,
+  sep: Bytes<6>,
+}
+
+circuit derive_public_key(secret_key: ZswapCoinSecretKey): ZswapCoinPublicKey {
+  return ZswapCoinPublicKey {
+    bytes: persistent_hash<PublicKeyPreimage>(PublicKeyPreimage {
+      secret_key: secret_key,
+      sep: "mdn:pk"
+    })
+  };
+}
+
+export circuit output(
+  pk: Either<ZswapCoinPublicKey, ContractAddress>,
+  coin: CoinInfo,
+  rc: Field
+): [] {
+  const coin_com = persistent_hash<CoinPreimage>(
+    CoinPreimage {
+      info: coin,
+      data_type: pk.is_left,
+      data: pk.is_left ? pk.left.bytes : pk.right.bytes,
+      sep: "mdn:cc"
+    });
+  merkle_tree.insert_hash(coin_com);
+  if(!pk.is_left) {
+    contract_addr = pk.right;
+  }
+  const color_base = hash_to_curve<[Bytes<32>, Uint<16>]>([coin.color, segment]);
+  const pedersen_blinding = ec_mul_generator(rc);
+  const pedersen_commit = ec_mul(color_base, coin.value);
+  value_com = ec_add(pedersen_blinding, pedersen_commit);
+}
+
+export circuit sign(secret_key: ZswapCoinSecretKey): [] {
+  public_key = derive_public_key(secret_key);
+}

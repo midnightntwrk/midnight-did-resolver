@@ -1,6 +1,7 @@
 use midnight_did::dlt::ContractStateDeserializer;
 
-use crate::serde_impl::v6::ContractStateDeserializerV6;
+mod ledger_v4;
+mod compact_v08;
 
 #[derive(Debug, Clone)]
 pub struct DefaultContractStateDeserializer;
@@ -11,7 +12,7 @@ impl ContractStateDeserializer for DefaultContractStateDeserializer {
         did: &midnight_did::did::MidnightDid,
         state: midnight_did::dlt::ContractState,
     ) -> Result<identus_did_core::DidDocument, Box<dyn std::error::Error + Send + Sync>> {
-        todo!()
+        ledger_v4::ContractStateDeserializerImpl.deserialize(did, state)
     }
 }
 
