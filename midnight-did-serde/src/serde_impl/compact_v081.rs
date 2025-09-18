@@ -14,6 +14,7 @@ pub struct CompactTypeOpaqueString(pub String);
 pub struct CompactTypeUnsignedInteger(pub BigInt);
 pub struct CompactTypeField(pub BigInt);
 pub struct CompactTypeEnum(pub u8);
+pub struct CompactTypeVector<const N: usize, T>(pub [T; N]);
 
 impl CompactType for CompactTypeBoolean {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
@@ -78,6 +79,22 @@ impl CompactType for CompactTypeEnum {
         };
         let byte = val.pop().unwrap_or_default();
         Ok(Self(byte))
+    }
+}
+
+impl<const N: usize, T> CompactType for CompactTypeVector<N, T>
+where
+    T: CompactType,
+{
+    fn from_value(value: &mut Value) -> Result<Self, CompactError> {
+        let mut res = Vec::with_capacity(N);
+        for _ in 0..N {
+            let val = T::from_value(value)?;
+            res.push(val);
+        }
+        res.try_into()
+            .map(Self)
+            .map_err(|_| CompactError(format!("expected {N}-element-array")))
     }
 }
 

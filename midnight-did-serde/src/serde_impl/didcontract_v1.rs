@@ -83,3 +83,9 @@ compact_struct!(VerificationMethod {
     r#type: VerificationMethodType,
     publicKeyJwk: PublicKeyJwk
 });
+
+compact_struct!(Service {
+    id: CompactTypeOpaqueString,
+    r#type: CompactTypeOpaqueString,
+    serviceEndpoint: CompactTypeVector<4, CompactTypeOpaqueString>
+});
