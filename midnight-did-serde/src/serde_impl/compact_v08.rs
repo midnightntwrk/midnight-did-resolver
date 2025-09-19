@@ -7,8 +7,8 @@ use midnight_ledger_v4::transient_crypto::curve;
 
 pub struct CompactError(pub String);
 
-pub trait LedgerType<D: DB>: Sized {
-    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError>;
+pub trait AdtType: Sized {
+    fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError>;
 }
 
 pub trait CompactType: Sized {
@@ -16,15 +16,20 @@ pub trait CompactType: Sized {
 }
 
 pub trait StateValuePath: Sized {
-    fn state_value_path() -> Vec<u8>;
+    fn state_value_path() -> &'static [u8];
 }
 
-pub struct LedgerTypeCell<T: CompactType, P: StateValuePath>(pub T, PhantomData<P>);
-pub struct LedgerTypeSet<T: CompactType, P: StateValuePath>(pub Vec<T>, PhantomData<P>);
-pub struct LedgerTypeMap<K: CompactType, V: LedgerType<D>, D: DB, P: StateValuePath>(
-    pub Vec<(K, V)>,
-    PhantomData<(D, P)>,
-);
+pub struct EmptyPath;
+
+impl StateValuePath for EmptyPath {
+    fn state_value_path() -> &'static [u8] {
+        &[]
+    }
+}
+
+pub struct AdtTypeCell<T: CompactType, P: StateValuePath = EmptyPath>(pub T, PhantomData<P>);
+pub struct AdtTypeSet<T: CompactType, P: StateValuePath = EmptyPath>(pub Vec<T>, PhantomData<P>);
+pub struct AdtTypeMap<K: CompactType, V: AdtType, P: StateValuePath = EmptyPath>(pub Vec<(K, V)>, PhantomData<P>);
 
 pub struct BigInt(pub Vec<u8>);
 pub struct CompactTypeBoolean(pub bool);
@@ -53,8 +58,17 @@ fn state_value_getter<'a, 'b, D: DB>(
     Ok(current)
 }
 
-impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeCell<T, P> {
-    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError> {
+impl<T: CompactType> AdtType for T {
+    fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError> {
+        match value {
+            StateValue::Cell(aligned_value) => Ok(T::from_value(&mut aligned_value.value.clone())?),
+            _ => Err(CompactError(format!("expected State of to be cell"))),
+        }
+    }
+}
+
+impl<T: CompactType, P: StateValuePath> AdtType for AdtTypeCell<T, P> {
+    fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError> {
         let path = P::state_value_path();
         let state_value = state_value_getter(value, &path)?;
         match state_value {
@@ -70,8 +84,8 @@ impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeCell<
     }
 }
 
-impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeSet<T, P> {
-    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError> {
+impl<T: CompactType, P: StateValuePath> AdtType for AdtTypeSet<T, P> {
+    fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError> {
         let path = P::state_value_path();
         let state_value = state_value_getter(value, &path)?;
         match state_value {
@@ -90,8 +104,8 @@ impl<D: DB, T: CompactType, P: StateValuePath> LedgerType<D> for LedgerTypeSet<T
     }
 }
 
-impl<D: DB, K: CompactType, V: LedgerType<D>, P: StateValuePath> LedgerType<D> for LedgerTypeMap<K, V, D, P> {
-    fn from_state(value: &StateValue<D>) -> Result<Self, CompactError> {
+impl<K: CompactType, V: AdtType, P: StateValuePath> AdtType for AdtTypeMap<K, V, P> {
+    fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError> {
         let path = P::state_value_path();
         let state_value = state_value_getter(value, &path)?;
         match state_value {

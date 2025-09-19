@@ -33,7 +33,6 @@ export ledger keyAgreementRelation: Set<Opaque<"string">>;
 export ledger capabilityInvocationRelation: Set<Opaque<"string">>;
 export ledger capabilityDelegationRelation: Set<Opaque<"string">>;
 export ledger services: Map<Opaque<"string">, Service>;
-export ledger services2: Map<Opaque<"string">, Map<Opaque<"string">, Service>>;
 
 witness localSecretKey(): Bytes<32>;
 
