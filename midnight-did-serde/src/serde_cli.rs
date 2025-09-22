@@ -37,7 +37,7 @@ impl ContractStateDeserializer for CliContractStateDeserializer {
     fn deserialize(
         &self,
         did: &MidnightDid,
-        state: ContractState,
+        state: &ContractState,
     ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>> {
         let did_doc = decode_contract_state_via_cli(&self.binary_path, did, &state)?;
         Ok(did_doc)

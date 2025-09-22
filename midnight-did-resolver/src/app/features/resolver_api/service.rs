@@ -78,7 +78,7 @@ impl ResolverService {
             Err(IndexerClientError::MissingDataFields { .. }) => Err(ResolutionError::NotFound)?,
             Err(e) => Err(anyhow::Error::from(e))?,
         };
-        let did_doc = match self.state_deserializer.deserialize(&did, contract_state) {
+        let did_doc = match self.state_deserializer.deserialize(&did, &contract_state) {
             Ok(doc) => doc,
             Err(e) => Err(ResolutionError::InternalError {
                 source: anyhow::Error::from_boxed(e),

@@ -7,17 +7,13 @@ license.workspace = true
 [dependencies]
 midnight-did = { workspace = true }
 
-derive_more      = { workspace = true }
+derive_more      = { workspace = true, features = [ "from", "display", "error" ] }
+identus-apollo   = { workspace = true, features = [ "jwk" ] }
 identus-did-core = { workspace = true }
 paste            = { workspace = true }
 serde            = { workspace = true, optional = true, features = [ "derive" ] }
 serde_json       = { workspace = true }
 
-# midnight-base-crypto_v4     = { workspace = true }
-# midnight-coin-structure_v4  = { workspace = true }
-# midnight-onchain-runtime_v4 = { workspace = true }
-# midnight-serialize_v4       = { workspace = true }
-# midnight-storage_v4         = { workspace = true }
 midnight-ledger_v4 = { workspace = true }
 
 [features]

@@ -2590,6 +2590,7 @@ name = "midnight-did-serde"
 version = "0.1.0"
 dependencies = [
  "derive_more",
+ "identus-apollo",
  "identus-did-core",
  "midnight-did",
  "midnight-ledger",

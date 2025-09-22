@@ -5,7 +5,12 @@ use midnight_ledger_v4::onchain_runtime::state::StateValue;
 use midnight_ledger_v4::storage::db::DB;
 use midnight_ledger_v4::transient_crypto::curve;
 
-pub struct CompactError(pub String);
+#[derive(Debug, derive_more::From, derive_more::Display, derive_more::Error)]
+#[display("{message}")]
+pub struct CompactError {
+    #[from]
+    pub message: String,
+}
 
 pub trait AdtType: Sized {
     fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError>;
@@ -48,11 +53,11 @@ fn state_value_getter<'a, 'b, D: DB>(
     for idx in path {
         let maybe_child = match value {
             StateValue::Array(array) => array.get(usize::from(*idx)),
-            _ => Err(CompactError(format!("expected StateValue::Array on path {:?}", path)))?,
+            _ => Err(format!("expected StateValue::Array on path {:?}", path))?,
         };
         match maybe_child {
             Some(child) => current = child,
-            None => Err(CompactError(format!("expected StateValue on path {:?}", path)))?,
+            None => Err(format!("expected StateValue on path {:?}", path))?,
         }
     }
     Ok(current)
@@ -62,7 +67,7 @@ impl<T: CompactType> AdtType for T {
     fn from_state<D: DB>(value: &StateValue<D>) -> Result<Self, CompactError> {
         match value {
             StateValue::Cell(aligned_value) => Ok(T::from_value(&mut aligned_value.value.clone())?),
-            _ => Err(CompactError(format!("expected State of to be cell"))),
+            _ => Err(format!("expected State of to be cell"))?,
         }
     }
 }
@@ -76,10 +81,7 @@ impl<T: CompactType, P: StateValuePath> AdtType for AdtTypeCell<T, P> {
                 let mut value = aligned_value.value.clone();
                 return Ok(Self(T::from_value(&mut value)?, PhantomData));
             }
-            _ => Err(CompactError(format!(
-                "expected StateValue on path {:?} to be cell",
-                path
-            )))?,
+            _ => Err(format!("expected StateValue on path {:?} to be cell", path))?,
         }
     }
 }
@@ -96,10 +98,7 @@ impl<T: CompactType, P: StateValuePath> AdtType for AdtTypeSet<T, P> {
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(Self(keys, PhantomData))
             }
-            _ => Err(CompactError(format!(
-                "expected StateValue on path {:?} to be cell",
-                path
-            )))?,
+            _ => Err(format!("expected StateValue on path {:?} to be cell", path))?,
         }
     }
 }
@@ -120,10 +119,7 @@ impl<K: CompactType, V: AdtType, P: StateValuePath> AdtType for AdtTypeMap<K, V,
                     .collect::<Result<Vec<_>, _>>()?;
                 Ok(Self(keys, PhantomData))
             }
-            _ => Err(CompactError(format!(
-                "expected StateValue on path {:?} to be cell",
-                path
-            )))?,
+            _ => Err(format!("expected StateValue on path {:?} to be cell", path))?,
         }
     }
 }
@@ -132,10 +128,10 @@ impl CompactType for CompactTypeBoolean {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
         let maybe_val = value.0.pop().map(|i| i.0);
         let Some(val) = maybe_val else {
-            Err(CompactError("expected Boolean".to_string()))?
+            Err("expected Boolean".to_string())?
         };
         if val.len() > 1 || (val.len() == 1 && val[0] != 1) {
-            Err(CompactError("expected Boolean".to_string()))?
+            Err("expected Boolean".to_string())?
         }
         Ok(Self(val.len() == 1))
     }
@@ -145,10 +141,10 @@ impl<const N: usize> CompactType for CompactTypeBytes<N> {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
         let maybe_val = value.0.pop().map(|i| i.0);
         let Some(val) = maybe_val else {
-            Err(CompactError(format!("expected Bytes[{N}]")))?
+            Err(format!("expected Bytes[{N}]"))?
         };
         let Ok(array) = val.try_into() else {
-            Err(CompactError(format!("expected Bytes[{N}]")))?
+            Err(format!("expected Bytes[{N}]"))?
         };
         Ok(Self(array))
     }
@@ -159,7 +155,7 @@ impl CompactType for CompactTypeOpaqueString {
         let val = value.0.pop().unwrap_or_default().0;
         String::from_utf8(val)
             .map(Self)
-            .map_err(|_| CompactError("expected String".to_string()))
+            .map_err(|_| "expected String".to_string().into())
     }
 }
 
@@ -167,7 +163,7 @@ impl CompactType for CompactTypeUnsignedInteger {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
         let maybe_val = value.0.pop();
         let Some(val) = maybe_val else {
-            Err(CompactError(format!("expected UnsignedInteger[<=?]")))?
+            Err(format!("expected UnsignedInteger[<=?]"))?
         };
         value_to_bigint(&val).map(Self)
     }
@@ -177,7 +173,7 @@ impl CompactType for CompactTypeField {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
         let maybe_val = value.0.pop();
         let Some(val) = maybe_val else {
-            Err(CompactError(format!("expected Field")))?
+            Err(format!("expected Field"))?
         };
         value_to_bigint(&val).map(Self)
     }
@@ -187,7 +183,7 @@ impl CompactType for CompactTypeEnum {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
         let maybe_val = value.0.pop().map(|i| i.0);
         let Some(mut val) = maybe_val else {
-            Err(CompactError(format!("exptected Enum[<=?]")))?
+            Err(format!("exptected Enum[<=?]"))?
         };
         let byte = val.pop().unwrap_or_default();
         Ok(Self(byte))
@@ -206,35 +202,36 @@ where
         }
         res.try_into()
             .map(Self)
-            .map_err(|_| CompactError(format!("expected {N}-element-array")))
+            .map_err(|_| format!("expected {N}-element-array").into())
     }
 }
 
 fn value_to_bigint(x: &ValueAtom) -> Result<BigInt, CompactError> {
-    let mut bytes = curve::Fr::try_from(&*x)
-        .map_err(|e| CompactError(e.to_string()))?
-        .as_le_bytes();
+    let mut bytes = curve::Fr::try_from(&*x).map_err(|e| e.to_string())?.as_le_bytes();
     bytes.reverse();
     Ok(BigInt(bytes))
 }
 
 macro_rules! compact_enum {
-    ($name:ident { $($fields:ident),+ }) => {
+    ($name:ident { $($field:ident),+ }) => {
         #[allow(non_camel_case_types)]
-        #[derive(Debug, Clone)]
+        #[derive(Debug, Clone, derive_more::Display)]
         pub enum $name {
-            $($fields),+
+            $(
+                #[display("{}", stringify!($field))]
+                $field
+            ),+
         }
 
         impl CompactType for $name {
             fn from_value(value: &mut Value) -> Result<Self, CompactError> {
                 let variants = [
-                    $(Self::$fields),+
+                    $(Self::$field),+
                 ];
                 let idx = CompactTypeEnum::from_value(value)?.0;
-                variants.get(idx as usize).cloned().ok_or(CompactError(
-                    format!("exptected Enum[<=?] for type {}", stringify!($name)),
-                ))
+                variants.get(idx as usize).cloned().ok_or(
+                    format!("exptected Enum[<=?] for type {}", stringify!($name)).into(),
+                )
             }
         }
     };
@@ -278,6 +275,14 @@ macro_rules! compact_ledger {
             pub struct $name {
                 $($field: compact_ledger!(@internal $adt <$ty $(, $ty2)?>, [<$name _ $field:camel>])),+
             }
+
+            impl $name {
+                pub fn from_state_value<D: midnight_ledger_v4::storage::db::DB>(value: &midnight_ledger_v4::onchain_runtime::state::StateValue<D>) -> Result<$name, CompactError> {
+                    Ok(Self {
+                        $($field: <compact_ledger!(@internal $adt <$ty $(, $ty2)?>, [<$name _ $field:camel>]) as AdtType>::from_state(value)?),+
+                    })
+                }
+            }
         }
     };
     (@internal cell <$ty:ty>, $pty:ident) => {
@@ -291,6 +296,4 @@ macro_rules! compact_ledger {
     }
 }
 
-pub(crate) use compact_ledger;
-pub(crate) use compact_struct;
-pub(crate) use compact_enum;
+pub(crate) use {compact_enum, compact_ledger, compact_struct};

@@ -37,6 +37,6 @@ pub trait ContractStateDeserializer {
     fn deserialize(
         &self,
         did: &MidnightDid,
-        state: ContractState,
+        state: &ContractState,
     ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>>;
 }
