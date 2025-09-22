@@ -56,3 +56,6 @@ midnight-storage-macros     = { path = "./vendor-from-indexer/storage-macros" }
 midnight-storage            = { path = "./vendor-from-indexer/storage" }
 midnight-transient-crypto   = { path = "./vendor-from-indexer/transient-crypto" }
 midnight-zswap              = { path = "./vendor-from-indexer/zswap" }
+
+[patch."https://github.com/input-output-hk/midnight-circuits"]
+midnight-circuits = { path = "./vendor-from-indexer/midnight-circuits" }

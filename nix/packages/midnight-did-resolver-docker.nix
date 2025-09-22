@@ -13,8 +13,7 @@ dockerTools.buildLayeredImage {
   contents = [
     curl
     midnight-did-resolver
-  ]
-  ++ extraPackages;
+  ] ++ extraPackages;
   config = {
     Env = [
       "RUST_LOG=info,oura=warn"

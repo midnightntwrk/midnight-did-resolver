@@ -2500,7 +2500,6 @@ dependencies = [
 [[package]]
 name = "midnight-circuits"
 version = "3.0.0"
-source = "git+https://github.com/input-output-hk/midnight-circuits?tag=v3.0.0#44a7efe922e6b59b67d5429a286aff75a022ebbc"
 dependencies = [
  "arrayvec",
  "base64 0.13.1",

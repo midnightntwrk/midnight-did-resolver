@@ -16,12 +16,14 @@ in
 rustPlatform.buildRustPackage {
   name = "midnight-did-resolver-checks";
   src = lib.cleanSource ./../..;
-  inherit (rustTools) cargoLock postPatch;
+  inherit (rustTools) cargoLock;
 
   nativeBuildInputs = [
     deadnix
     pkgsInternal.midnight-did-serde-js
   ];
+
+  preBuild = rustTools.patchScript;
 
   buildPhase = ''
     cargo b --all-features --all-targets

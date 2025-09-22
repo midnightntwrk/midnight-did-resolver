@@ -18,11 +18,11 @@ let
   mkBin =
     platform:
     pkgs.pkgsCross."${platform.cross}".callPackage ./midnight-did-resolver-bin.nix {
+      inherit (pkgs.rustTools) cargoLock;
       rust = pkgs.rustTools.mkRustCross {
         pkgsCross = pkgs.pkgsCross."${platform.cross}";
         minimal = true;
       };
-      inherit (pkgs.rustTools) cargoLock postPatch;
     };
 
   mkDocker =
@@ -52,8 +52,8 @@ rec {
   inherit (pkgs.pkgsInternal) midnight-did-serde-js;
 
   midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
+    inherit (pkgs.rustTools) cargoLock;
     rust = pkgs.rustTools.rustMinimal;
-    inherit (pkgs.rustTools) cargoLock postPatch;
   };
 
   midnight-did-resolver-docker = pkgs.callPackage ./midnight-did-resolver-docker.nix {

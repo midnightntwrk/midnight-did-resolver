@@ -44,21 +44,15 @@ rec {
   cargoLock = {
     lockFile = ../Cargo.lock;
     outputHashes = {
+      "blstrs-0.7.1" = "sha256-nZYcVAghX5F3OJ5F2RRUrRCbBa9j1ICnZye4UHqqun0=";
+      "halo2_proofs-0.3.0" = "sha256-4NQVAuHnoZrgEkEWm8m8kSZRiZyLwsMxR7+uRmPuyR4=";
       "identus-apollo-0.5.0" = "sha256-4fRIrQVDVL3h6I25I77e10v6ed9A8KsX9M7y1XO52rg=";
-      "midnight-base-crypto-1.0.0-alpha.1" = "sha256-nVIiIpuXwb1+dLD/U4F2hMXSm4ROPJ79x6FviFd3qpc=";
-      "midnight-circuits-4.0.0" = "sha256-29EYVorD4KxR/ZmSqIWsZnjZE36z1F8eZ9budGyKM3A=";
     };
   };
 
-  postPatch =
-    let
-      bls_filecoin_2p14 = fetchurl {
-        url = "https://github.com/midnightntwrk/midnight-ledger/raw/ledger-6.1.0-alpha.2/static/bls_filecoin_2p14";
-        sha256 = "SSPlp/u3Fdgc21wDucDiEXaNNczFLYL0nD2TvPjTalY=";
-      };
-    in
-    ''
-      mkdir -p /build/cargo-vendor-dir/static
-      cp ${bls_filecoin_2p14} /build/cargo-vendor-dir/static/bls_filecoin_2p14
+  patchScript = ''
+    mkdir -p /build/cargo-vendor-dir/static
+    cp ./vendor-from-indexer/static/bls_filecoin_2p14 /build/cargo-vendor-dir/static/bls_filecoin_2p14
+    touch ./vendor-from-indexer/midnight-circuits/README.md
     '';
 }

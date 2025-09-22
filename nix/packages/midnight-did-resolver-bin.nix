@@ -2,7 +2,7 @@
   lib,
   makeRustPlatform,
   rust,
-  postPatch,
+  rustTools,
   cargoLock,
   buildFeatures ? [ ],
 }:
@@ -14,7 +14,7 @@ let
   };
 in
 rustPlatform.buildRustPackage {
-  inherit cargoLock buildFeatures postPatch;
+  inherit cargoLock buildFeatures;
   name = "midnight-did-resolver";
   src = lib.cleanSourceWith {
     filter =
@@ -26,4 +26,6 @@ rustPlatform.buildRustPackage {
     src = ./../..;
   };
   doCheck = false;
+
+  preBuild = rustTools.patchScript;
 }
