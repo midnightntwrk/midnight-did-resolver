@@ -43,7 +43,7 @@ macro_rules! compact_struct {
     };
 }
 
-macro_rules! ledger {
+macro_rules! compact_ledger {
     ($name:ident {
         $($field:ident: $adt:tt <$ty:ty $(, $ty2:ty)?> [$($path:literal),*]),+
     }) => {
@@ -60,7 +60,7 @@ macro_rules! ledger {
             )+
 
             pub struct $name {
-                $($field: ledger!(@internal $adt <$ty $(, $ty2)?>, [<$name _ $field:camel>])),+
+                $($field: compact_ledger!(@internal $adt <$ty $(, $ty2)?>, [<$name _ $field:camel>])),+
             }
         }
     };
@@ -75,7 +75,7 @@ macro_rules! ledger {
     }
 }
 
-ledger!(DidContract {
+compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],
     version: cell<CompactTypeUnsignedInteger> [1, 2],
     created_at: cell<CompactTypeBytes<64>> [1, 3],
