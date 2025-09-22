@@ -14,10 +14,7 @@ export function decodeContractState(
 ): DidDocument {
   const buffer = Buffer.from(contractStateHex, 'hex');
   const state = ContractState.deserialize(buffer, networkId);
-
   const stateValue = state.data.asArray();
-  console.log(stateValue);
-  console.log("-----");
 
   const ledger = DidContract.ledger(state.data);
   const didDocument: DidDocument = {
