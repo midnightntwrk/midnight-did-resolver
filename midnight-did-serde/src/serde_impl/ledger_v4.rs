@@ -3,6 +3,8 @@ use midnight_ledger_v4::onchain_runtime::state::{self, ContractState};
 use midnight_ledger_v4::serialize::{NetworkId, deserialize};
 use midnight_ledger_v4::storage::DefaultDB;
 
+use crate::serde_impl::didcontract_v1::DidContract;
+
 pub struct DidV1ContractStateDeserializer;
 
 impl ContractStateDeserializer for DidV1ContractStateDeserializer {
@@ -20,15 +22,6 @@ impl ContractStateDeserializer for DidV1ContractStateDeserializer {
         let bytes = state.inner().to_bytes();
         let contract_state: ContractState<DefaultDB> = deserialize(bytes.as_slice(), network_id)?;
         let state_value = contract_state.data;
-
-        match &state_value {
-            state::StateValue::Null => todo!(),
-            state::StateValue::Cell(aligned_value) => todo!(),
-            state::StateValue::Map(hash_map) => todo!(),
-            state::StateValue::Array(array) => todo!(),
-            state::StateValue::BoundedMerkleTree(merkle_tree) => todo!(),
-            _ => todo!(),
-        };
 
         todo!()
     }

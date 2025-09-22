@@ -1,6 +1,6 @@
 use midnight_did::dlt::ContractStateDeserializer;
 
-mod compact_v08;
+mod compact_v0_8;
 mod didcontract_v1;
 mod ledger_v4;
 

@@ -1,6 +1,6 @@
 use midnight_ledger_v4::base_crypto::fab::Value;
 
-use crate::serde_impl::compact_v08::*;
+use crate::serde_impl::compact_v0_8::*;
 
 macro_rules! compact_enum {
     ($name:ident { $($fields:ident),+ }) => {
