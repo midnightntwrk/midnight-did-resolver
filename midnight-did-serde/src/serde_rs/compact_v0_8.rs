@@ -5,6 +5,20 @@ use midnight_ledger_v4::onchain_runtime::state::StateValue;
 use midnight_ledger_v4::storage::db::DB;
 use midnight_ledger_v4::transient_crypto::curve;
 
+trait ValueExt {
+    fn pop_front(&mut self) -> Option<ValueAtom>;
+}
+
+impl ValueExt for Value {
+    fn pop_front(&mut self) -> Option<ValueAtom> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(self.0.remove(0))
+        }
+    }
+}
+
 #[derive(Debug, derive_more::From, derive_more::Display, derive_more::Error)]
 #[display("{message}")]
 pub struct CompactError {
@@ -38,7 +52,7 @@ pub struct AdtTypeMap<K: CompactType, V: AdtType, P: StateValuePath = EmptyPath>
 
 pub struct BigInt(pub Vec<u8>);
 pub struct CompactTypeBoolean(pub bool);
-pub struct CompactTypeBytes<const N: usize>(pub [u8; N]);
+pub struct CompactTypeBytes(pub Vec<u8>);
 pub struct CompactTypeOpaqueString(pub String);
 pub struct CompactTypeUnsignedInteger(pub BigInt);
 pub struct CompactTypeField(pub BigInt);
@@ -51,7 +65,7 @@ fn state_value_getter<'a, 'b, D: DB>(
 ) -> Result<&'a StateValue<D>, CompactError> {
     let mut current = value;
     for idx in path {
-        let maybe_child = match value {
+        let maybe_child = match current {
             StateValue::Array(array) => array.get(usize::from(*idx)),
             _ => Err(format!("expected StateValue::Array on path {:?}", path))?,
         };
@@ -126,7 +140,7 @@ impl<K: CompactType, V: AdtType, P: StateValuePath> AdtType for AdtTypeMap<K, V,
 
 impl CompactType for CompactTypeBoolean {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-        let maybe_val = value.0.pop().map(|i| i.0);
+        let maybe_val = value.pop_front().map(|i| i.0);
         let Some(val) = maybe_val else {
             Err("expected Boolean".to_string())?
         };
@@ -137,22 +151,19 @@ impl CompactType for CompactTypeBoolean {
     }
 }
 
-impl<const N: usize> CompactType for CompactTypeBytes<N> {
+impl CompactType for CompactTypeBytes {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-        let maybe_val = value.0.pop().map(|i| i.0);
+        let maybe_val = value.pop_front().map(|i| i.0);
         let Some(val) = maybe_val else {
-            Err(format!("expected Bytes[{N}]"))?
+            Err(format!("expected Bytes[?]"))?
         };
-        let Ok(array) = val.try_into() else {
-            Err(format!("expected Bytes[{N}]"))?
-        };
-        Ok(Self(array))
+        Ok(Self(val))
     }
 }
 
 impl CompactType for CompactTypeOpaqueString {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-        let val = value.0.pop().unwrap_or_default().0;
+        let val = value.pop_front().unwrap_or_default().0;
         String::from_utf8(val)
             .map(Self)
             .map_err(|_| "expected String".to_string().into())
@@ -161,7 +172,7 @@ impl CompactType for CompactTypeOpaqueString {
 
 impl CompactType for CompactTypeUnsignedInteger {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-        let maybe_val = value.0.pop();
+        let maybe_val = value.pop_front();
         let Some(val) = maybe_val else {
             Err(format!("expected UnsignedInteger[<=?]"))?
         };
@@ -171,7 +182,7 @@ impl CompactType for CompactTypeUnsignedInteger {
 
 impl CompactType for CompactTypeField {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-        let maybe_val = value.0.pop();
+        let maybe_val = value.pop_front();
         let Some(val) = maybe_val else {
             Err(format!("expected Field"))?
         };
@@ -181,7 +192,7 @@ impl CompactType for CompactTypeField {
 
 impl CompactType for CompactTypeEnum {
     fn from_value(value: &mut Value) -> Result<Self, CompactError> {
-        let maybe_val = value.0.pop().map(|i| i.0);
+        let maybe_val = value.pop_front().map(|i| i.0);
         let Some(mut val) = maybe_val else {
             Err(format!("exptected Enum[<=?]"))?
         };
@@ -230,7 +241,7 @@ macro_rules! compact_enum {
                 ];
                 let idx = CompactTypeEnum::from_value(value)?.0;
                 variants.get(idx as usize).cloned().ok_or(
-                    format!("exptected Enum[<=?] for type {}", stringify!($name)).into(),
+                    format!("expected Enum[<=?] for type {}", stringify!($name)).into(),
                 )
             }
         }

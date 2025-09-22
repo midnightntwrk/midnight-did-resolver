@@ -11,9 +11,9 @@ use crate::serde_rs::compact_v0_8::*;
 compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],
     version: cell<CompactTypeUnsignedInteger> [1, 2],
-    created_at: cell<CompactTypeBytes<64>> [1, 3],
-    updated_at: cell<CompactTypeBytes<64>> [1, 4],
-    deactivated_at: cell<CompactTypeBytes<64>> [1, 5],
+    created_at: cell<CompactTypeBytes> [1, 3],
+    updated_at: cell<CompactTypeBytes> [1, 4],
+    deactivated_at: cell<CompactTypeBytes> [1, 5],
     active: cell<CompactTypeBoolean> [1, 6],
     operation_count: cell<CompactTypeUnsignedInteger> [1, 7],
     verification_method: map<CompactTypeOpaqueString, VerificationMethod> [1, 8],
