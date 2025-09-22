@@ -1,8 +1,8 @@
 use midnight_did::dlt::ContractStateDeserializer;
 
-mod ledger_v4;
 mod compact_v08;
 mod didcontract_v1;
+mod ledger_v4;
 
 #[derive(Debug, Clone)]
 pub struct DefaultContractStateDeserializer;
@@ -16,4 +16,3 @@ impl ContractStateDeserializer for DefaultContractStateDeserializer {
         ledger_v4::DidV1ContractStateDeserializer.deserialize(did, state)
     }
 }
-

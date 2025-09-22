@@ -33,4 +33,3 @@ impl ContractStateDeserializer for DidV1ContractStateDeserializer {
         todo!()
     }
 }
-

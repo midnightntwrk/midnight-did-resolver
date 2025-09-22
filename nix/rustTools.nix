@@ -1,7 +1,6 @@
 {
   rust-bin,
   rust-overlay,
-  fetchurl,
 }:
 
 let
@@ -54,5 +53,5 @@ rec {
     mkdir -p /build/cargo-vendor-dir/static
     cp ./vendor-from-indexer/static/bls_filecoin_2p14 /build/cargo-vendor-dir/static/bls_filecoin_2p14
     touch ./vendor-from-indexer/midnight-circuits/README.md
-    '';
+  '';
 }

@@ -8,7 +8,7 @@ macro_rules! typed_uri {
 
             #[allow(unused)]
             pub fn new_uri() -> String {
-                $path.to_string() 
+                $path.to_string()
             }
         }
     };

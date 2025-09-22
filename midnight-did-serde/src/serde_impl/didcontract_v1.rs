@@ -117,11 +117,11 @@ compact_struct!(PublicKeyJwk {
 compact_struct!(VerificationMethod {
     id: CompactTypeOpaqueString,
     r#type: VerificationMethodType,
-    publicKeyJwk: PublicKeyJwk
+    public_key_jwk: PublicKeyJwk
 });
 
 compact_struct!(Service {
     id: CompactTypeOpaqueString,
     r#type: CompactTypeOpaqueString,
-    serviceEndpoint: CompactTypeVector<4, CompactTypeOpaqueString>
+    service_endpoint: CompactTypeVector<4, CompactTypeOpaqueString>
 });

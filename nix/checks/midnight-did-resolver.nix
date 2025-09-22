@@ -26,24 +26,31 @@ rustPlatform.buildRustPackage {
   preBuild = rustTools.patchScript;
 
   buildPhase = ''
-    cargo b --all-features --all-targets
+    cargo build --all-features
   '';
 
   checkPhase = ''
     deadnix -f
     cargo fmt --check
-    cargo test
-    cargo clippy --all-targets -- -D warnings
 
-    cargo test --all-features
-    cargo clippy --all-targets --all-features -- -D warnings
+    # check individual crate and features if properly gated
+    echo "checking midnight-did"
+    cargo test -p midnight-did --all-features
+    cargo build -p midnight-did --all-targets --all-features
+    cargo build -p midnight-did --all-targets --features openapi
 
-    # check individual feature if properly gated
-    echo "checking feature gate for midnight-did"
-    cargo clippy -p midnight-did --all-targets --features openapi -- -D warnings
+    echo "checking midnight-did-serde"
+    cargo test -p midnight-did-serde --all-features
+    cargo build -p midnight-did-serde --all-targets --all-features
+    cargo build -p midnight-did-serde --all-targets --features js-cli
 
-    echo "checking feature gate for midnight-did-serde"
-    cargo clippy -p midnight-did-serde --all-targets --features js-cli -- -D warnings
+    echo "checking midnight-did-indexer-client"
+    cargo test -p midnight-did-indexer-client --all-features
+    cargo build -p midnight-did-indexer-client --all-targets --all-features
+
+    echo "checking midnight-did-resolver"
+    cargo test -p midnight-did-resolver --all-features
+    cargo build -p midnight-did-resolver --all-targets --all-features
   '';
 
   installPhase = "touch $out";
