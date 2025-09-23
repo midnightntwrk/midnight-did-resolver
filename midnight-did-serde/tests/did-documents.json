@@ -1,0 +1,193 @@
+[
+  {
+    "@context": [],
+    "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+    "verificationMethod": [],
+    "authentication": [],
+    "assertionMethod": [],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": []
+  },
+  {
+    "@context": [],
+    "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+    "verificationMethod": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      }
+    ],
+    "authentication": [],
+    "assertionMethod": [],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": []
+  },
+  {
+    "@context": [],
+    "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+    "verificationMethod": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      }
+    ],
+    "authentication": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1"
+    ],
+    "assertionMethod": [],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": []
+  },
+  {
+    "@context": [],
+    "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+    "verificationMethod": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-2",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      },
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      }
+    ],
+    "authentication": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1"
+    ],
+    "assertionMethod": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-2"
+    ],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": []
+  },
+  {
+    "@context": [],
+    "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+    "verificationMethod": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-2",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      },
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      }
+    ],
+    "authentication": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1"
+    ],
+    "assertionMethod": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-2"
+    ],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#didcomm-1",
+        "type": "DIDCommV2",
+        "serviceEndpoint": [
+          "https://localhost/didcomm/v2",
+          "wss://localhost/didcomm/v2"
+        ]
+      }
+    ]
+  },
+  {
+    "@context": [],
+    "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+    "verificationMethod": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-2",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      },
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1",
+        "type": "JsonWebKey",
+        "controller": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64",
+        "publicKeyJwk": {
+          "kty": "EC",
+          "crv": "Ed25519",
+          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
+          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+        }
+      }
+    ],
+    "authentication": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-1"
+    ],
+    "assertionMethod": [
+      "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#key-2"
+    ],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": [
+      {
+        "id": "did:midnight:undeployed:02002faa3feaead86ae445622b5806ddd6da8e423992851b30a6f24b4aa8072a5c64#didcomm-1",
+        "type": "DIDCommV2",
+        "serviceEndpoint": [
+          "https://localhost/updated",
+          "wss://localhost/updated"
+        ]
+      }
+    ]
+  }
+]

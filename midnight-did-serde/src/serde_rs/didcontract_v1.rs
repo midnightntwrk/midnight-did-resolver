@@ -25,10 +25,7 @@ compact_ledger!(DidContract {
     service: map<CompactTypeOpaqueString, Service> [1, 14]
 });
 
-compact_enum!(VerificationMethodType {
-    Undefined,
-    JsonWebKey2020
-});
+compact_enum!(VerificationMethodType { Undefined, JsonWebKey });
 
 compact_enum!(KeyType { EC, RSA, oct });
 
@@ -66,8 +63,9 @@ impl From<PublicKeyJwk> for identus_apollo::jwk::Jwk {
 
 impl VerificationMethod {
     fn to_did_core(self, controller: &Did) -> identus_did_core::VerificationMethod {
+        let id = handle_verificationmethod_id(&self.id, controller);
         identus_did_core::VerificationMethod {
-            id: format!("{}#{}", controller, self.id.0),
+            id,
             r#type: self.r#type.to_string(),
             controller: controller.to_string(),
             public_key_jwk: Some(self.public_key_jwk.into()),
@@ -81,6 +79,7 @@ impl Service {
             .service_endpoint
             .0
             .into_iter()
+            .filter(|i| !i.0.is_empty())
             .map(|i| identus_did_core::StringOrMap::Str(i.0))
             .collect();
         identus_did_core::Service {
@@ -114,7 +113,7 @@ impl ContractStateDeserializer for DidContractDeserializer {
         let verification_relation = |keys: Vec<CompactTypeOpaqueString>| {
             Some(
                 keys.into_iter()
-                    .map(|pk| identus_did_core::VerificationMethodOrRef::Ref(format!("{}#{}", did, pk.0)))
+                    .map(|pk| identus_did_core::VerificationMethodOrRef::Ref(handle_verificationmethod_id(&pk, &did)))
                     .collect::<Vec<_>>(),
             )
         };
@@ -142,5 +141,14 @@ impl ContractStateDeserializer for DidContractDeserializer {
                     .collect(),
             ),
         })
+    }
+}
+
+// FIXME: we need to make did:midnight JS not write prefix "did:midnight:" to the ledger
+fn handle_verificationmethod_id(id: &CompactTypeOpaqueString, controller: &Did) -> String {
+    if id.0.starts_with("did:midnight") {
+        id.0.clone()
+    } else {
+        format!("{}#{}", controller, id.0)
     }
 }
