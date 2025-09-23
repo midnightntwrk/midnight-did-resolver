@@ -2589,6 +2589,7 @@ dependencies = [
 name = "midnight-did-serde"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "derive_more",
  "identus-apollo",
  "identus-did-core",

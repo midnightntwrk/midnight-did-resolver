@@ -29,8 +29,8 @@ let
     platform:
     pkgs.pkgsCross."${platform.cross}".callPackage ./midnight-did-resolver-docker.nix {
       inherit version;
+      inherit (platform) tagSuffix;
       midnight-did-resolver = mkBin platform;
-      tagSuffix = platform.tagSuffix;
       extraPackages = [ pkgs.pkgsInternal.midnight-did-serde-js ];
     };
 

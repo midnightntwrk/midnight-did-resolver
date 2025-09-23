@@ -11,9 +11,9 @@ use crate::serde_rs::compact_v0_8::*;
 compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],
     version: cell<CompactTypeUnsignedInteger> [1, 2],
-    created_at: cell<CompactTypeBytes> [1, 3],
-    updated_at: cell<CompactTypeBytes> [1, 4],
-    deactivated_at: cell<CompactTypeBytes> [1, 5],
+    created_at: cell<CompactTypeUnsignedInteger> [1, 3],
+    updated_at: cell<CompactTypeUnsignedInteger> [1, 4],
+    deactivated_at: cell<CompactTypeUnsignedInteger> [1, 5],
     active: cell<CompactTypeBoolean> [1, 6],
     operation_count: cell<CompactTypeUnsignedInteger> [1, 7],
     verification_method: map<CompactTypeOpaqueString, VerificationMethod> [1, 8],
@@ -27,7 +27,7 @@ compact_ledger!(DidContract {
 
 compact_enum!(VerificationMethodType { Undefined, JsonWebKey });
 
-compact_enum!(KeyType { EC, RSA, oct });
+compact_enum!(KeyType { EC, RSA, oct, OKP });
 
 compact_enum!(CurveType { Ed25519, Jubjub });
 
@@ -55,8 +55,8 @@ impl From<PublicKeyJwk> for identus_apollo::jwk::Jwk {
         Self {
             kty: value.kty.to_string(),
             crv: value.crv.to_string(),
-            x: Some(value.x.0.0.into()),
-            y: Some(value.y.0.0.into()),
+            x: Some(value.x.0.into()),
+            y: Some(value.y.0.into()),
         }
     }
 }

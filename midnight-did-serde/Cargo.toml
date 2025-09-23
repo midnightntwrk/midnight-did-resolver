@@ -7,6 +7,7 @@ license.workspace = true
 [dependencies]
 midnight-did = { workspace = true }
 
+chrono           = { workspace = true }
 derive_more      = { workspace = true, features = [ "from", "display", "error" ] }
 identus-apollo   = { workspace = true, features = [ "jwk" ] }
 identus-did-core = { workspace = true }

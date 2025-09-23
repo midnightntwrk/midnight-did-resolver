@@ -7,4 +7,3 @@ mod serde_cli;
 
 #[cfg(feature = "js-cli")]
 pub use serde_cli::CliContractStateDeserializer;
-

@@ -1,9 +1,10 @@
+#![allow(unused)]
+
 use std::marker::PhantomData;
 
 use midnight_ledger_v4::base_crypto::fab::{Value, ValueAtom};
 use midnight_ledger_v4::onchain_runtime::state::StateValue;
 use midnight_ledger_v4::storage::db::DB;
-use midnight_ledger_v4::transient_crypto::curve;
 
 trait ValueExt {
     fn pop_front(&mut self) -> Option<ValueAtom>;
@@ -11,11 +12,7 @@ trait ValueExt {
 
 impl ValueExt for Value {
     fn pop_front(&mut self) -> Option<ValueAtom> {
-        if self.is_empty() {
-            None
-        } else {
-            Some(self.0.remove(0))
-        }
+        if self.is_empty() { None } else { Some(self.0.remove(0)) }
     }
 }
 
@@ -50,12 +47,12 @@ pub struct AdtTypeCell<T: CompactType, P: StateValuePath = EmptyPath>(pub T, Pha
 pub struct AdtTypeSet<T: CompactType, P: StateValuePath = EmptyPath>(pub Vec<T>, PhantomData<P>);
 pub struct AdtTypeMap<K: CompactType, V: AdtType, P: StateValuePath = EmptyPath>(pub Vec<(K, V)>, PhantomData<P>);
 
-pub struct BigInt(pub Vec<u8>);
 pub struct CompactTypeBoolean(pub bool);
 pub struct CompactTypeBytes(pub Vec<u8>);
 pub struct CompactTypeOpaqueString(pub String);
-pub struct CompactTypeUnsignedInteger(pub BigInt);
-pub struct CompactTypeField(pub BigInt);
+/// Int represented in little-endian bytes
+pub struct CompactTypeUnsignedInteger(pub Vec<u8>);
+pub struct CompactTypeField(pub Vec<u8>);
 pub struct CompactTypeEnum(pub u8);
 pub struct CompactTypeVector<const N: usize, T>(pub [T; N]);
 
@@ -176,7 +173,7 @@ impl CompactType for CompactTypeUnsignedInteger {
         let Some(val) = maybe_val else {
             Err(format!("expected UnsignedInteger[<=?]"))?
         };
-        value_to_bigint(&val).map(Self)
+        Ok(Self(val.0))
     }
 }
 
@@ -186,7 +183,7 @@ impl CompactType for CompactTypeField {
         let Some(val) = maybe_val else {
             Err(format!("expected Field"))?
         };
-        value_to_bigint(&val).map(Self)
+        Ok(Self(val.0))
     }
 }
 
@@ -215,12 +212,6 @@ where
             .map(Self)
             .map_err(|_| format!("expected {N}-element-array").into())
     }
-}
-
-fn value_to_bigint(x: &ValueAtom) -> Result<BigInt, CompactError> {
-    let mut bytes = curve::Fr::try_from(&*x).map_err(|e| e.to_string())?.as_le_bytes();
-    bytes.reverse();
-    Ok(BigInt(bytes))
 }
 
 macro_rules! compact_enum {
@@ -283,6 +274,7 @@ macro_rules! compact_ledger {
                 }
             )+
 
+            #[allow(unused)]
             pub struct $name {
                 $($field: compact_ledger!(@internal $adt <$ty $(, $ty2)?>, [<$name _ $field:camel>])),+
             }

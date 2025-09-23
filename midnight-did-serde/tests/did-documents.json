@@ -21,8 +21,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       }
     ],
@@ -44,8 +44,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       }
     ],
@@ -69,8 +69,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       },
       {
@@ -80,8 +80,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       }
     ],
@@ -107,8 +107,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       },
       {
@@ -118,8 +118,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       }
     ],
@@ -154,8 +154,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       },
       {
@@ -165,8 +165,8 @@
         "publicKeyJwk": {
           "kty": "EC",
           "crv": "Ed25519",
-          "x": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACo",
-          "y": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQ"
+          "x": "Kg",
+          "y": "VA"
         }
       }
     ],
