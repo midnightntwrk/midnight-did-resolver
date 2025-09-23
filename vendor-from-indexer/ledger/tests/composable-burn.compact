@@ -1,0 +1,5 @@
+include "std";
+
+export circuit burn(coin: CoinInfo): [] {
+  receive(coin);
+}

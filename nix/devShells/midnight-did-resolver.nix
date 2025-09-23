@@ -1,11 +1,9 @@
-{ pkgs, buildConfig }:
+{ pkgs }:
 
 let
   rootDir = "$ROOT_DIR";
   inherit (pkgs.rustTools) rust;
   scripts = {
-    inherit buildConfig;
-
     format = pkgs.writeShellApplication {
       name = "format";
       runtimeInputs = with pkgs; [

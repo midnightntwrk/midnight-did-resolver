@@ -2,6 +2,7 @@
   lib,
   makeRustPlatform,
   rust,
+  rustTools,
   cargoLock,
   buildFeatures ? [ ],
 }:
@@ -25,4 +26,6 @@ rustPlatform.buildRustPackage {
     src = ./../..;
   };
   doCheck = false;
+
+  preBuild = rustTools.patchScript;
 }

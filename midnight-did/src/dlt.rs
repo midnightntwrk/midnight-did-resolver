@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use identus_apollo::hex::HexStr;
-use identus_did_core::DidDocument;
+use identus_did_core::{DidDocument, DidDocumentMetadata};
 use serde::{Deserialize, Serialize};
 
 use crate::did::MidnightDid;
@@ -33,10 +33,10 @@ impl FromStr for ContractState {
     }
 }
 
-pub trait ContractStateDecoder {
-    fn decode(
+pub trait ContractStateDeserializer {
+    fn deserialize(
         &self,
         did: &MidnightDid,
-        state: ContractState,
-    ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>>;
+        state: &ContractState,
+    ) -> Result<(DidDocumentMetadata, DidDocument), Box<dyn std::error::Error + Send + Sync>>;
 }
