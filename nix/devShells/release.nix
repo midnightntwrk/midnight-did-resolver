@@ -13,7 +13,7 @@ let
       ];
       text = ''
         cd "${rootDir}"
-        TAG=$(date +"%Y%m%d-%H%M%S")
+        TAG=0.1.0-alpha.1
         echo "Building midnight-did-resolver-docker-linux-amd64..."
         nix build .#midnight-did-resolver-docker-amd64 -o result-amd64
         echo "Building midnight-did-resolver-docker-linux-arm64..."
@@ -24,8 +24,8 @@ let
         docker load < ./result-arm64
 
         echo "Tagging images..."
-        docker tag midnight-did-resolver:latest-amd64 "patextreme/midnight-did-resolver:$TAG-amd64"
-        docker tag midnight-did-resolver:latest-arm64 "patextreme/midnight-did-resolver:$TAG-arm64"
+        docker tag midnight-did-resolver:0.1.0-amd64 "patextreme/midnight-did-resolver:$TAG-amd64"
+        docker tag midnight-did-resolver:0.1.0-arm64 "patextreme/midnight-did-resolver:$TAG-arm64"
 
         echo "Cleaning up build artifacts..."
         rm -rf ./result-amd64
