@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use identus_apollo::hex::HexStr;
-use identus_did_core::DidDocument;
+use identus_did_core::{DidDocument, DidDocumentMetadata};
 use serde::{Deserialize, Serialize};
 
 use crate::did::MidnightDid;
@@ -38,5 +38,5 @@ pub trait ContractStateDeserializer {
         &self,
         did: &MidnightDid,
         state: &ContractState,
-    ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>>;
+    ) -> Result<(DidDocumentMetadata, DidDocument), Box<dyn std::error::Error + Send + Sync>>;
 }

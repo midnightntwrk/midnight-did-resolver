@@ -1,4 +1,4 @@
-use identus_did_core::{Did, DidDocument};
+use identus_did_core::{Did, DidDocument, DidDocumentMetadata};
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDeserializer;
 use midnight_ledger_v4::base_crypto::fab::Value;
@@ -97,7 +97,7 @@ impl ContractStateDeserializer for DidContractDeserializer {
         &self,
         did: &MidnightDid,
         state: &midnight_did::dlt::ContractState,
-    ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<(DidDocumentMetadata, DidDocument), Box<dyn std::error::Error + Send + Sync>> {
         let network_id = match did.network() {
             midnight_did::did::MidnightNetwork::Undeployed => NetworkId::Undeployed,
             midnight_did::did::MidnightNetwork::Devnet => NetworkId::DevNet,
@@ -118,7 +118,12 @@ impl ContractStateDeserializer for DidContractDeserializer {
             )
         };
 
-        Ok(DidDocument {
+        let did_doc_metadata = DidDocumentMetadata {
+            deactivated: Some(did_contract.active.0.0),
+            ..Default::default()
+        };
+
+        let did_doc = DidDocument {
             context: vec![],
             id: did.clone(),
             verification_method: did_contract
@@ -140,7 +145,9 @@ impl ContractStateDeserializer for DidContractDeserializer {
                     .map(|(_, v)| v.to_did_core(&did))
                     .collect(),
             ),
-        })
+        };
+
+        Ok((did_doc_metadata, did_doc))
     }
 }
 

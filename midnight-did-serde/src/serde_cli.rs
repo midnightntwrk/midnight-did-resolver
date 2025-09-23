@@ -2,7 +2,7 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use identus_did_core::DidDocument;
+use identus_did_core::{DidDocument, DidDocumentMetadata};
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::{ContractState, ContractStateDeserializer};
 
@@ -38,9 +38,9 @@ impl ContractStateDeserializer for CliContractStateDeserializer {
         &self,
         did: &MidnightDid,
         state: &ContractState,
-    ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<(DidDocumentMetadata, DidDocument), Box<dyn std::error::Error + Send + Sync>> {
         let did_doc = decode_contract_state_via_cli(&self.binary_path, did, &state)?;
-        Ok(did_doc)
+        Ok((Default::default(), did_doc))
     }
 }
 

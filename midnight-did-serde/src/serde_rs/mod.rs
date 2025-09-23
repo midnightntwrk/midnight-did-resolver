@@ -1,3 +1,4 @@
+use identus_did_core::{DidDocument, DidDocumentMetadata};
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDeserializer;
 
@@ -12,7 +13,7 @@ impl ContractStateDeserializer for DefaultContractStateDeserializer {
         &self,
         did: &MidnightDid,
         state: &midnight_did::dlt::ContractState,
-    ) -> Result<identus_did_core::DidDocument, Box<dyn std::error::Error + Send + Sync>> {
+    ) -> Result<(DidDocumentMetadata, DidDocument), Box<dyn std::error::Error + Send + Sync>> {
         didcontract_v1::DidContractDeserializer.deserialize(did, state)
     }
 }

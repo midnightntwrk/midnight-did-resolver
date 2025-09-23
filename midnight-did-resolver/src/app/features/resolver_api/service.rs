@@ -2,8 +2,8 @@ use std::str::FromStr;
 use std::sync::Arc;
 
 use identus_did_core::{
-    Did, DidDocument, DidResolutionError, DidResolutionErrorCode, DidResolutionMetadata, DidResolver,
-    ResolutionOptions, ResolutionResult,
+    Did, DidDocument, DidDocumentMetadata, DidResolutionError, DidResolutionErrorCode, DidResolutionMetadata,
+    DidResolver, ResolutionOptions, ResolutionResult,
 };
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDeserializer;
@@ -68,7 +68,7 @@ impl ResolverService {
         }
     }
 
-    async fn resolution_logic(&self, did: &Did) -> Result<DidDocument, ResolutionError> {
+    async fn resolution_logic(&self, did: &Did) -> Result<(DidDocumentMetadata, DidDocument), ResolutionError> {
         let did = match MidnightDid::from_str(&did.to_string()) {
             Ok(did) => did,
             Err(e) => Err(ResolutionError::InvalidDid { source: e })?,
@@ -78,13 +78,11 @@ impl ResolverService {
             Err(IndexerClientError::MissingDataFields { .. }) => Err(ResolutionError::NotFound)?,
             Err(e) => Err(anyhow::Error::from(e))?,
         };
-        let did_doc = match self.state_deserializer.deserialize(&did, &contract_state) {
-            Ok(doc) => doc,
-            Err(e) => Err(ResolutionError::InternalError {
+        self.state_deserializer
+            .deserialize(&did, &contract_state)
+            .map_err(|e| ResolutionError::InternalError {
                 source: anyhow::Error::from_boxed(e),
-            })?,
-        };
-        Ok(did_doc)
+            })
     }
 }
 
@@ -92,7 +90,11 @@ impl ResolverService {
 impl DidResolver for ResolverService {
     async fn resolve(&self, did: &Did, _options: &ResolutionOptions) -> ResolutionResult {
         match self.resolution_logic(did).await {
-            Ok(did_doc) => ResolutionResult::success(did_doc),
+            Ok((did_doc_metadata, did_doc)) => {
+                let mut result = ResolutionResult::success(did_doc);
+                result.did_document_metadata = did_doc_metadata;
+                result
+            }
             Err(e) => e.into(),
         }
     }

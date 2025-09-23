@@ -27,7 +27,7 @@ fn test_midnight_serde_rs() {
         .iter()
         .map(|contract_state| {
             let state = ContractState::from_str(contract_state).unwrap();
-            let did_doc = deserializer.deserialize(&did, &state).unwrap();
+            let (_, did_doc) = deserializer.deserialize(&did, &state).unwrap();
             let did_doc_json = serde_json::to_value(&did_doc).unwrap();
             did_doc_json
         })
