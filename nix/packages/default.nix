@@ -31,7 +31,6 @@ let
       inherit version;
       inherit (platform) tagSuffix;
       midnight-did-resolver = mkBin platform;
-      extraPackages = [ pkgs.pkgsInternal.midnight-did-serde-js ];
     };
 
   bins = builtins.listToAttrs (
@@ -59,7 +58,6 @@ rec {
   midnight-did-resolver-docker = pkgs.callPackage ./midnight-did-resolver-docker.nix {
     inherit version;
     midnight-did-resolver = midnight-did-resolver-bin;
-    extraPackages = [ pkgs.pkgsInternal.midnight-did-serde-js ];
   };
 }
 // bins
