@@ -13,13 +13,11 @@ edition = "2024"
 license = "Apache-2.0"
 
 [workspace.dependencies]
+midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 midnight-did                = { path = "midnight-did" }
 midnight-did-serde          = { path = "midnight-did-serde" }
-midnight-did-indexer-client = { path = "midnight-did-indexer-client" }
 
-identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
-identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
-identus-did-resolver-http = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
+midnight-ledger_v4 = { path = "./vendor-from-indexer/ledger", package = "midnight-ledger" }
 
 anyhow             = { version = "1" }
 async-trait        = { version = "0.1" }
@@ -28,7 +26,7 @@ chrono             = { version = "0.4" }
 clap               = { version = "4" }
 derive_more        = { version = "2" }
 graphql_client     = { version = "0.14" }
-lazybe             = { version = "0.2" }
+paste              = { version = "1" }
 reqwest            = { version = "0.12", default-features = false }
 serde              = { version = "1" }
 serde_json         = { version = "1" }
@@ -40,3 +38,24 @@ tracing            = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }
 utoipa             = { version = "5" }
 utoipa-swagger-ui  = { version = "9" }
+
+identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
+identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
+identus-did-resolver-http = { git = "https://github.com/hyperledger-identus/neoprism", rev = "3d1a18d57804a9d9541183c62eb5f3cf83da7f40" }
+
+[patch."https://github.com/input-output-hk/midnight-ledger-prototype"]
+midnight-base-crypto-derive = { path = "./vendor-from-indexer/base-crypto-derive" }
+midnight-base-crypto        = { path = "./vendor-from-indexer/base-crypto" }
+midnight-coin-structure     = { path = "./vendor-from-indexer/coin-structure" }
+midnight-onchain-runtime    = { path = "./vendor-from-indexer/onchain-runtime" }
+midnight-onchain-state      = { path = "./vendor-from-indexer/onchain-state" }
+midnight-onchain-vm         = { path = "./vendor-from-indexer/onchain-vm" }
+midnight-serialize-macros   = { path = "./vendor-from-indexer/serialize-macros" }
+midnight-serialize          = { path = "./vendor-from-indexer/serialize" }
+midnight-storage-macros     = { path = "./vendor-from-indexer/storage-macros" }
+midnight-storage            = { path = "./vendor-from-indexer/storage" }
+midnight-transient-crypto   = { path = "./vendor-from-indexer/transient-crypto" }
+midnight-zswap              = { path = "./vendor-from-indexer/zswap" }
+
+[patch."https://github.com/input-output-hk/midnight-circuits"]
+midnight-circuits = { path = "./vendor-from-indexer/midnight-circuits" }

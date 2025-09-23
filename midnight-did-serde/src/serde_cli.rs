@@ -2,9 +2,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use identus_did_core::DidDocument;
+use identus_did_core::{DidDocument, DidDocumentMetadata};
 use midnight_did::did::MidnightDid;
-use midnight_did::dlt::{ContractState, ContractStateDecoder};
+use midnight_did::dlt::{ContractState, ContractStateDeserializer};
 
 #[derive(Debug, derive_more::From, derive_more::Display, derive_more::Error)]
 pub enum SerdeCliError {
@@ -20,12 +20,12 @@ pub enum SerdeCliError {
     InvocationFailed { source: io::Error },
 }
 
-#[derive(Clone)]
-pub struct CliContractStateDecoder {
+#[derive(Debug, Clone)]
+pub struct CliContractStateDeserializer {
     binary_path: PathBuf,
 }
 
-impl CliContractStateDecoder {
+impl CliContractStateDeserializer {
     pub fn new<P: Into<PathBuf>>(binary_path: P) -> Self {
         Self {
             binary_path: binary_path.into(),
@@ -33,14 +33,14 @@ impl CliContractStateDecoder {
     }
 }
 
-impl ContractStateDecoder for CliContractStateDecoder {
-    fn decode(
+impl ContractStateDeserializer for CliContractStateDeserializer {
+    fn deserialize(
         &self,
         did: &MidnightDid,
-        state: ContractState,
-    ) -> Result<DidDocument, Box<dyn std::error::Error + Send + Sync>> {
+        state: &ContractState,
+    ) -> Result<(DidDocumentMetadata, DidDocument), Box<dyn std::error::Error + Send + Sync>> {
         let did_doc = decode_contract_state_via_cli(&self.binary_path, did, &state)?;
-        Ok(did_doc)
+        Ok((Default::default(), did_doc))
     }
 }
 

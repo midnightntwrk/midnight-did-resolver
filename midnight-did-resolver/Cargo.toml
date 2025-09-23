@@ -16,7 +16,6 @@ derive_more               = { workspace = true, features = [ "as_ref", "from", "
 identus-apollo            = { workspace = true, features = [ "hex", "jwk" ] }
 identus-did-core          = { workspace = true, features = [ "openapi" ] }
 identus-did-resolver-http = { workspace = true, features = [ "openapi" ] }
-lazybe                    = { workspace = true }
 serde                     = { workspace = true, features = [ "derive" ] }
 tokio                     = { workspace = true, features = [ "full" ] }
 tower-http                = { workspace = true, features = [ "fs", "trace", "cors" ] }
