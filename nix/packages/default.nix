@@ -43,7 +43,7 @@ let
 
   dockers = builtins.listToAttrs (
     map (p: {
-      name = "midnight-did-resolver-docker-" + p.name;
+      name = "midnight-did-resolver-docker" + p.tagSuffix;
       value = mkDocker p;
     }) platforms
   );

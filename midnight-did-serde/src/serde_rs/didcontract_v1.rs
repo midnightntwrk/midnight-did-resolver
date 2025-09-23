@@ -119,7 +119,7 @@ impl ContractStateDeserializer for DidContractDeserializer {
         };
 
         let did_doc_metadata = DidDocumentMetadata {
-            deactivated: Some(did_contract.active.0.0),
+            deactivated: Some(!did_contract.active.0.0),
             ..Default::default()
         };
 

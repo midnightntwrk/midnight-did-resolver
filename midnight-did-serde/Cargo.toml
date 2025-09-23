@@ -14,6 +14,7 @@ identus-did-core = { workspace = true }
 paste            = { workspace = true }
 serde            = { workspace = true, optional = true, features = [ "derive" ] }
 serde_json       = { workspace = true }
+tracing          = { workspace = true }
 
 midnight-ledger_v4 = { workspace = true }
 
