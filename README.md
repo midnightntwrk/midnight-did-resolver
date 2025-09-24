@@ -27,9 +27,9 @@ It exposes an HTTP API for language-agnostic integration, ensuring seamless inte
 - 📚 **OpenAPI specification**  
   Provides an OpenAPI definition for easy integration with other tools and services.
 
-## Architecture
+## Contributing
 
-See [Architecture](./docs/ARCHITECTURE.md)
+See [Design](./docs/DESIGN.md) and [Contributing](./CONTRIBUTING.md)
 
 ## Usage Guide
 
