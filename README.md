@@ -2,15 +2,15 @@
 
 ## Overview
 
-Decentralized Identifiers (DIDs) are a new type of identifier that enable verifiable, self-sovereign digital identities.  
-A DID resolver is software that takes a DID and returns its corresponding DID Document and metadata, following the [W3C DID Resolution Specification](https://www.w3.org/TR/did-resolution/).  
+Decentralized Identifiers (DIDs) are a new type of identifier that enable verifiable, self-sovereign digital identities.
+A DID resolver is software that takes a DID and returns its corresponding DID Document and metadata, following the [W3C DID Resolution Specification](https://www.w3.org/TR/did-resolution/).
 This standard ensures interoperability across different DID methods.
 
-**Midnight DID** is a DID method built on the Midnight blockchain, designed for secure, privacy-preserving identity management.  
-Each Midnight DID is represented by a smart contract on the blockchain, with the format `did:midnight:<network>:<contract-address>`.  
+**Midnight DID** is a DID method built on the Midnight blockchain, designed for secure, privacy-preserving identity management.
+Each Midnight DID is represented by a smart contract on the blockchain, with the format `did:midnight:<network>:<contract-address>`.
 The contract state is public and contains all information needed to reconstruct the DID Document, including verification keys, authentication relationships, service endpoints, and metadata.
 
-This repository implements a resolver for Midnight DIDs, using the Midnight Indexer to fetch and deserialize smart contract states from the blockchain into W3C-compliant DID Documents.  
+This repository implements a resolver for Midnight DIDs, using the Midnight Indexer to fetch and deserialize smart contract states from the blockchain into W3C-compliant DID Documents.
 It exposes an HTTP API for language-agnostic integration, ensuring seamless interoperability and identity verification across diverse systems through established standards.
 
 ## Features
@@ -51,6 +51,10 @@ nix build .#midnight-did-resolver-bin
 Replace `<INDEXER_URL>` with the URL of your Midnight Indexer instance.
 
 Once the server is running, open your browser and go to [http://localhost:8080](http://localhost:8080) to view the Swagger UI for interactive API documentation.
+
+> **Important:** This repository builds against a private GitHub repository.  
+> You must have access to the private repository and provide your GitHub credentials using `nix-config`.  
+> Follow the instructions in the [Nix manual for configuring access tokens](https://nix.dev/manual/nix/2.24/command-ref/conf-file.html#conf-access-tokens).
 
 ## References
 
