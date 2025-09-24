@@ -29,32 +29,31 @@ It exposes an HTTP API for language-agnostic integration, ensuring seamless inte
 
 ## Getting Started
 
-Get up and running with the Midnight DID Resolver in just a few steps.
+Get up and running with the Midnight DID Resolver using one of the available methods.
 
-> **Note:** This project uses [Nix](https://nixos.org/download.html) for its development environment and packaging.  
-> Please ensure Nix is installed and [flakes](https://nixos.wiki/wiki/Flakes) are enabled on your system before proceeding.
+> **Note:** Currently, only the Nix package is supported. Other package distribution methods will be available soon.
 
-Currently, the resolver is packaged and distributed via Nix only.
+### Method 1: Using Nix
 
-### Build from source with Nix
+**1. Pre-requisites**
+- **Nix**: Install [Nix](https://nixos.org/download.html) and enable [flakes](https://nixos.wiki/wiki/Flakes).
+- **Private Repository Access**: Access to the private GitHub repository and credentials via `nix-config`.  
+  See [Nix manual for configuring access tokens](https://nix.dev/manual/nix/2.24/command-ref/conf-file.html#conf-access-tokens).
+- **Midnight Indexer URL**: Obtain the URL of your Midnight Indexer instance.
 
-To build and run the resolver locally:
+**2. Installation**
+- Build the resolver binary with Nix:
+  ```bash
+  nix build .#midnight-did-resolver-bin
+  ```
 
-```bash
-# Build and output to "result" directory
-nix build .#midnight-did-resolver-bin
-
-# Run the built artifact inside the "result" directory
-./result/bin/midnight-did-resolver serve --indexer-url <INDEXER_URL>
-```
-
-Replace `<INDEXER_URL>` with the URL of your Midnight Indexer instance.
-
-Once the server is running, open your browser and go to [http://localhost:8080](http://localhost:8080) to view the Swagger UI for interactive API documentation.
-
-> **Important:** This repository builds against a private GitHub repository.  
-> You must have access to the private repository and provide your GitHub credentials using `nix-config`.  
-> Follow the instructions in the [Nix manual for configuring access tokens](https://nix.dev/manual/nix/2.24/command-ref/conf-file.html#conf-access-tokens).
+**3. Usage**
+- Run the resolver:
+  ```bash
+  ./result/bin/midnight-did-resolver serve --indexer-url <INDEXER_URL>
+  ```
+- Replace `<INDEXER_URL>` with your Midnight Indexer instance URL.
+- Access the Swagger UI at [http://localhost:8080](http://localhost:8080).
 
 ## References
 
