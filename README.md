@@ -33,7 +33,7 @@ Get up and running with the Midnight DID Resolver using one of the available met
 
 > **Note:** Currently, only the Nix package is supported. Other package distribution methods will be available soon.
 
-### Method 1: Using Nix
+### 🧰 Method 1: Using Nix to build binary
 
 **1. Pre-requisites**
 - **Nix**: Install [Nix](https://nixos.org/download.html) and enable [flakes](https://nixos.wiki/wiki/Flakes).
@@ -54,6 +54,36 @@ Get up and running with the Midnight DID Resolver using one of the available met
   ```
 - Replace `<INDEXER_URL>` with your Midnight Indexer instance URL.
 - Access the Swagger UI at [http://localhost:8080](http://localhost:8080).
+
+### 🐳 Method 2: Using Nix to build Docker image
+
+**1. Prerequisites**
+- **Nix:** Install [Nix](https://nixos.org/download.html) and enable [flakes](https://nixos.wiki/wiki/Flakes).
+- **Docker:** Install [Docker](https://docs.docker.com/get-docker/) to run containerized applications.
+- **Private Repository Access:** Access to the private GitHub repository and credentials via `nix-config`.  
+  See [Nix manual for configuring access tokens](https://nix.dev/manual/nix/2.24/command-ref/conf-file.html#conf-access-tokens).
+- **Midnight Indexer URL:** Obtain the URL of your Midnight Indexer instance.
+
+**2. Build and Load the Docker Image**
+- Build the Docker image using Nix:
+  ```bash
+  nix build .#midnight-did-resolver-docker
+  ```
+- Load the image into Docker:
+  ```bash
+  docker load < ./result
+  ```
+
+**3. Run the Resolver Container**
+- Start the resolver using Docker:
+  ```bash
+  docker run -p 8080:8080 midnight-did-resolver:<TAG> serve --indexer-url <INDEXER_URL>
+  ```
+  - Replace `<TAG>` with the image tag (e.g., `0.1.0` or the other version).
+  - Replace `<INDEXER_URL>` with your Midnight Indexer instance URL.
+
+**4. Access the Swagger UI**
+- After starting the container, access the Swagger UI at [http://localhost:8080](http://localhost:8080).
 
 ## Development Guide
 
