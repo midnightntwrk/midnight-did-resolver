@@ -1,5 +1,11 @@
-## Development Guide
+# Development Guide
 
+## Table of content
+
+- [Design](./design.md)
+- [Contract Deserialization](./contract-deserialization.md)
+
+## Development Setup
 
 ### Prerequisites
 
@@ -39,3 +45,4 @@ As the Midnight project prepares to release a new, publicly available version (`
 - Update the `Cargo.toml` to use `midnight-ledger-6.0.0`.
 
 For more details on dependency management and future updates, refer to the [design documentation](./design.md).
+
