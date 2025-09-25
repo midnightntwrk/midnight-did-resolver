@@ -90,6 +90,7 @@ Get up and running with the Midnight DID Resolver using one of the available met
 - [Development Guide](./docs/development-guide.md)
 - [Design](./docs/design.md)
 - [Contributing](./CONTRIBUTING.md)
+- [Contract Deserialization](./docs/contract-deserialization.md)
 
 ## References
 
