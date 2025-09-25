@@ -1,13 +1,12 @@
 ## Development Guide
 
-Set up your development environment for the Midnight DID Resolver using Nix and Cargo. This guide will help you get started quickly, whether you're a new contributor or an experienced developer.
 
 ### Prerequisites
 
 Before you begin, ensure you have the following:
 
 - **Nix:** Install [Nix](https://nixos.org/download.html) and enable [flakes](https://nixos.wiki/wiki/Flakes).
-- **Midnight Indexer URL:** Obtain the URL of your Midnight Indexer instance.
+- **Midnight Indexer URL:** Obtain the URL of your Midnight Indexer instance (required for local development and testing).
 
 ### Setting Up the Development Environment
 
@@ -25,12 +24,18 @@ Before you begin, ensure you have the following:
 3. **Access the Swagger UI:**
    - Open [http://localhost:8080](http://localhost:8080) in your browser to view the API documentation.
 
-### Testing and Linting
+### Midnight-ledger Dependencies
 
-To verify code quality and run tests across the Cargo workspace (including linting), use:
+This project currently uses `ledger-4.0.0` as a core dependency.
+However, due to conflicting feature gates in the dependency resolution process, we rely on vendored dependencies from `midnight-indexer` version `2.1.4`.
+This version of `midnight-indexer` includes a `Cargo.lock` file, which ensures compatibility between `midnight-ledger` crates.
+The vendored dependencies are located in the `vendor-from-indexer` directory.
 
-```bash
-nix flake check
-```
+As the Midnight project prepares to release a new, publicly available version (`v6.0.0`), this project will transition to that version once it becomes available.
 
-This command will automatically execute all defined checks, run the test suite, and perform linting to ensure your code meets project standards before contributing.
+**Transition Plan:**
+- Continue using the vendored dependencies until `midnight-ledger v6.0.0` is released.
+- Once `v6.0.0` is available, update the Midnight DID JS package.
+- Update the `Cargo.toml` to use `midnight-ledger-6.0.0`.
+
+For more details on dependency management and future updates, refer to the [design documentation](./design.md).
