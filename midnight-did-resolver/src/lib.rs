@@ -22,13 +22,13 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub async fn run_command() -> anyhow::Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        cli::Command::Serve(args) => run_serve_command(args).await?,
-        cli::Command::GenerateOpenapi(args) => generate_openapi(args)?,
+        cli::Command::Serve(args) => run_serve(args).await?,
+        cli::Command::GenerateOpenapi(args) => run_generate_openapi(args)?,
     };
     Ok(())
 }
 
-fn generate_openapi(args: crate::cli::GenerateOpenApiArgs) -> anyhow::Result<()> {
+fn run_generate_openapi(args: crate::cli::GenerateOpenApiArgs) -> anyhow::Result<()> {
     let oas = crate::app::open_api();
     let openapi_json = oas.to_pretty_json()?;
 
@@ -40,7 +40,7 @@ fn generate_openapi(args: crate::cli::GenerateOpenApiArgs) -> anyhow::Result<()>
     Ok(())
 }
 
-async fn run_serve_command(args: ServeArgs) -> anyhow::Result<()> {
+async fn run_serve(args: ServeArgs) -> anyhow::Result<()> {
     let layer = ServiceBuilder::new()
         .layer(TraceLayer::new_for_http())
         .option_layer(Some(CorsLayer::permissive()).filter(|_| args.server.cors_enabled));
@@ -53,7 +53,13 @@ async fn run_serve_command(args: ServeArgs) -> anyhow::Result<()> {
         resolver: Arc::new(resolver_service),
     };
 
-    let routers = app::router();
+    let hosts = vec![
+        Some(format!("http://localhost:{}", args.server.port)),
+        args.server.external_url,
+    ]
+    .into_iter()
+    .flatten();
+    let routers = app::router(hosts);
     let router = Router::new()
         .merge(routers.app_router)
         .merge(routers.did_resolver_router.with_state(did_resolver_state))
