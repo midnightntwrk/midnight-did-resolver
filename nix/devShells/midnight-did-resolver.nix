@@ -44,6 +44,7 @@ pkgs.mkShell {
       docker
       git
       git-cliff
+      jq
       less
       ncurses
       which
