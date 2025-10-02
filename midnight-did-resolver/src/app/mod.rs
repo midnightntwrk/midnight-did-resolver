@@ -2,7 +2,9 @@ use axum::Router;
 use axum::response::Redirect;
 use axum::routing::get;
 use identus_did_resolver_http::DidResolverStateDyn;
+use tracing::instrument::WithSubscriber;
 use utoipa::OpenApi;
+use utoipa::openapi::Server;
 
 mod features;
 mod urls;
@@ -31,10 +33,10 @@ impl Routers {
     }
 }
 
-pub fn router() -> Routers {
+pub fn router<H: IntoIterator<Item = S>, S: AsRef<str>>(hosts: H) -> Routers {
     let home_router = Routers {
         app_router: Router::new()
-            .merge(SwaggerUi::new(urls::Swagger::AXUM_PATH).url("/api/openapi.json", open_api()))
+            .merge(SwaggerUi::new(urls::Swagger::AXUM_PATH).url("/api/openapi.json", open_api_custom_host(hosts)))
             .route(
                 urls::Home::AXUM_PATH,
                 get(Redirect::temporary(&urls::Swagger::new_uri())),
@@ -47,14 +49,26 @@ pub fn router() -> Routers {
     home_router.merge(system_api_router).merge(resolver_api_router)
 }
 
-pub fn open_api() -> utoipa::openapi::OpenApi {
+pub fn open_api_custom_host<H: IntoIterator<Item = S>, S: AsRef<str>>(hosts: H) -> utoipa::openapi::OpenApi {
+    let mut servers = Vec::new();
+    for host in hosts {
+        let mut s = Server::default();
+        s.url = host.as_ref().to_string();
+        servers.push(s);
+    }
+
     #[derive(OpenApi)]
-    #[openapi(servers(
-        (url = "http://localhost:8080", description = "Local"),
-    ))]
     struct BaseOpenApiDoc;
 
-    BaseOpenApiDoc::openapi()
+    let mut openapi = BaseOpenApiDoc::openapi()
         .merge_from(features::system_api::open_api())
-        .merge_from(features::resolver_api::open_api())
+        .merge_from(features::resolver_api::open_api());
+
+    openapi.servers = Some(servers);
+    openapi
+}
+
+pub fn open_api() -> utoipa::openapi::OpenApi {
+    let a = ["http://localhost:8080"];
+    open_api_custom_host(&a)
 }
