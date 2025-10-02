@@ -45,4 +45,7 @@ pub struct ServerArgs {
     /// Enable permissive CORS (https://docs.rs/tower-http/latest/tower_http/cors/struct.CorsLayer.html#method.permissive)
     #[arg(long, env = "SERVER_CORS_ENABLED")]
     pub cors_enabled: bool,
+    /// Public URL for external access; used in Swagger docs and as the public endpoint.
+    #[arg(long, env = "SERVER_EXTERNAL_URL")]
+    pub external_url: Option<String>,
 }
