@@ -4,6 +4,7 @@
   makeRustPlatform,
   deadnix,
   pkgsInternal,
+  jq,
 }:
 
 let
@@ -21,6 +22,7 @@ rustPlatform.buildRustPackage {
   nativeBuildInputs = [
     deadnix
     pkgsInternal.midnight-did-serde-js
+    jq
   ];
 
   preBuild = rustTools.patchScript;
@@ -33,24 +35,22 @@ rustPlatform.buildRustPackage {
     deadnix -f
     cargo fmt --check
 
-    # check individual crate and features if properly gated
-    echo "checking midnight-did"
-    cargo test -p midnight-did --all-features
-    cargo build -p midnight-did --all-targets --all-features
-    cargo build -p midnight-did --all-targets --features openapi
-
-    echo "checking midnight-did-serde"
-    cargo test -p midnight-did-serde --all-features
-    cargo build -p midnight-did-serde --all-targets --all-features
-    cargo build -p midnight-did-serde --all-targets --features js-cli
-
-    echo "checking midnight-did-indexer-client"
-    cargo test -p midnight-did-indexer-client --all-features
-    cargo build -p midnight-did-indexer-client --all-targets --all-features
-
-    echo "checking midnight-did-resolver"
-    cargo test -p midnight-did-resolver --all-features
-    cargo build -p midnight-did-resolver --all-targets --all-features
+    # Automatically check all crates and all features
+    CRATES=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.source == null and (.name | test("^midnight-did-"))) | .name')
+    for CRATE in $CRATES; do
+      echo "Checking crate: $CRATE"
+      FEATURES=$(cargo metadata --no-deps --format-version 1 | jq -r --arg CRATE "$CRATE" '.packages[] | select(.name == $CRATE) | .features | keys[]')
+      echo "  cargo test -p $CRATE --all-features"
+      cargo test -p "$CRATE" --all-features
+      echo "  cargo build -p $CRATE --all-targets --all-features"
+      cargo build -p "$CRATE" --all-targets --all-features
+      for FEATURE in $FEATURES; do
+        echo "  cargo test -p $CRATE --features $FEATURE"
+        cargo test -p "$CRATE" --features "$FEATURE"
+        echo "  cargo build -p $CRATE --all-targets --features $FEATURE"
+        cargo build -p "$CRATE" --all-targets --features "$FEATURE"
+      done
+    done
   '';
 
   installPhase = "touch $out";
