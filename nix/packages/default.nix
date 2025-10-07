@@ -48,8 +48,6 @@ let
   );
 in
 rec {
-  inherit (pkgs.pkgsInternal) midnight-did-serde-js;
-
   midnight-did-resolver-bin = pkgs.callPackage ./midnight-did-resolver-bin.nix {
     inherit (pkgs.rustTools) cargoLock;
     rust = pkgs.rustTools.rustMinimal;
@@ -59,6 +57,8 @@ rec {
     inherit version;
     midnight-did-resolver = midnight-did-resolver-bin;
   };
+
+  midnight-did-compact = pkgs.callPackage ./midnight-did-compact.nix { };
 }
 // bins
 // dockers
