@@ -1,4 +1,6 @@
-use identus_did_core::{Did, DidDocument, DidDocumentMetadata};
+use std::str::FromStr;
+
+use identus_did_core::{Did, DidDocument, DidDocumentMetadata, Uri};
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDeserializer;
 use midnight_ledger_v4::base_crypto::fab::Value;
@@ -10,19 +12,19 @@ use crate::serde_rs::compact_v0_8::*;
 
 compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],
+    also_known_as: set<CompactTypeOpaqueString> [1, 1],
     version: cell<CompactTypeUnsignedInteger> [1, 2],
     created_at: cell<CompactTypeUnsignedInteger> [1, 3],
     updated_at: cell<CompactTypeUnsignedInteger> [1, 4],
     deactivated_at: cell<CompactTypeUnsignedInteger> [1, 5],
     active: cell<CompactTypeBoolean> [1, 6],
-    operation_count: cell<CompactTypeUnsignedInteger> [1, 7],
-    verification_method: map<CompactTypeOpaqueString, VerificationMethod> [1, 8],
-    authentication: set<CompactTypeOpaqueString> [1, 9],
-    assertion_method: set<CompactTypeOpaqueString> [1, 10],
-    key_agreement: set<CompactTypeOpaqueString> [1, 11],
-    capability_invocation: set<CompactTypeOpaqueString> [1, 12],
-    capability_delegation: set<CompactTypeOpaqueString> [1, 13],
-    service: map<CompactTypeOpaqueString, Service> [1, 14]
+    verification_methods: map<CompactTypeOpaqueString, VerificationMethod> [1, 8],
+    authentication_relation: set<CompactTypeOpaqueString> [1, 9],
+    assertion_method_relation: set<CompactTypeOpaqueString> [1, 10],
+    key_agreement_relation: set<CompactTypeOpaqueString> [1, 11],
+    capability_invocation_relation: set<CompactTypeOpaqueString> [1, 12],
+    capability_delegation_relation: set<CompactTypeOpaqueString> [1, 13],
+    services: map<CompactTypeOpaqueString, Service> [1, 14]
 });
 
 compact_enum!(VerificationMethodType { Undefined, JsonWebKey });
@@ -126,20 +128,28 @@ impl ContractStateDeserializer for DidContractDeserializer {
         let did_doc = DidDocument {
             context: vec![],
             id: did.clone(),
+            also_known_as: Some(
+                did_contract
+                    .also_known_as
+                    .0
+                    .into_iter()
+                    .flat_map(|s| Uri::from_str(&s.0).ok())
+                    .collect::<Vec<_>>(),
+            ),
             verification_method: did_contract
-                .verification_method
+                .verification_methods
                 .0
                 .into_iter()
                 .map(|(_, v)| v.to_did_core(&did))
                 .collect(),
-            authentication: verification_relation(did_contract.authentication.0),
-            assertion_method: verification_relation(did_contract.assertion_method.0),
-            key_agreement: verification_relation(did_contract.key_agreement.0),
-            capability_invocation: verification_relation(did_contract.capability_invocation.0),
-            capability_delegation: verification_relation(did_contract.capability_delegation.0),
+            authentication: verification_relation(did_contract.authentication_relation.0),
+            assertion_method: verification_relation(did_contract.assertion_method_relation.0),
+            key_agreement: verification_relation(did_contract.key_agreement_relation.0),
+            capability_invocation: verification_relation(did_contract.capability_invocation_relation.0),
+            capability_delegation: verification_relation(did_contract.capability_delegation_relation.0),
             service: Some(
                 did_contract
-                    .service
+                    .services
                     .0
                     .into_iter()
                     .map(|(_, v)| v.to_did_core(&did))
