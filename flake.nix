@@ -14,6 +14,10 @@
       url = "github:midnightntwrk/compactc?ref=v0.24.0";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    midnight-did-src = {
+      url = "github:midnightntwrk/midnight-did?ref=did-method-implementation";
+      flake = false;
+    };
   };
 
   outputs =
@@ -22,6 +26,7 @@
       rust-overlay,
       flake-utils,
       midnight-compactc,
+      midnight-did-src,
       ...
     }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "aarch64-darwin" ] (
@@ -33,15 +38,15 @@
           overlays = [
             (import rust-overlay)
             (_: prev: {
+              inherit midnight-did-src;
+
               rustTools = prev.callPackage ./nix/rustTools.nix { inherit rust-overlay; };
+
               compactc =
                 if (pkgs.lib.strings.hasSuffix "-darwin" system) then
                   midnight-compactc.packages.${system}.compactc-binary-macos
                 else
                   midnight-compactc.packages.${system}.compactc-binary-nixos;
-            })
-            (_: prev: {
-              pkgsInternal = import ./nix/pkgsInternal { pkgs = prev; };
             })
           ];
         };

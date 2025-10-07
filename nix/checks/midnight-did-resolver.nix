@@ -3,7 +3,6 @@
   rustTools,
   makeRustPlatform,
   deadnix,
-  pkgsInternal,
   jq,
 }:
 
@@ -21,7 +20,6 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [
     deadnix
-    pkgsInternal.midnight-did-serde-js
     jq
   ];
 

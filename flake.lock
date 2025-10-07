@@ -193,6 +193,23 @@
         "type": "github"
       }
     },
+    "midnight-did-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1759792149,
+        "narHash": "sha256-xzD/Tfem6lFL5VfNkX5F+9Ct9xBOvr7mGbKGE9YroIw=",
+        "owner": "midnightntwrk",
+        "repo": "midnight-did",
+        "rev": "dc4546f54943b428c99424bd7844200b52121d2a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "midnightntwrk",
+        "ref": "did-method-implementation",
+        "repo": "midnight-did",
+        "type": "github"
+      }
+    },
     "n2c": {
       "inputs": {
         "flake-utils": "flake-utils_2",
@@ -432,6 +449,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "midnight-compactc": "midnight-compactc",
+        "midnight-did-src": "midnight-did-src",
         "nixpkgs": "nixpkgs_7",
         "rust-overlay": "rust-overlay"
       }
