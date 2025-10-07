@@ -1,7 +1,7 @@
 {
   midnight-did-src,
   runCommand,
-  compactc
+  compactc,
 }:
 
 runCommand "midnight-did-compact"

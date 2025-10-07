@@ -2078,8 +2078,8 @@ dependencies = [
 
 [[package]]
 name = "identus-apollo"
-version = "0.5.0"
-source = "git+https://github.com/hyperledger-identus/neoprism?rev=3d1a18d57804a9d9541183c62eb5f3cf83da7f40#3d1a18d57804a9d9541183c62eb5f3cf83da7f40"
+version = "0.6.0"
+source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.6.0#854c506b2e4792a8ce224165cc539597ef753ef8"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -2090,23 +2090,25 @@ dependencies = [
 
 [[package]]
 name = "identus-did-core"
-version = "0.5.0"
-source = "git+https://github.com/hyperledger-identus/neoprism?rev=3d1a18d57804a9d9541183c62eb5f3cf83da7f40#3d1a18d57804a9d9541183c62eb5f3cf83da7f40"
+version = "0.6.0"
+source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.6.0#854c506b2e4792a8ce224165cc539597ef753ef8"
 dependencies = [
  "async-trait",
  "chrono",
  "derive_more",
  "identity_did",
  "identus-apollo",
+ "regex",
  "serde",
  "serde_json",
+ "uriparse",
  "utoipa",
 ]
 
 [[package]]
 name = "identus-did-resolver-http"
-version = "0.5.0"
-source = "git+https://github.com/hyperledger-identus/neoprism?rev=3d1a18d57804a9d9541183c62eb5f3cf83da7f40#3d1a18d57804a9d9541183c62eb5f3cf83da7f40"
+version = "0.6.0"
+source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.6.0#854c506b2e4792a8ce224165cc539597ef753ef8"
 dependencies = [
  "axum",
  "derive_more",
@@ -4573,6 +4575,16 @@ name = "untrusted"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
+
+[[package]]
+name = "uriparse"
+version = "0.6.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0200d0fc04d809396c2ad43f3c95da3582a2556eba8d453c1087f4120ee352ff"
+dependencies = [
+ "fnv",
+ "lazy_static",
+]
 
 [[package]]
 name = "url"

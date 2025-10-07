@@ -2,7 +2,6 @@ use axum::Router;
 use axum::response::Redirect;
 use axum::routing::get;
 use identus_did_resolver_http::DidResolverStateDyn;
-use tracing::instrument::WithSubscriber;
 use utoipa::OpenApi;
 use utoipa::openapi::Server;
 
