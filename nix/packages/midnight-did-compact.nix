@@ -4,7 +4,7 @@
   compactc
 }:
 
-runCommand "midnight-did-src"
+runCommand "midnight-did-compact"
   {
     src = midnight-did-src;
   }

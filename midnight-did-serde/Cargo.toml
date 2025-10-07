@@ -20,4 +20,3 @@ midnight-ledger_v4 = { workspace = true }
 
 [features]
 default = [  ]
-js-cli  = [ "dep:serde" ]
