@@ -54,11 +54,14 @@ compact_struct!(Service {
 
 impl From<PublicKeyJwk> for identus_apollo::jwk::Jwk {
     fn from(value: PublicKeyJwk) -> Self {
+        let to_base64 = |bytes: CompactTypeField| {
+            if bytes.0.is_empty() { None } else { Some(bytes.0.into()) }
+        };
         Self {
             kty: value.kty.to_string(),
             crv: value.crv.to_string(),
-            x: Some(value.x.0.into()),
-            y: Some(value.y.0.into()),
+            x: to_base64(value.x),
+            y: to_base64(value.y),
         }
     }
 }
@@ -126,7 +129,10 @@ impl ContractStateDeserializer for DidContractDeserializer {
         };
 
         let did_doc = DidDocument {
-            context: vec![],
+            context: vec![
+                "https://www.w3.org/ns/did/v1".to_string(),
+                "https://w3c.github.io/vc-jws-2020/contexts/v1".to_string(),
+            ],
             id: did.clone(),
             also_known_as: Some(
                 did_contract
