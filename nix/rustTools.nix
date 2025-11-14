@@ -45,7 +45,7 @@ rec {
     outputHashes = {
       "blstrs-0.7.1" = "sha256-nZYcVAghX5F3OJ5F2RRUrRCbBa9j1ICnZye4UHqqun0=";
       "halo2_proofs-0.3.0" = "sha256-4NQVAuHnoZrgEkEWm8m8kSZRiZyLwsMxR7+uRmPuyR4=";
-      "identus-apollo-0.6.0" = "sha256-EydKDLtGcyow3DluL8FUyQx7Hv3ieQGnximXhdZArEw=";
+      "identus-apollo-0.7.0" = "sha256-OPAVbGuF+VXUEuCTZsSC89f/x21kN5TifgS9SxdP8qs=";
     };
   };
 

@@ -39,9 +39,9 @@ tracing-subscriber = { version = "0.3" }
 utoipa             = { version = "5" }
 utoipa-swagger-ui  = { version = "9" }
 
-identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "v0.6.0" }
-identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "v0.6.0" }
-identus-did-resolver-http = { git = "https://github.com/hyperledger-identus/neoprism", rev = "v0.6.0" }
+identus-apollo            = { git = "https://github.com/hyperledger-identus/neoprism", rev = "v0.7.0" }
+identus-did-core          = { git = "https://github.com/hyperledger-identus/neoprism", rev = "v0.7.0" }
+identus-did-resolver-http = { git = "https://github.com/hyperledger-identus/neoprism", rev = "v0.7.0" }
 
 [patch."https://github.com/input-output-hk/midnight-ledger-prototype"]
 midnight-base-crypto-derive = { path = "./vendor-from-indexer/base-crypto-derive" }
