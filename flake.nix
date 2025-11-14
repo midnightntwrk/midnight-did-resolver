@@ -10,12 +10,8 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    midnight-compactc = {
-      url = "github:midnightntwrk/compactc?ref=v0.24.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
     midnight-did-src = {
-      url = "github:midnightntwrk/midnight-did?ref=did-method-implementation";
+      url = "github:midnightntwrk/midnight-did/main";
       flake = false;
     };
   };
@@ -25,7 +21,6 @@
       nixpkgs,
       rust-overlay,
       flake-utils,
-      midnight-compactc,
       midnight-did-src,
       ...
     }:
@@ -42,11 +37,7 @@
 
               rustTools = prev.callPackage ./nix/rustTools.nix { inherit rust-overlay; };
 
-              compactc =
-                if (pkgs.lib.strings.hasSuffix "-darwin" system) then
-                  midnight-compactc.packages.${system}.compactc-binary-macos
-                else
-                  midnight-compactc.packages.${system}.compactc-binary-nixos;
+              compactc = prev.callPackage ./nix/packages/compactc.nix { };
             })
           ];
         };
@@ -54,7 +45,9 @@
       {
         checks = import ./nix/checks/default.nix { inherit pkgs; };
         devShells = import ./nix/devShells/default.nix { inherit pkgs; };
-        packages = import ./nix/packages/default.nix { inherit pkgs; };
+        packages = {
+          compactc = pkgs.compactc;
+        } // import ./nix/packages/default.nix { inherit pkgs; };
       }
     );
 }
