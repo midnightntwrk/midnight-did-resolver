@@ -14,7 +14,6 @@ let
         cd "${rootDir}"
         find . | grep '\.nix$' | xargs -I _ bash -c "echo running nixfmt on _ && nixfmt _"
         find . | grep '\.toml$' | xargs -I _ bash -c "echo running taplo on _ && taplo format _"
-        find . | grep '\.dhall$' | xargs -I _ bash -c "echo running dhall format on _ && dhall format _"
         cargo fmt
       '';
     };
@@ -48,9 +47,6 @@ pkgs.mkShell {
       less
       ncurses
       which
-      # config
-      dhall
-      dhall-json
       # rust
       cargo-edit
       cargo-expand

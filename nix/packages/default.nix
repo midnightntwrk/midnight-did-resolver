@@ -59,6 +59,8 @@ rec {
   };
 
   midnight-did-compact = pkgs.callPackage ./midnight-did-compact.nix { };
+
+  compactc = pkgs.compactc;
 }
 // bins
 // dockers
