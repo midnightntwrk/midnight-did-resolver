@@ -2078,8 +2078,8 @@ dependencies = [
 
 [[package]]
 name = "identus-apollo"
-version = "0.6.0"
-source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.6.0#854c506b2e4792a8ce224165cc539597ef753ef8"
+version = "0.7.0"
+source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.7.0#6bff0b85be2d780248501bd01340cb94cda7fa60"
 dependencies = [
  "base64 0.22.1",
  "derive_more",
@@ -2090,8 +2090,8 @@ dependencies = [
 
 [[package]]
 name = "identus-did-core"
-version = "0.6.0"
-source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.6.0#854c506b2e4792a8ce224165cc539597ef753ef8"
+version = "0.7.0"
+source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.7.0#6bff0b85be2d780248501bd01340cb94cda7fa60"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2107,8 +2107,8 @@ dependencies = [
 
 [[package]]
 name = "identus-did-resolver-http"
-version = "0.6.0"
-source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.6.0#854c506b2e4792a8ce224165cc539597ef753ef8"
+version = "0.7.0"
+source = "git+https://github.com/hyperledger-identus/neoprism?rev=v0.7.0#6bff0b85be2d780248501bd01340cb94cda7fa60"
 dependencies = [
  "axum",
  "derive_more",
