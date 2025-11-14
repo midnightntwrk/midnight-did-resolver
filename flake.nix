@@ -45,9 +45,7 @@
       {
         checks = import ./nix/checks/default.nix { inherit pkgs; };
         devShells = import ./nix/devShells/default.nix { inherit pkgs; };
-        packages = {
-          compactc = pkgs.compactc;
-        } // import ./nix/packages/default.nix { inherit pkgs; };
+        packages = import ./nix/packages/default.nix { inherit pkgs; };
       }
     );
 }
