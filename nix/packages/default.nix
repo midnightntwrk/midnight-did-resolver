@@ -58,7 +58,11 @@ rec {
     midnight-did-resolver = midnight-did-resolver-bin;
   };
 
-  midnight-did-compact = pkgs.callPackage ./midnight-did-compact.nix { };
+  midnight-circuit-params = pkgs.callPackage ./midnight-circuit-params.nix { };
+
+  midnight-did-compact = pkgs.callPackage ./midnight-did-compact.nix { 
+    inherit midnight-circuit-params;
+  };
 
   compactc = pkgs.compactc;
 }

@@ -2,6 +2,7 @@
   stdenv,
   midnight-did-src,
   compactc,
+  midnight-circuit-params,
 }:
 
 stdenv.mkDerivation {
@@ -15,6 +16,11 @@ stdenv.mkDerivation {
   buildPhase = ''
     runHook preBuild
 
+    export HOME=$TMPDIR
+
+    # compactc looks for parameters in $HOME/.cache/midnight/zk-params/
+    mkdir -p $HOME/.cache/midnight/zk-params
+    cp ${midnight-circuit-params.bls_filecoin_2p15} $HOME/.cache/midnight/zk-params/bls_filecoin_2p15
     mkdir -p build/managed
     compactc $src/contract/src/did.compact build/managed/did
 
