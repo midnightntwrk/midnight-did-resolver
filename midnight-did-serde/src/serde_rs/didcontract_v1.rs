@@ -8,7 +8,7 @@ use midnight_ledger_v4::onchain_runtime::state::ContractState;
 use midnight_ledger_v4::serialize::{NetworkId, deserialize};
 use midnight_ledger_v4::storage::DefaultDB;
 
-use crate::serde_rs::compact_v0_8::*;
+use crate::serde_rs::compact_v0_9::*;
 
 compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],

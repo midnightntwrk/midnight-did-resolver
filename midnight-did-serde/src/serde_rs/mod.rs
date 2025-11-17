@@ -2,7 +2,7 @@ use identus_did_core::{DidDocument, DidDocumentMetadata};
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDeserializer;
 
-mod compact_v0_8;
+mod compact_v0_9;
 mod didcontract_v1;
 
 #[derive(Debug, Clone)]
