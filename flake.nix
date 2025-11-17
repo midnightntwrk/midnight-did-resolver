@@ -18,6 +18,7 @@
 
   outputs =
     {
+      self,
       nixpkgs,
       rust-overlay,
       flake-utils,
@@ -34,16 +35,14 @@
             (import rust-overlay)
             (_: prev: {
               inherit midnight-did-src;
-
               rustTools = prev.callPackage ./nix/rustTools.nix { inherit rust-overlay; };
-
               compactc = prev.callPackage ./nix/packages/compactc.nix { };
             })
           ];
         };
       in
       {
-        checks = import ./nix/checks/default.nix { inherit pkgs; };
+        checks = import ./nix/checks/default.nix { inherit pkgs self; };
         devShells = import ./nix/devShells/default.nix { inherit pkgs; };
         packages = import ./nix/packages/default.nix { inherit pkgs; };
       }
