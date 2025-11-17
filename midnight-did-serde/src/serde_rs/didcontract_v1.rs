@@ -12,12 +12,15 @@ use crate::serde_rs::compact_v0_9::*;
 
 compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],
+    controller_public_key: cell<CompactTypeBytes> [0, 1],
+    id: cell<CompactTypeBytes> [0, 2],
     also_known_as: set<CompactTypeOpaqueString> [1, 1],
     version: cell<CompactTypeUnsignedInteger> [1, 2],
     created_at: cell<CompactTypeUnsignedInteger> [1, 3],
     updated_at: cell<CompactTypeUnsignedInteger> [1, 4],
-    deactivated_at: cell<CompactTypeUnsignedInteger> [1, 5],
+    deactivated: cell<CompactTypeBoolean> [1, 5],
     active: cell<CompactTypeBoolean> [1, 6],
+    operation_count: cell<CompactTypeUnsignedInteger> [1, 7],
     verification_methods: map<CompactTypeOpaqueString, VerificationMethod> [1, 8],
     authentication_relation: set<CompactTypeOpaqueString> [1, 9],
     assertion_method_relation: set<CompactTypeOpaqueString> [1, 10],
@@ -49,7 +52,7 @@ compact_struct!(VerificationMethod {
 compact_struct!(Service {
     id: CompactTypeOpaqueString,
     r#type: CompactTypeOpaqueString,
-    service_endpoint: CompactTypeVector<4, CompactTypeOpaqueString>
+    service_endpoint: CompactTypeOpaqueString
 });
 
 impl From<PublicKeyJwk> for identus_apollo::jwk::Jwk {
@@ -80,17 +83,12 @@ impl VerificationMethod {
 
 impl Service {
     fn to_did_core(self, controller: &Did) -> identus_did_core::Service {
-        let service_endpoints = self
-            .service_endpoint
-            .0
-            .into_iter()
-            .filter(|i| !i.0.is_empty())
-            .map(|i| identus_did_core::StringOrMap::Str(i.0))
-            .collect();
         identus_did_core::Service {
             id: format!("{}#{}", controller, self.id.0),
             r#type: identus_did_core::ServiceType::Str(self.r#type.0),
-            service_endpoint: identus_did_core::ServiceEndpoint::List(service_endpoints),
+            service_endpoint: identus_did_core::ServiceEndpoint::StrOrMap(identus_did_core::StringOrMap::Str(
+                self.service_endpoint.0,
+            )),
         }
     }
 }
@@ -124,7 +122,7 @@ impl ContractStateDeserializer for DidContractDeserializer {
         };
 
         let did_doc_metadata = DidDocumentMetadata {
-            deactivated: Some(!did_contract.active.0.0),
+            deactivated: Some(did_contract.deactivated.0.0),
             ..Default::default()
         };
 

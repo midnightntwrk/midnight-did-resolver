@@ -7,7 +7,6 @@
 }:
 
 let
-  # Platform-specific configuration
   platformConfig = {
     x86_64-linux = {
       arch = "x86_64-unknown-linux-musl";
@@ -21,7 +20,9 @@ let
     };
   };
 
-  config = platformConfig.${stdenv.hostPlatform.system} or (throw "Unsupported platform: ${stdenv.hostPlatform.system}");
+  config =
+    platformConfig.${stdenv.hostPlatform.system}
+      or (throw "Unsupported platform: ${stdenv.hostPlatform.system}");
 in
 stdenv.mkDerivation rec {
   pname = "compactc";
@@ -35,7 +36,8 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [
     unzip
-  ] ++ lib.optionals config.needsPatchelf [
+  ]
+  ++ lib.optionals config.needsPatchelf [
     autoPatchelfHook
   ];
 
