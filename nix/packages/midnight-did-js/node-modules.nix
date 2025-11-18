@@ -11,7 +11,7 @@ buildNpmPackage {
   src = midnight-did-src;
 
   patches = [
-    ./midnight-did-js/package-lock.patch
+    ./package-lock.patch
   ];
 
   nodejs = nodejs_22;
@@ -25,8 +25,6 @@ buildNpmPackage {
 
     mkdir -p $out
     cp -r node_modules $out/
-    
-    # Copy workspace directories to resolve symlinks
     cp -r api $out/
     cp -r cli $out/
     cp -r contract $out/

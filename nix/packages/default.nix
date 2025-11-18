@@ -64,8 +64,6 @@ rec {
     inherit midnight-circuit-params;
   };
 
-  midnight-did-node-modules = pkgs.callPackage ./midnight-did-node-modules.nix { };
-
   compactc = pkgs.compactc;
 }
 // bins

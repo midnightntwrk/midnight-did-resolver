@@ -5,11 +5,17 @@
   nodejs_22,
   typescript,
   midnight-circuit-params,
+  callPackage,
 }:
 
+let
+  nodeModules = callPackage ./node-modules.nix {
+    inherit midnight-did-src nodejs_22;
+  };
+in
 stdenv.mkDerivation {
   pname = "midnight-did-js";
-  version = "0.2.0-main";
+  version = "0.1.0";
 
   src = midnight-did-src;
 
@@ -23,6 +29,9 @@ stdenv.mkDerivation {
     runHook preBuild
 
     export HOME=$TMPDIR
+
+    # provide node_modules
+    cp -r ${nodeModules}/node_modules ./
 
     # compactc looks for parameters in $HOME/.cache/midnight/zk-params/
     mkdir -p $HOME/.cache/midnight/zk-params
@@ -39,9 +48,13 @@ stdenv.mkDerivation {
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/src
-    cp -r contract/src/did.compact $out/src/did.compact
-    cp -r contract/src/managed $out/src/
+    mkdir -p $out
+    cp -r node_modules $out/
+    cp -r api $out/
+    cp -r cli $out/
+    cp -r contract $out/
+    cp -r did $out/
+    cp -r domain $out/
 
     runHook postInstall
   '';
