@@ -9,9 +9,7 @@
 }:
 
 let
-  nodeModules = callPackage ./node-modules.nix {
-    inherit midnight-did-src nodejs_22;
-  };
+  nodeModules = callPackage ./node-modules.nix { };
 in
 stdenv.mkDerivation {
   pname = "midnight-did-js";
