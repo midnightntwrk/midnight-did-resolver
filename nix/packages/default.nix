@@ -60,7 +60,7 @@ rec {
 
   midnight-circuit-params = pkgs.callPackage ./midnight-circuit-params.nix { };
 
-  midnight-did-compact = pkgs.callPackage ./midnight-did-compact.nix { 
+  midnight-did-compact = pkgs.callPackage ./midnight-did-compact.nix {
     inherit midnight-circuit-params;
   };
 
