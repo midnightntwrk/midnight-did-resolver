@@ -14,6 +14,7 @@ pkgs.mkShell {
     just
     less
     ncurses
+    nix
     which
     # linters & formatters
     nixfmt-rfc-style

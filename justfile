@@ -18,3 +18,7 @@ build:
 # Clean the build artifacts
 clean:
     cargo clean
+
+[working-directory: 'tests/integration-tests']
+init:
+    nix build .#midnight-did-js -o vendor
