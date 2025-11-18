@@ -9,11 +9,12 @@
 }:
 
 let
-  nodeModules = callPackage ./node-modules.nix { };
+  version = "0.1.0";
+  nodeModules = callPackage ./node-modules.nix { inherit version; };
 in
 stdenv.mkDerivation {
+  inherit version;
   pname = "midnight-did-js";
-  version = "0.1.0";
 
   src = midnight-did-src;
 

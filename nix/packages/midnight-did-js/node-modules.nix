@@ -2,11 +2,12 @@
   buildNpmPackage,
   midnight-did-src,
   nodejs_22,
+  version,
 }:
 
 buildNpmPackage {
-  pname = "midnight-did-node-modules";
-  version = "0.1.0";
+  inherit version;
+  pname = "midnight-did-js-node-modules";
 
   src = midnight-did-src;
 
