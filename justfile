@@ -20,5 +20,6 @@ clean:
     cargo clean
 
 [working-directory: 'tests/integration-tests']
-init:
+init-test:
     nix build .#midnight-did-js -o vendor
+    npm ci

@@ -8,7 +8,10 @@
     "test": "tsx src/index.ts"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did-api": "file:./vendor/api"
+    "@midnight-ntwrk/midnight-did-api": "file:./vendor/api",
+    "@midnight-ntwrk/midnight-did": "file:./vendor/did",
+    "@midnight-ntwrk/midnight-did-contract": "file:./vendor/contract",
+    "@midnight-ntwrk/midnight-did-domain": "file:./vendor/domain"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
