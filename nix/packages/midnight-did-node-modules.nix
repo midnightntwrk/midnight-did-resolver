@@ -11,7 +11,7 @@ buildNpmPackage {
   src = midnight-did-src;
 
   patches = [
-    ./patches/midnight-did-package-lock.patch
+    ./midnight-did-js/package-lock.patch
   ];
 
   nodejs = nodejs_22;
@@ -23,10 +23,15 @@ buildNpmPackage {
   installPhase = ''
     runHook preInstall
 
-    export HOME=$TMPDIR
-
     mkdir -p $out
     cp -r node_modules $out/
+    
+    # Copy workspace directories to resolve symlinks
+    cp -r api $out/
+    cp -r cli $out/
+    cp -r contract $out/
+    cp -r did $out/
+    cp -r domain $out/
 
     runHook postInstall
   '';
