@@ -2,16 +2,20 @@
   stdenv,
   midnight-did-src,
   compactc,
+  nodejs_22,
   midnight-circuit-params,
 }:
 
 stdenv.mkDerivation {
-  pname = "midnight-did-compact";
+  pname = "midnight-did-js";
   version = "0.2.0-main";
 
   src = midnight-did-src;
 
-  nativeBuildInputs = [ compactc ];
+  nativeBuildInputs = [
+    compactc
+    nodejs_22
+  ];
 
   buildPhase = ''
     runHook preBuild
@@ -23,6 +27,9 @@ stdenv.mkDerivation {
     cp -r ${midnight-circuit-params}/* $HOME/.cache/midnight/zk-params/
     mkdir -p build/managed
     compactc $src/contract/src/did.compact build/managed/did
+
+    # build contract dist
+    npm run build -w contract
 
     runHook postBuild
   '';
