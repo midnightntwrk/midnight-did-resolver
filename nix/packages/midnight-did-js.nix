@@ -3,6 +3,7 @@
   midnight-did-src,
   compactc,
   nodejs_22,
+  typescript,
   midnight-circuit-params,
 }:
 
@@ -15,6 +16,7 @@ stdenv.mkDerivation {
   nativeBuildInputs = [
     compactc
     nodejs_22
+    typescript
   ];
 
   buildPhase = ''
@@ -25,8 +27,8 @@ stdenv.mkDerivation {
     # compactc looks for parameters in $HOME/.cache/midnight/zk-params/
     mkdir -p $HOME/.cache/midnight/zk-params
     cp -r ${midnight-circuit-params}/* $HOME/.cache/midnight/zk-params/
-    mkdir -p build/managed
-    compactc $src/contract/src/did.compact build/managed/did
+    mkdir -p contract/src/managed
+    compactc contract/src/did.compact contract/src/managed/did
 
     # build contract dist
     npm run build -w contract
@@ -38,8 +40,8 @@ stdenv.mkDerivation {
     runHook preInstall
 
     mkdir -p $out/src
-    cp -r $src/contract/src/did.compact $out/src/did.compact
-    cp -r build/managed $out/src/
+    cp -r contract/src/did.compact $out/src/did.compact
+    cp -r contract/src/managed $out/src/
 
     runHook postInstall
   '';
