@@ -24,6 +24,12 @@ build:
 clean:
     cargo clean
 
-# Run nix flake check for the default check
+# Run tests for owned crates only (excluding vendored crates)
 test:
-    nix build .#checks.x86_64-linux.default
+    #!/usr/bin/env bash
+    set -euo pipefail
+    CRATES=$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[] | select(.source == null and (.name | test("^midnight-did"))) | .name')
+    for CRATE in $CRATES; do
+      echo "Testing crate: $CRATE"
+      cargo test -p "$CRATE"
+    done
