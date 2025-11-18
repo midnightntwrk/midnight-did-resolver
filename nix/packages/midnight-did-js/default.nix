@@ -30,17 +30,18 @@ stdenv.mkDerivation {
 
     export HOME=$TMPDIR
 
-    # provide node_modules
-    cp -r ${nodeModules}/node_modules ./
-
     # compactc looks for parameters in $HOME/.cache/midnight/zk-params/
     mkdir -p $HOME/.cache/midnight/zk-params
     cp -r ${midnight-circuit-params}/* $HOME/.cache/midnight/zk-params/
     mkdir -p contract/src/managed
     compactc contract/src/did.compact contract/src/managed/did
 
-    # build contract dist
+    cp -r ${nodeModules}/node_modules ./
     npm run build -w contract
+    npm run build -w domain
+    npm run build -w did
+    npm run build -w api
+    npm run build -w cli
 
     runHook postBuild
   '';
@@ -49,6 +50,7 @@ stdenv.mkDerivation {
     runHook preInstall
 
     mkdir -p $out
+    cp package.json $out/package.json
     cp -r node_modules $out/
     cp -r api $out/
     cp -r cli $out/
