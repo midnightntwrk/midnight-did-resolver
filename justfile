@@ -2,6 +2,11 @@
 default:
     @just --list
 
+# Setup project for development
+init:
+    nix build .#midnight-did-js -o tests/integration-tests/vendor
+    cd tests/integration-tests && npm ci
+
 # Format all source files
 format:
     #!/usr/bin/env bash
@@ -19,7 +24,6 @@ build:
 clean:
     cargo clean
 
-[working-directory: 'tests/integration-tests']
-init-test:
-    nix build .#midnight-did-js -o vendor
-    npm ci
+# Run nix flake check for the default check
+test:
+    nix build .#checks.x86_64-linux.default
