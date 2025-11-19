@@ -76,13 +76,25 @@ impl ResolverService {
         let contract_state = match self.indexer_client.get_contract_state(&did).await {
             Ok(state) => state,
             Err(IndexerClientError::MissingDataFields { .. }) => Err(ResolutionError::NotFound)?,
-            Err(e) => Err(anyhow::Error::from(e))?,
+            Err(e) => {
+                tracing::error!(
+                    did = %did,
+                    error = %e,
+                    "Failed to retrieve contract state from indexer"
+                );
+                Err(anyhow::Error::from(e))?
+            }
         };
-        self.state_deserializer
-            .deserialize(&did, &contract_state)
-            .map_err(|e| ResolutionError::InternalError {
+        self.state_deserializer.deserialize(&did, &contract_state).map_err(|e| {
+            tracing::error!(
+                did = %did,
+                error = %e,
+                "Failed to deserialize contract state"
+            );
+            ResolutionError::InternalError {
                 source: anyhow::Error::from_boxed(e),
-            })
+            }
+        })
     }
 }
 

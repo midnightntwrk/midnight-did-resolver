@@ -35,7 +35,7 @@ test:
     done
 
 # Run e2e tests
-[working-directory: 'tests/integration-tests']
+[working-directory('tests/integration-tests')]
 e2e-run:
     # just e2e-up
     rm -rf midnight-level-db
@@ -49,6 +49,6 @@ e2e-up:
     cd tests/integration-tests && docker compose up -d --wait
 
 # Stop and remove the e2e test environment
-[working-directory: 'tests/integration-tests']
+[working-directory('tests/integration-tests')]
 e2e-down:
     docker compose down --volumes

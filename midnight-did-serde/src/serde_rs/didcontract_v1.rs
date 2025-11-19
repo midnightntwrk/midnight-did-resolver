@@ -13,7 +13,7 @@ use crate::serde_rs::compact_v0_9::*;
 compact_ledger!(DidContract {
     contract_version: cell<CompactTypeUnsignedInteger> [0, 0],
     controller_public_key: cell<CompactTypeBytes> [0, 1],
-    id: cell<CompactTypeBytes> [0, 2],
+    id: cell<CompactTypeBytes> [1, 0],
     also_known_as: set<CompactTypeOpaqueString> [1, 1],
     version: cell<CompactTypeUnsignedInteger> [1, 2],
     created: cell<CompactTypeUnsignedInteger> [1, 3],
