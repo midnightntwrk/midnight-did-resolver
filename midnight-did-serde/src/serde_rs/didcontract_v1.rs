@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use chrono::{DateTime, Timelike, Utc};
 use identus_did_core::{Did, DidDocument, DidDocumentMetadata, Uri};
 use midnight_did::did::MidnightDid;
 use midnight_did::dlt::ContractStateDeserializer;
@@ -122,6 +123,9 @@ impl ContractStateDeserializer for DidContractDeserializer {
         };
 
         let did_doc_metadata = DidDocumentMetadata {
+            created: le_bytes_to_datetime(&did_contract.created.0.0),
+            updated: le_bytes_to_datetime(&did_contract.updated.0.0),
+            version_id: Some(le_bytes_to_u64(&did_contract.version.0.0).to_string()),
             deactivated: Some(did_contract.deactivated.0.0),
             ..Default::default()
         };
@@ -172,4 +176,21 @@ fn handle_verificationmethod_id(id: &CompactTypeOpaqueString, controller: &Did) 
     } else {
         format!("{}#{}", controller, id.0)
     }
+}
+
+fn le_bytes_to_u64(bytes: &[u8]) -> u64 {
+    // Pad with zeros if bytes are less than 8
+    let mut padded = [0u8; 8];
+    let len = bytes.len().min(8);
+    padded[..len].copy_from_slice(&bytes[..len]);
+    u64::from_le_bytes(padded)
+}
+
+fn le_bytes_to_datetime(bytes: &[u8]) -> Option<DateTime<Utc>> {
+    // Pad with zeros if bytes are less than 8
+    let mut padded = [0u8; 8];
+    let len = bytes.len().min(8);
+    padded[..len].copy_from_slice(&bytes[..len]);
+    let timestamp_millis = i64::from_le_bytes(padded);
+    DateTime::from_timestamp_millis(timestamp_millis).and_then(|dt| dt.with_nanosecond(0))
 }

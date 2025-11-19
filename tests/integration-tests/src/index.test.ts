@@ -49,13 +49,7 @@ describe('Midnight DID Resolver - Integration Tests', () => {
       const didContract = await api.createDID(providers, privateState);
       const contractAddress = did.parseContractAddress(didContract.deployTxData.public.contractAddress);
       const didStr = did.createMidnightDIDString(contractAddress, api.midnightNetwork);
-      const initialDocument: did.MidnightDIDDocument = did.createMidnightDIDDocument({ id: didStr });
-      console.log(`DID created: ${didStr}`);
-
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
       const resolutionResult = await resolveDID(didStr);
-      console.log('resolutionResult', resolutionResult);
 
       // Verify successful resolution
       expect(resolutionResult).toBeDefined();
@@ -88,10 +82,14 @@ describe('Midnight DID Resolver - Integration Tests', () => {
       // Verify metadata
       const metadata = resolutionResult.didDocumentMetadata;
       expect(metadata).toBeDefined();
+      expect(metadata.created).toBeDefined();
+      expect(metadata.created).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+      expect(metadata.updated).toBeDefined();
+      expect(metadata.updated).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+      expect(metadata.deactivated).toBeDefined();
       expect(metadata.deactivated).toBe(false);
-      // Note: For newly created DIDs, timestamps may be null until first operation
-      // expect(metadata.created).toBeDefined();
-      // expect(metadata.created).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/); // ISO 8601 format
+      expect(metadata.versionId).toBeDefined();
+      expect(metadata.versionId).toBe("0");
     });
   });
 });
