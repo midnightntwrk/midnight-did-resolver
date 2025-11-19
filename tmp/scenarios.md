@@ -15,16 +15,7 @@ These test scenarios focus on validating the resolver's ability to correctly res
   - All arrays are empty
   - Metadata contains `created` timestamp
 
-### 1.2 Network Variations
-- **Scenario**: Resolve DIDs across different networks
-- **Test cases**:
-  - `did:midnight:undeployed:<address>`
-  - `did:midnight:devnet:<address>`
-  - `did:midnight:testnet:<address>`
-  - `did:midnight:mainnet:<address>`
-- **Expected**: Resolver correctly routes to appropriate network endpoint
-
-### 1.3 Invalid DID Format
+### 1.2 Invalid DID Format
 - **Scenario**: Attempt to resolve malformed DIDs
 - **Test cases**:
   - Wrong method: `did:example:testnet:<address>`
