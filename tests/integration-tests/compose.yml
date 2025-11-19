@@ -60,6 +60,7 @@ services:
     environment:
       MIDNIGHT_INDEXER_URL: http://indexer:8088/api/v1/graphql
       SERVER_EXTERNAL_URL: http://localhost:8080
+      RUST_BACKTRACE: 1
     command:
       - serve
     depends_on:

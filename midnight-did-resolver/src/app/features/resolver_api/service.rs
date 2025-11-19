@@ -23,6 +23,15 @@ enum ResolutionError {
 
 impl From<ResolutionError> for ResolutionResult {
     fn from(err: ResolutionError) -> Self {
+        // Log internal errors with their full context chain at the conversion boundary
+        if let ResolutionError::InternalError { ref source } = err {
+            tracing::error!(
+                error = %source,
+                error_chain = ?source.chain().collect::<Vec<_>>(),
+                "Internal resolution error"
+            );
+        }
+
         let error = match err {
             ResolutionError::InvalidDid { .. } => DidResolutionError {
                 r#type: DidResolutionErrorCode::InvalidDid,
@@ -69,32 +78,31 @@ impl ResolverService {
     }
 
     async fn resolution_logic(&self, did: &Did) -> Result<(DidDocumentMetadata, DidDocument), ResolutionError> {
-        let did = match MidnightDid::from_str(&did.to_string()) {
-            Ok(did) => did,
-            Err(e) => Err(ResolutionError::InvalidDid { source: e })?,
-        };
-        let contract_state = match self.indexer_client.get_contract_state(&did).await {
-            Ok(state) => state,
-            Err(IndexerClientError::MissingDataFields { .. }) => Err(ResolutionError::NotFound)?,
-            Err(e) => {
-                tracing::error!(
-                    did = %did,
-                    error = %e,
-                    "Failed to retrieve contract state from indexer"
-                );
-                Err(anyhow::Error::from(e))?
-            }
-        };
-        self.state_deserializer.deserialize(&did, &contract_state).map_err(|e| {
-            tracing::error!(
-                did = %did,
-                error = %e,
-                "Failed to deserialize contract state"
-            );
-            ResolutionError::InternalError {
-                source: anyhow::Error::from_boxed(e),
-            }
-        })
+        // Parse the DID - no context needed as this is a client error
+        let did = MidnightDid::from_str(&did.to_string()).map_err(|e| ResolutionError::InvalidDid { source: e })?;
+
+        // Fetch contract state from indexer with context
+        let contract_state = self
+            .indexer_client
+            .get_contract_state(&did)
+            .await
+            .map_err(|e| match e {
+                IndexerClientError::MissingDataFields { .. } => ResolutionError::NotFound,
+                e => ResolutionError::InternalError {
+                    source: anyhow::Error::from(e).context(format!(
+                        "Failed to retrieve contract state from indexer for DID: {}",
+                        did
+                    )),
+                },
+            })?;
+
+        // Deserialize contract state with context
+        self.state_deserializer
+            .deserialize(&did, &contract_state)
+            .map_err(|e| ResolutionError::InternalError {
+                source: anyhow::Error::from_boxed(e)
+                    .context(format!("Failed to deserialize contract state for DID: {}", did)),
+            })
     }
 }
 
