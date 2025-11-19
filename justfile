@@ -36,8 +36,9 @@ test:
 
 # Run e2e tests
 e2e-run:
-    just e2e-up
-    just e2e-down
+    # just e2e-up
+    # just e2e-down
+    cd tests/integration-tests && npm run test
 
 # Start the e2e test environment
 e2e-up:
