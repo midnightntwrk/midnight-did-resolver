@@ -46,9 +46,7 @@ describe('Midnight DID Resolver - Integration Tests', () => {
   describe('Basic DID Resolution (Empty State)', () => {
     test('should resolve empty DID with minimal document', async () => {
       const privateState = await api.initPrivateState(providers);
-      console.log("before createDID");
       const didContract = await api.createDID(providers, privateState);
-      console.log("after createDID");
       const contractAddress = did.parseContractAddress(didContract.deployTxData.public.contractAddress);
       const didStr = did.createMidnightDIDString(contractAddress, api.midnightNetwork);
       const initialDocument: did.MidnightDIDDocument = did.createMidnightDIDDocument({ id: didStr });
@@ -59,7 +57,41 @@ describe('Midnight DID Resolver - Integration Tests', () => {
       const resolutionResult = await resolveDID(didStr);
       console.log('resolutionResult', resolutionResult);
 
-      // TODO: assert did document
+      // Verify successful resolution
+      expect(resolutionResult).toBeDefined();
+      expect(resolutionResult.didResolutionMetadata).toBeDefined();
+      expect(resolutionResult.didResolutionMetadata.error).toBeNull();
+
+      // Verify DID Document structure
+      const didDocument = resolutionResult.didDocument;
+      expect(didDocument).toBeDefined();
+
+      // Verify @context
+      expect(didDocument['@context']).toEqual([
+        'https://www.w3.org/ns/did/v1',
+        'https://w3c.github.io/vc-jws-2020/contexts/v1'
+      ]);
+
+      // Verify id matches the requested DID
+      expect(didDocument.id).toBe(didStr);
+
+      // Verify all arrays are empty
+      expect(didDocument.alsoKnownAs).toEqual([]);
+      expect(didDocument.verificationMethod).toEqual([]);
+      expect(didDocument.authentication).toEqual([]);
+      expect(didDocument.assertionMethod).toEqual([]);
+      expect(didDocument.keyAgreement).toEqual([]);
+      expect(didDocument.capabilityInvocation).toEqual([]);
+      expect(didDocument.capabilityDelegation).toEqual([]);
+      expect(didDocument.service).toEqual([]);
+
+      // Verify metadata
+      const metadata = resolutionResult.didDocumentMetadata;
+      expect(metadata).toBeDefined();
+      expect(metadata.deactivated).toBe(false);
+      // Note: For newly created DIDs, timestamps may be null until first operation
+      // expect(metadata.created).toBeDefined();
+      // expect(metadata.created).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/); // ISO 8601 format
     });
   });
 });
