@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "test": "tsx src/index.ts"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@midnight-ntwrk/midnight-did-api": "file:./vendor/api",
@@ -15,8 +18,10 @@
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@vitest/ui": "^2.1.8",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
   }
 }
