@@ -1,34 +1,43 @@
 import { describe, test, beforeAll } from 'vitest';
 import * as api from '@midnight-ntwrk/midnight-did-api';
+import * as did from '@midnight-ntwrk/midnight-did';
 
 const RESOLVER_URL = process.env.RESOLVER_URL || 'http://localhost:8080';
 const GENESIS_MINT_WALLET_SEED = '0000000000000000000000000000000000000000000000000000000000000001';
 
 const didConfig = new api.StandaloneConfig();
-const logger = await api.createLogger("tests.log");
+const logger = await api.createLogger("test.log");
 api.setLogger(logger);
+
+let wallet: Awaited<ReturnType<typeof api.buildWalletAndWaitForFunds>>;
+let providers: Awaited<ReturnType<typeof api.configureProviders>>;
 
 describe('Midnight DID Resolver - Integration Tests', () => {
   beforeAll(async () => {
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('  Midnight DID Resolver - Integration Tests');
-    console.log('═══════════════════════════════════════════════════════════════');
-    console.log('');
-    console.log('Configuration:');
-    console.log(`  resolver URL: ${RESOLVER_URL}`);
+    logger.info('═══════════════════════════════════════════════════════════════');
+    logger.info('  Midnight DID Resolver - Integration Tests');
+    logger.info('═══════════════════════════════════════════════════════════════');
+    logger.info('');
+    logger.info('Configuration:');
+    logger.info(`  resolver URL: ${RESOLVER_URL}`);
     for (const [key, value] of Object.entries(didConfig)) {
-      console.log(`  ${key}: ${value}`);
+      logger.info(`  ${key}: ${value}`);
     }
-    console.log('');
+    logger.info('');
 
     // Initialize midnight network
-    const wallet = await api.buildWalletAndWaitForFunds(didConfig, GENESIS_MINT_WALLET_SEED, '');
-    const providers = await api.configureProviders(wallet, didConfig);
+    wallet = await api.buildWalletAndWaitForFunds(didConfig, GENESIS_MINT_WALLET_SEED, '');
+    providers = await api.configureProviders(wallet, didConfig);
   });
 
   describe('Basic DID Resolution (Empty State)', () => {
     test('should resolve empty DID with minimal document', async () => {
-      // TODO: implement test here ...
+      const privateState = await api.initPrivateState(providers);
+      const didContract = await api.createDID(providers, privateState);
+      const contractAddress = did.parseContractAddress(didContract.deployTxData.public.contractAddress);
+      const didStr = did.createMidnightDIDString(contractAddress, api.midnightNetwork);
+      const initialDocument: did.MidnightDIDDocument = did.createMidnightDIDDocument({ id: didStr });
+      console.log(`did: ${didStr} created`);
     });
   });
 });

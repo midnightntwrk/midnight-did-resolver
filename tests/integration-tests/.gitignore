@@ -1,6 +1,7 @@
 # Dependencies
 node_modules/
 vendor
+midnight-level-db/
 
 # Build outputs
 dist/
