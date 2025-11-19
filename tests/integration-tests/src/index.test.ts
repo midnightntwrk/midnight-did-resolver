@@ -43,8 +43,8 @@ describe('Midnight DID Resolver - Integration Tests', () => {
     providers = await api.configureProviders(wallet, didConfig);
   });
 
-  describe('Basic DID Resolution (Empty State)', () => {
-    test('should resolve empty DID with minimal document', async () => {
+  describe('DID Resolution', () => {
+    test('should resolves newly created empty DID', async () => {
       const privateState = await api.initPrivateState(providers);
       const didContract = await api.createDID(providers, privateState);
       const contractAddress = did.parseContractAddress(didContract.deployTxData.public.contractAddress);
