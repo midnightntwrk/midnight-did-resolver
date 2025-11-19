@@ -35,9 +35,11 @@ test:
     done
 
 # Run e2e tests
+[working-directory: 'tests/integration-tests']
 e2e-run:
     # just e2e-up
-    cd tests/integration-tests && npm run test
+    rm -rf midnight-level-db
+    npm run test
     # just e2e-down
 
 # Start the e2e test environment
@@ -47,5 +49,6 @@ e2e-up:
     cd tests/integration-tests && docker compose up -d --wait
 
 # Stop and remove the e2e test environment
+[working-directory: 'tests/integration-tests']
 e2e-down:
-    cd tests/integration-tests && docker compose down --volumes
+    docker compose down --volumes
