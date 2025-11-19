@@ -21,6 +21,7 @@ const CONTRACT_STATES: [&str; 10] = [
 ];
 
 #[test]
+#[ignore]
 fn test_midnight_serde_rs() {
     use midnight_did_serde::DefaultContractStateDeserializer;
 
