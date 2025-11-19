@@ -1,420 +1,628 @@
-# Integration Test Scenarios for Midnight DID Resolver
+# Midnight DID Resolver - Integration Test Scenarios
 
-## Overview
-These test scenarios focus on validating the resolver's ability to correctly resolve DID Documents with various field types, values, and edge cases. The tests assume the smart contract logic is already tested in the midnight-did repository.
+This document outlines comprehensive integration test scenarios for the midnight-did-resolver, focusing on DID document representation and serialization logic from the smart contract to the DID document.
 
----
+**Note**: These tests focus exclusively on resolver/serialization logic. Contract operation logic (Add/Update/Remove operations and state transitions) should be tested in the contract's own test suite.
 
-## 1. DID Identifier Tests
+## Table of Contents
 
-### 1.1 Basic DID Resolution
-- **Scenario**: Resolve a newly deployed DID (empty state)
-- **Expected**: Returns minimal DID Document with only `id` field populated
-- **Fields to verify**: 
-  - `id` matches the requested DID
-  - All arrays are empty
-  - Metadata contains `created` timestamp
-
-### 1.2 Invalid DID Format
-- **Scenario**: Attempt to resolve malformed DIDs
-- **Test cases**:
-  - Wrong method: `did:example:testnet:<address>`
-  - Missing network segment: `did:midnight:<address>`
-  - Invalid address length (not 68 hex chars)
-  - Uppercase hex chars in address
-- **Expected**: Returns appropriate error codes
+1. [Basic DID Resolution](#1-basic-did-resolution)
+2. [Verification Methods](#2-verification-methods)
+3. [Verification Relationships](#3-verification-relationships)
+4. [Service Endpoints](#4-service-endpoints)
+5. [AlsoKnownAs (Aliases)](#5-alsoknownas-aliases)
+6. [DID Metadata](#6-did-metadata)
+7. [Deactivation](#7-deactivation)
+8. [Edge Cases](#8-edge-cases)
+9. [Error Handling](#9-error-handling)
 
 ---
 
-## 2. Verification Method Tests
+## 1. Basic DID Resolution
 
-### 2.1 Single Verification Method - Ed25519
-- **Scenario**: DID with one Ed25519 key
-- **Test data**:
-  ```json
-  {
-    "id": "#key-1",
+### 1.1 Empty DID Document Resolution
+**Description**: Verify that a newly created DID with no operations returns a valid empty DID document.
+
+**Input**:
+- Contract state: Newly deployed DID contract with no operations applied
+- DID: `did:midnight:undeployed:02007dd39c6606563dd043f06a94f60659b00d4d4ff6a65d2db4ddbc277956c13aa3`
+
+**Expected Output**:
+```json
+{
+  "didResolutionMetadata": { "error": null },
+  "didDocument": {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://w3c.github.io/vc-jws-2020/contexts/v1"
+    ],
+    "id": "did:midnight:undeployed:02007dd39c6606563dd043f06a94f60659b00d4d4ff6a65d2db4ddbc277956c13aa3",
+    "alsoKnownAs": [],
+    "verificationMethod": [],
+    "authentication": [],
+    "assertionMethod": [],
+    "keyAgreement": [],
+    "capabilityInvocation": [],
+    "capabilityDelegation": [],
+    "service": []
+  },
+  "didDocumentMetadata": {
+    "created": "2024-01-01T00:00:00Z",
+    "updated": "2024-01-01T00:00:00Z",
+    "deactivated": false,
+    "versionId": "0"
+  }
+}
+```
+
+### 1.2 DID Resolution with Contract Version
+**Description**: Verify that the contract version from ledger state is correctly handled (note: contractVersion is internal to the contract and not exposed in DID document).
+
+**Input**:
+- Contract state with `contractVersion = 1`
+
+**Expected Output**:
+- DID document resolves successfully
+- Version field in metadata reflects update count, not contract version
+
+---
+
+## 2. Verification Methods
+
+### 2.1 Ed25519 Verification Method Serialization
+**Description**: Verify that a DID contract with an Ed25519 key is correctly serialized to a DID document.
+
+**Input**:
+- Contract operation: `AddVerificationMethod`
+- Verification method:
+  - `id`: "key-1"
+  - `type`: JsonWebKey
+  - `publicKeyJwk`: `{ kty: "OKP", crv: "Ed25519", x: "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ" }`
+
+**Expected Output**:
+```json
+{
+  "verificationMethod": [{
+    "id": "did:midnight:undeployed:02007...#key-1",
     "type": "JsonWebKey",
+    "controller": "did:midnight:undeployed:02007...",
     "publicKeyJwk": {
       "kty": "OKP",
       "crv": "Ed25519",
-      "x": "<base64url-encoded-value>"
+      "x": "VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ"
     }
-  }
-  ```
-- **Expected**: Correctly deserializes and reconstructs verification method
+  }]
+}
+```
 
-### 2.2 Single Verification Method - JubJub
-- **Scenario**: DID with one JubJub key (Midnight-specific)
-- **Test data**:
-  ```json
-  {
-    "id": "#key-jubjub",
+### 2.2 JubJub Verification Method Serialization
+**Description**: Verify that a DID contract with a JubJub key (Midnight-specific) is correctly serialized to a DID document.
+
+**Input**:
+- Contract operation: `AddVerificationMethod`
+- Verification method:
+  - `id`: "key-jubjub"
+  - `type`: JsonWebKey
+  - `publicKeyJwk`: `{ kty: "EC", crv: "JubJub", x: "3045022100...", y: "00ab5910f48..." }`
+
+**Expected Output**:
+```json
+{
+  "verificationMethod": [{
+    "id": "did:midnight:undeployed:02007...#key-jubjub",
     "type": "JsonWebKey",
+    "controller": "did:midnight:undeployed:02007...",
     "publicKeyJwk": {
       "kty": "EC",
-      "crv": "Jubjub",
-      "x": "<field-value>",
-      "y": "<field-value>"
+      "crv": "JubJub",
+      "x": "3045022100...",
+      "y": "00ab5910f48..."
     }
-  }
-  ```
-- **Expected**: Correctly handles both x and y coordinates
+  }]
+}
+```
 
 ### 2.3 Multiple Verification Methods
-- **Scenario**: DID with multiple keys of mixed types
-- **Test data**: 3+ verification methods with both Ed25519 and JubJub keys
-- **Expected**: All methods correctly deserialized and returned
+**Description**: Verify that multiple verification methods are correctly serialized.
 
-### 2.4 Verification Method ID Formats
-- **Scenario**: Test different ID format handling
-- **Test cases**:
-  - Fragment identifier: `#key-1`
-  - Full DID URL: `did:midnight:testnet:<addr>#key-1`
-  - Relative URL: `/key-1`
-- **Expected**: Resolver correctly reconstructs full DID URLs with `#` prefix
+**Input**:
+- Multiple `AddVerificationMethod` operations with different key types (Ed25519 and JubJub)
 
-### 2.5 Edge Case - Empty publicKeyJwk Fields
-- **Scenario**: Verification method with minimal/edge JWK values
-- **Test cases**:
-  - Minimum x value (all zeros)
-  - Maximum x value (all ones)
-  - Very small y value
-  - Very large y value
-- **Expected**: Correctly handles field encoding/decoding
+**Expected Output**:
+- DID document contains all verification methods
+- Each method has unique ID with proper fragment identifier
+- Methods are properly indexed in the verificationMethod array
 
----
+### 2.4 Fragment Identifier Handling
+**Description**: Verify that fragment identifiers are correctly added/removed during serialization.
 
-## 3. Verification Relationship Tests
+**Input**:
+- Contract stores ID as "key-1" (without #)
+- DID: `did:midnight:testnet:02007...`
 
-### 3.1 Single Relationship Type
-- **Scenario**: Test each relationship type individually
-- **Test cases**:
-  - `authentication` only
-  - `assertionMethod` only
-  - `keyAgreement` only
-  - `capabilityInvocation` only
-  - `capabilityDelegation` only
-- **Expected**: Correctly resolves method references
-
-### 3.2 Multiple Relationships
-- **Scenario**: One verification method referenced by multiple relationships
-- **Test data**: `#key-1` in both `authentication` and `assertionMethod`
-- **Expected**: Method appears in both relationship arrays
-
-### 3.3 All Relationships Populated
-- **Scenario**: DID with all relationship types having references
-- **Expected**: All 5 relationship arrays populated correctly
-
-### 3.4 Empty Relationships
-- **Scenario**: DID with verification methods but no relationships
-- **Expected**: All relationship arrays are empty arrays (not null)
+**Expected Output**:
+- Serialized verification method ID: `did:midnight:testnet:02007...#key-1`
+- Fragment identifier "#" is prepended during deserialization
 
 ---
 
-## 4. Service Endpoint Tests
+## 3. Verification Relationships
 
-### 4.1 Single Service - String Endpoint
-- **Scenario**: Service with simple string endpoint
-- **Test data**:
-  ```json
-  {
-    "id": "#service-1",
+### 3.1 Authentication Relationship
+**Description**: Verify authentication relationship serialization.
+
+**Input**:
+- Verification method "key-1" added
+- Operation: `AddVerificationMethodRelation` with relation=Authentication, methodId="key-1"
+
+**Expected Output**:
+```json
+{
+  "authentication": [
+    "did:midnight:undeployed:02007...#key-1"
+  ]
+}
+```
+
+### 3.2 Assertion Method Relationship
+**Description**: Verify assertionMethod relationship serialization.
+
+**Input**:
+- Verification method "key-1" added
+- Operation: `AddVerificationMethodRelation` with relation=AssertionMethod
+
+**Expected Output**:
+```json
+{
+  "assertionMethod": [
+    "did:midnight:undeployed:02007...#key-1"
+  ]
+}
+```
+
+### 3.3 Key Agreement Relationship
+**Description**: Verify keyAgreement relationship serialization.
+
+**Input**:
+- Verification method "key-enc" added
+- Operation: `AddVerificationMethodRelation` with relation=KeyAgreement
+
+**Expected Output**:
+```json
+{
+  "keyAgreement": [
+    "did:midnight:undeployed:02007...#key-enc"
+  ]
+}
+```
+
+### 3.4 Capability Invocation Relationship
+**Description**: Verify capabilityInvocation relationship serialization.
+
+**Input**:
+- Verification method "key-1" added
+- Operation: `AddVerificationMethodRelation` with relation=CapabilityInvocation
+
+**Expected Output**:
+```json
+{
+  "capabilityInvocation": [
+    "did:midnight:undeployed:02007...#key-1"
+  ]
+}
+```
+
+### 3.5 Capability Delegation Relationship
+**Description**: Verify capabilityDelegation relationship serialization.
+
+**Input**:
+- Verification method "key-delegate" added
+- Operation: `AddVerificationMethodRelation` with relation=CapabilityDelegation
+
+**Expected Output**:
+```json
+{
+  "capabilityDelegation": [
+    "did:midnight:undeployed:02007...#key-delegate"
+  ]
+}
+```
+
+### 3.6 Multiple Relationships for Same Key
+**Description**: Verify that a single verification method can be referenced by multiple relationships.
+
+**Input**:
+- Verification method "key-1" added
+- Operations: Add to Authentication, AssertionMethod, and CapabilityInvocation
+
+**Expected Output**:
+- "key-1" appears in authentication array
+- "key-1" appears in assertionMethod array
+- "key-1" appears in capabilityInvocation array
+
+---
+
+## 4. Service Endpoints
+
+### 4.1 Simple Service Endpoint (String)
+**Description**: Verify service with string endpoint serialization.
+
+**Input**:
+- Operation: `AddService`
+- Service:
+  - `id`: "service-1"
+  - `type`: "DIDCommV2"
+  - `serviceEndpoint`: "https://example.com/didcomm"
+
+**Expected Output**:
+```json
+{
+  "service": [{
+    "id": "did:midnight:undeployed:02007...#service-1",
     "type": "DIDCommV2",
-    "serviceEndpoint": "https://example.com/endpoint"
-  }
-  ```
-- **Expected**: Correctly deserializes string endpoint
+    "serviceEndpoint": "https://example.com/didcomm"
+  }]
+}
+```
 
-### 4.2 Single Service - Array Endpoint
-- **Scenario**: Service with array of string endpoints
-- **Test data**:
-  ```json
-  {
-    "serviceEndpoint": [
-      "https://primary.example.com",
-      "https://backup.example.com"
-    ]
-  }
-  ```
-- **Expected**: Array correctly preserved
+### 4.2 Complex Service Endpoint (Object)
+**Description**: Verify service with object endpoint serialization.
 
-### 4.3 Single Service - Object Endpoint
-- **Scenario**: Service with complex object endpoint
-- **Test data**:
-  ```json
-  {
+**Input**:
+- Service with complex endpoint object containing uri, accept, and routingKeys
+
+**Expected Output**:
+```json
+{
+  "service": [{
+    "id": "did:midnight:undeployed:02007...#didcomm-1",
+    "type": "DIDCommV2",
     "serviceEndpoint": {
-      "uri": "https://example.com",
-      "routingKeys": ["did:example:mediator#key-1"],
-      "accept": ["didcomm/v2"]
+      "uri": "https://example.com/didcomm",
+      "accept": ["didcomm/v2"],
+      "routingKeys": ["did:example:mediator#key-1"]
     }
-  }
-  ```
-- **Expected**: Object structure preserved (stored as JSON string, rehydrated on resolution)
+  }]
+}
+```
 
-### 4.4 Single Service - Mixed Array Endpoint
-- **Scenario**: Service with array containing strings and objects
-- **Test data**:
-  ```json
-  {
+### 4.3 Service Endpoint Array
+**Description**: Verify service with array of endpoints (mixed string and object).
+
+**Input**:
+- Service with serviceEndpoint as array containing both strings and objects
+
+**Expected Output**:
+```json
+{
+  "service": [{
+    "id": "did:midnight:undeployed:02007...#service-array",
+    "type": "DIDCommV2",
     "serviceEndpoint": [
-      "https://example.com/endpoint",
+      "https://example.com/endpoint1",
       {
-        "uri": "wss://example.com/ws",
+        "uri": "wss://example.com/endpoint2",
         "routingKeys": ["did:example:mediator"]
       }
     ]
-  }
-  ```
-- **Expected**: Mixed array correctly preserved
+  }]
+}
+```
+
+### 4.4 Service Endpoint JSON String Deserialization
+**Description**: Verify that serviceEndpoint stored as JSON string in contract is properly deserialized.
+
+**Input**:
+- Contract stores serviceEndpoint as opaque string: `"{\"uri\":\"https://...\"}"`
+
+**Expected Output**:
+- Deserialized object (not escaped JSON string) in DID document
 
 ### 4.5 Multiple Services
-- **Scenario**: DID with multiple service endpoints of different types
-- **Expected**: All services correctly resolved
+**Description**: Verify multiple services serialization.
 
-### 4.6 Service ID Formats
-- **Scenario**: Test different service ID formats
-- **Test cases**:
-  - Fragment: `#service-1`
-  - Full DID URL: `did:midnight:testnet:<addr>#service-1`
-  - Query parameter: `?service=messaging`
-  - Path: `/routing`
-- **Expected**: IDs correctly reconstructed with `#` prefix for fragments
+**Input**:
+- Multiple `AddService` operations with different IDs
 
-### 4.7 Service Type Variations
-- **Scenario**: Different service type values
-- **Test cases**:
-  - Single string: `"DIDCommV2"`
-  - String array: `["LinkedDomains"]` (though spec says string or array, implementation may vary)
-- **Expected**: Type correctly preserved
+**Expected Output**:
+- All services present in service array
+- Each with unique ID
 
 ---
 
-## 5. AlsoKnownAs Tests
+## 5. AlsoKnownAs (Aliases)
 
-### 5.1 Empty AlsoKnownAs
-- **Scenario**: DID with no aliases
-- **Expected**: Empty array
+### 5.1 Single Alias
+**Description**: Verify adding a single alias.
 
-### 5.2 Single Alias
-- **Scenario**: DID with one alias
-- **Test data**: `["did:example:123"]`
-- **Expected**: Single-element array
+**Input**:
+- Operation: `AddAlsoKnownAs` with value "did:example:alias1"
 
-### 5.3 Multiple Aliases
-- **Scenario**: DID with multiple aliases
-- **Test data**:
-  ```json
-  [
-    "did:example:123",
-    "did:midnight:testnet:0200...",
-    "https://example.com/users/alice"
+**Expected Output**:
+```json
+{
+  "alsoKnownAs": ["did:example:alias1"]
+}
+```
+
+### 5.2 Multiple Aliases
+**Description**: Verify multiple aliases.
+
+**Input**:
+- Multiple `AddAlsoKnownAs` operations
+
+**Expected Output**:
+```json
+{
+  "alsoKnownAs": [
+    "did:example:alias1",
+    "did:example:alias2",
+    "https://example.com/user/123"
   ]
-  ```
-- **Expected**: All aliases preserved
+}
+```
 
-### 5.4 Edge Case - Maximum Aliases
-- **Scenario**: DID with many aliases (stress test)
-- **Expected**: All aliases correctly resolved
+### 5.3 Non-DID Alias
+**Description**: Verify that non-DID URIs can be used as aliases.
+
+**Input**:
+- Operation: `AddAlsoKnownAs` with value "https://example.com/profile"
+
+**Expected Output**:
+- URI present in alsoKnownAs array
 
 ---
 
-## 6. DID Document Metadata Tests
+## 6. DID Metadata
 
 ### 6.1 Created Timestamp
-- **Scenario**: Verify `created` timestamp format
-- **Expected**: ISO 8601 UTC format with second precision (e.g., `"2024-01-01T09:30:00Z"`)
+**Description**: Verify created timestamp serialization from contract.
+
+**Input**:
+- Contract state with `created` field (Uint64 milliseconds): 1704067200000
+
+**Expected Output**:
+```json
+{
+  "didDocumentMetadata": {
+    "created": "2024-01-01T00:00:00Z"
+  }
+}
+```
 
 ### 6.2 Updated Timestamp
-- **Scenario**: Verify `updated` timestamp after updates
-- **Expected**: 
-  - ISO 8601 format
-  - Timestamp reflects latest update
-  - `updated` >= `created`
+**Description**: Verify updated timestamp changes with operations.
 
-### 6.3 Version ID
-- **Scenario**: Verify version tracking
-- **Expected**: 
-  - Monotonically increasing counter
-  - String representation of counter
+**Input**:
+- Initial `updated`: 1704067200000
+- Operation applied
+- New `updated`: 1704070800000
 
-### 6.4 Deactivated Status - Active
-- **Scenario**: Resolve active DID
-- **Expected**: `deactivated: false`
+**Expected Output**:
+- Metadata updated reflects new timestamp: "2024-01-01T01:00:00Z"
 
-### 6.5 Deactivated Status - Inactive
-- **Scenario**: Resolve deactivated DID
-- **Expected**: 
-  - `deactivated: true`
-  - DID Document still returned (for auditability)
-  - Metadata includes deactivation timestamp
+### 6.3 Version Counter
+**Description**: Verify versionId increments with each operation.
 
----
+**Input**:
+- Initial `version` counter: 0
+- After 3 operations: version counter: 3
 
-## 7. Complex Combined Scenarios
+**Expected Output**:
+```json
+{
+  "didDocumentMetadata": {
+    "versionId": "3"
+  }
+}
+```
 
-### 7.1 Fully Populated DID Document
-- **Scenario**: DID with all possible fields populated
-- **Test data**:
-  - Multiple verification methods (both types)
-  - All relationship types used
-  - Multiple services (various endpoint types)
-  - Multiple aliases
-- **Expected**: Complete DID Document correctly resolved
+### 6.4 Timestamp Precision
+**Description**: Verify timestamp conversion from milliseconds to ISO 8601 with second precision.
 
-### 7.2 Minimal DID Document
-- **Scenario**: Newly created DID with no operations applied
-- **Expected**: Only `id` and metadata fields present
+**Input**:
+- Contract timestamp: 1704067234567 (includes milliseconds)
 
-### 7.3 Progressive Updates
-- **Scenario**: Resolve DID at different version states
-- **Test sequence**:
-  1. Initial state (empty)
-  2. After adding verification method
-  3. After adding service
-  4. After updating verification method
-  5. After deactivation
-- **Expected**: Each state correctly reflects applied operations
+**Expected Output**:
+- ISO timestamp: "2024-01-01T00:00:34Z" (seconds only, no milliseconds)
 
 ---
 
-## 8. Error and Edge Cases
+## 7. Deactivation
 
-### 8.1 Non-existent DID
-- **Scenario**: Attempt to resolve DID that doesn't exist
-- **Expected**: `NotFound` error
+### 7.1 Deactivate Operation
+**Description**: Verify that a deactivated DID contract returns proper metadata status.
 
-### 8.2 Malformed Contract State
-- **Scenario**: Contract state with invalid data
-- **Expected**: Appropriate deserialization error
+**Input**:
+- Contract state: `active = false`, `deactivated = true`
 
-### 8.3 Network Mismatch
-- **Scenario**: Request DID on wrong network
-- **Expected**: `NotFound` or network error
+**Expected Output**:
+```json
+{
+  "didDocumentMetadata": {
+    "deactivated": true,
+    "updated": "2024-01-15T10:30:00Z"
+  }
+}
+```
 
-### 8.4 Large Field Values
-- **Scenario**: Test limits of field sizes
-- **Test cases**:
-  - Very long service endpoint URLs
-  - Maximum length verification method IDs
-  - Large number of aliases
-- **Expected**: Correctly handles within protocol limits
+### 7.2 Deactivated DID Document Structure
+**Description**: Verify that a deactivated DID still returns the DID document but with deactivated flag.
 
----
+**Input**:
+- Deactivated DID with verification methods and services
 
-## 9. State Consistency Tests
-
-### 9.1 Verification Method Removal Cascade
-- **Scenario**: Verify that removing a verification method removes all relationship references
-- **Test data**: Remove `#key-1` that's in multiple relationships
-- **Expected**: Method and all relationship references removed
-
-### 9.2 Contract Version Field
-- **Scenario**: Verify `contractVersion` field handling
-- **Expected**: Version number correctly tracked (currently v1)
-
-### 9.3 Operation Count Tracking
-- **Scenario**: Verify internal operation counter
-- **Expected**: Counter increments correctly (internal field, may not be exposed)
+**Expected Output**:
+- DID document returned with all fields
+- Metadata has `deactivated: true`
+- Resolution successful (not an error)
 
 ---
 
-## 10. @context Field Tests
+## 8. Edge Cases
 
-### 10.1 Standard Context
-- **Scenario**: Verify correct @context URIs
-- **Expected**:
-  ```json
-  [
-    "https://www.w3.org/ns/did/v1",
-    "https://w3c.github.io/vc-jws-2020/contexts/v1"
-  ]
-  ```
+### 8.1 Maximum Verification Methods
+**Description**: Verify handling when contract has many verification methods (stress test serialization).
+
+**Input**:
+- Contract with 50+ verification methods
+
+**Expected Output**:
+- All methods serialized correctly
+- No truncation or errors
+
+### 8.2 Very Long Service Endpoint JSON
+**Description**: Verify handling of complex, large service endpoint objects.
+
+**Input**:
+- Service with deeply nested JSON object as endpoint
+
+**Expected Output**:
+- Full JSON object deserialized correctly
+
+### 8.3 Unicode in Opaque Strings
+**Description**: Verify that Unicode characters in IDs and values are properly handled.
+
+**Input**:
+- Service ID with Unicode: "service-测试"
+- AlsoKnownAs with Unicode: "did:example:用户123"
+
+**Expected Output**:
+- Unicode preserved in serialized output
+
+### 8.4 Empty Sets and Maps
+**Description**: Verify serialization of empty collections.
+
+**Input**:
+- Contract state with empty `authenticationRelation` set
+- Empty `services` map
+
+**Expected Output**:
+```json
+{
+  "authentication": [],
+  "service": []
+}
+```
+
+### 8.5 Field Encoding Large Numbers
+**Description**: Verify that Field types in JubJub keys handle large numbers correctly.
+
+**Input**:
+- JubJub key with maximum field value
+
+**Expected Output**:
+- Correctly encoded in base64url format
+- No overflow or truncation
+
+### 8.6 Different Network Identifiers
+**Description**: Verify DID resolution across different networks.
+
+**Input**:
+- DID: `did:midnight:testnet:02007...`
+- DID: `did:midnight:mainnet:02007...`
+- DID: `did:midnight:devnet:02007...`
+
+**Expected Output**:
+- Correct network reflected in DID document ID
+- Resolver can distinguish networks
+
+### 8.7 Contract Address Parsing
+**Description**: Verify correct parsing of 68-character hex contract address.
+
+**Input**:
+- Contract address: "02007dd39c6606563dd043f06a94f60659b00d4d4ff6a65d2db4ddbc277956c13aa3"
+
+**Expected Output**:
+- Full DID: `did:midnight:undeployed:02007dd39c6606563dd043f06a94f60659b00d4d4ff6a65d2db4ddbc277956c13aa3`
+- ID matches exactly
 
 ---
 
-## Test Implementation Priorities
+## 9. Error Handling
 
-### High Priority (Core functionality):
-- DID identifier tests (1.1, 1.2, 1.3)
-- Verification method tests with both key types (2.1, 2.2, 2.3)
-- Verification relationships (3.1, 3.2)
-- Service endpoint variations (4.1, 4.2, 4.3, 4.4)
-- Metadata tests (6.1, 6.2, 6.4, 6.5)
-- Error cases (8.1, 8.2)
+### 9.1 Invalid Contract State Format
+**Description**: Verify error handling for malformed contract state bytes.
 
-### Medium Priority (Edge cases and completeness):
-- AlsoKnownAs tests (5.1-5.3)
-- Multiple services (4.5)
-- Complex combined scenarios (7.1, 7.2)
-- ID format variations (2.4, 4.6)
+**Input**:
+- Invalid hex string
 
-### Lower Priority (Stress testing and limits):
-- Maximum values tests (2.5, 5.4, 8.4)
-- Progressive updates (7.3)
-- State consistency (9.x)
+**Expected Output**:
+- Resolution error: "invalidDidDocument" or deserialization error
+- Appropriate error message
 
----
+### 9.2 Missing Required Contract Fields
+**Description**: Verify handling when contract state is missing expected fields.
 
-## Test Data Requirements
+**Input**:
+- Contract state missing `id` or `version` field
 
-For each test scenario, you'll need:
-1. **Pre-computed contract state** (hex-encoded ledger state)
-2. **Expected DID Document JSON** (for assertion)
-3. **Expected metadata** (created, updated, versionId, deactivated)
-4. **Test DID identifier** (valid Midnight DID)
+**Expected Output**:
+- Resolution error with descriptive message
 
-The existing `serde_did_contract_v1.rs` test provides a good pattern to follow, using:
-- Array of contract state hex strings
-- Corresponding array of expected JSON outputs
-- Deserialization and comparison logic
+### 9.3 Invalid Key Type in Verification Method
+**Description**: Verify handling of unsupported key types.
+
+**Input**:
+- Verification method with `kty: "RSA"` (if not supported)
+
+**Expected Output**:
+- Either: Error during resolution
+- Or: Key omitted with warning
+
+### 9.4 Service Endpoint Invalid JSON
+**Description**: Verify handling when stored serviceEndpoint JSON string is malformed.
+
+**Input**:
+- serviceEndpoint opaque string: `"{invalid json}"`
+
+**Expected Output**:
+- Resolution error or endpoint as raw string
+
+### 9.5 Timestamp Overflow
+**Description**: Verify handling of invalid timestamp values.
+
+**Input**:
+- `created` timestamp: 0
+- `updated` timestamp: maximum Uint64
+
+**Expected Output**:
+- Either: Reasonable default timestamp
+- Or: Validation error
+
+### 9.6 DID Method Mismatch
+**Description**: Verify error when DID method doesn't match contract address.
+
+**Input**:
+- Requested DID: `did:midnight:testnet:0200abc...`
+- Contract address: `0200xyz...` (different)
+
+**Expected Output**:
+- Resolution error: "notFound" or "invalidDid"
 
 ---
 
 ## Implementation Notes
 
-### Contract State Structure (from did.compact)
+### Test Execution Strategy
 
-The ledger state contains the following exported fields:
-- `contractVersion`: Uint<32>
-- `controllerPublicKey`: Bytes<32>
-- `id`: ContractAddress
-- `alsoKnownAs`: Set<Opaque<"string">>
-- `version`: Counter
-- `created`: Uint<64>
-- `updated`: Uint<64>
-- `deactivated`: Boolean
-- `active`: Boolean
-- `operationCount`: Counter
-- `verificationMethods`: Map<Opaque<"string">, VerificationMethod>
-- `authenticationRelation`: Set<Opaque<"string">>
-- `assertionMethodRelation`: Set<Opaque<"string">>
-- `keyAgreementRelation`: Set<Opaque<"string">>
-- `capabilityInvocationRelation`: Set<Opaque<"string">>
-- `capabilityDelegationRelation`: Set<Opaque<"string">>
-- `services`: Map<Opaque<"string">, Service>
+1. **Setup**: Deploy test DID contracts with various configurations
+2. **Serialization**: Fetch contract state and deserialize to DID document
+3. **Validation**: Compare against expected output structure
+4. **Cleanup**: Optional cleanup of test contracts
 
-### Key Types Supported
-1. **Ed25519**: OKP key type with Ed25519 curve (x parameter only)
-2. **JubJub**: EC key type with Jubjub curve (x and y parameters)
+### Key Areas to Focus On
 
-### Service Endpoint Serialization
-Services are stored with `serviceEndpoint` as a JSON string on-ledger, which must be rehydrated during resolution to support:
-- Simple strings
-- Arrays of strings
-- Objects
-- Arrays containing both strings and objects
+1. **Fragment Identifier Handling**: Ensure "#" is properly added/removed
+2. **JSON Deserialization**: Service endpoints stored as JSON strings must be parsed
+3. **Timestamp Conversion**: Uint64 milliseconds → ISO 8601 string (second precision)
+4. **Opaque String Handling**: Proper encoding/decoding of opaque strings
+5. **Field Encoding**: JubJub x, y coordinates as base64url
 
----
+### Out of Scope
 
-## References
-
-- **W3C DID Specification**: `tmp/midnight-did/w3c-spec/midnight-method.md`
-- **Smart Contract**: `tmp/midnight-did/contract/src/did.compact`
-- **Existing Tests**: `midnight-did-serde/tests/serde_did_contract_v1.rs`
-- **Test Data**: `midnight-did-serde/tests/did-documents.json`
-
----
-
-This test plan covers the resolver's responsibility: correctly deserializing contract state and reconstructing W3C-compliant DID Documents, with focus on field type variations and edge values rather than smart contract operation logic.
+- Smart contract logic validation (assertions, access control)
+- ZK circuit verification
+- Private key management
+- Contract deployment mechanics
+- Network-specific behaviors
