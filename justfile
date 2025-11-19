@@ -33,3 +33,18 @@ test:
       echo "Testing crate: $CRATE"
       cargo test -p "$CRATE"
     done
+
+# Run e2e tests
+e2e-run:
+    just e2e-up
+    just e2e-down
+
+# Start the e2e test environment
+e2e-up:
+    nix build .#midnight-did-resolver-docker-latest
+    docker load < ./result
+    cd tests/integration-tests && docker compose up -d --wait
+
+# Stop and remove the e2e test environment
+e2e-down:
+    cd tests/integration-tests && docker compose down --volumes
