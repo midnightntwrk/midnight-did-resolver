@@ -21,8 +21,19 @@ rustPlatform.buildRustPackage {
       path: _:
       let
         baseName = builtins.baseNameOf path;
+        excludedPaths = [
+          "CONTRIBUTING.md"
+          "docs"
+          ".github"
+          ".gitignore"
+          "justfile"
+          "nix"
+          "README.md"
+          "SECURITY.md"
+          "tests"
+        ];
       in
-      !(baseName == "docs" || baseName == ".github" || baseName == "README.md");
+      !(builtins.elem baseName excludedPaths);
     src = ./../..;
   };
   doCheck = false;
