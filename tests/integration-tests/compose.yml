@@ -21,7 +21,7 @@ services:
       start_period: 10s
     environment:
       RUST_LOG: indexer=info,chain_indexer=info,indexer_api=info,wallet_indexer=info,indexer_common=info,fastrace_opentelemetry=off,info
-      APP__INFRA__SECRET: "303132333435363738393031323334353637383930313233343536373839303132"
+      APP__INFRA__SECRET: '303132333435363738393031323334353637383930313233343536373839303132'
       APP__INFRA__NODE__URL: ws://node:9944
     depends_on:
       node:

@@ -10,7 +10,8 @@ let didConfig: api.StandaloneConfig;
 
 // Constants
 export const RESOLVER_URL = process.env.RESOLVER_URL || 'http://localhost:8080';
-export const GENESIS_MINT_WALLET_SEED = '0000000000000000000000000000000000000000000000000000000000000001';
+export const GENESIS_MINT_WALLET_SEED =
+  '0000000000000000000000000000000000000000000000000000000000000001';
 
 /**
  * Setup function - idempotent, runs only once
@@ -21,7 +22,7 @@ export async function setupOnce() {
   }
 
   didConfig = new api.StandaloneConfig();
-  logger = await api.createLogger("test.log");
+  logger = await api.createLogger('test.log');
   api.setLogger(logger);
 
   logger.info('═══════════════════════════════════════════════════════════════');
@@ -80,7 +81,7 @@ export async function resolveDID(didStr: string) {
   const response = await fetch(resolverEndpoint, {
     method: 'GET',
     headers: {
-      'Accept': 'application/did-resolution',
+      Accept: 'application/did-resolution',
     },
   });
 
@@ -98,19 +99,17 @@ export async function createTestDID(): Promise<{
   privateState: Awaited<ReturnType<typeof api.initPrivateState>>;
 }> {
   const providers = getProviders();
-  
+
   const privateState = await api.initPrivateState(providers);
   const didContract = await api.createDID(providers, privateState);
-  const contractAddress = did.parseContractAddress(
-    didContract.deployTxData.public.contractAddress
-  );
+  const contractAddress = did.parseContractAddress(didContract.deployTxData.public.contractAddress);
   const didStr = did.createMidnightDIDString(contractAddress, api.midnightNetwork);
-  
+
   return {
     didContract,
     didStr,
     contractAddress,
-    privateState
+    privateState,
   };
 }
 
@@ -119,7 +118,7 @@ export async function createTestDID(): Promise<{
  * Useful when waiting for indexer to process transactions
  */
 export async function waitForResolution(
-  didStr: string, 
+  didStr: string,
   maxAttempts: number = 10,
   delayMs: number = 2000
 ): Promise<any> {
@@ -134,7 +133,7 @@ export async function waitForResolution(
         throw error;
       }
     }
-    await new Promise(resolve => setTimeout(resolve, delayMs));
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
   }
   throw new Error(`Failed to resolve DID after ${maxAttempts} attempts`);
 }

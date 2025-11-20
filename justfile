@@ -39,6 +39,7 @@ test:
 e2e-run:
     # just e2e-up
     rm -rf midnight-level-db
+    npm run format
     npm run test
     # just e2e-down
 

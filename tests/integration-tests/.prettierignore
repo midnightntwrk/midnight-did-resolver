@@ -1,0 +1,7 @@
+node_modules/
+dist/
+vendor/
+package-lock.json
+*.config.js
+*.config.mjs
+*.config.cjs
