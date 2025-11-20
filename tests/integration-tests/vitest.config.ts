@@ -20,6 +20,9 @@ export default defineConfig({
     // Run tests sequentially (important for integration tests that may have side effects)
     threads: false,
     
+    // Run test files sequentially to avoid database lock conflicts
+    fileParallelism: false,
+    
     // Reporters
     reporters: ['verbose'],
     
