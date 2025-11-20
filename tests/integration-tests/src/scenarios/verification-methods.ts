@@ -97,5 +97,65 @@ export function verificationMethodTests() {
         expect(jubjubKey.publicKeyJwk.y).toBe('QgAC');
       });
     });
+
+    describe('Verification Relationships', () => {
+      test('should serialize verification relationships', async () => {
+        const { didContract, didStr } = await createTestDID();
+
+        await api.update(didContract, [
+          {
+            type: did.DIDOperationType.AddVerificationMethod,
+            verificationMethod: {
+              id: 'key-multi' as domain.DIDKeyID,
+              type: domain.VerificationMethodType.JsonWebKey,
+              controller: didStr as domain.DIDString,
+              publicKeyJwk: {
+                kty: domain.KeyType.OKP,
+                crv: domain.CurveType.Ed25519,
+                x: 'VCpo2LMLhn6iWku8MKvSLg2ZAoC-nlOyPVQaO3FxVeQ',
+              },
+            },
+          },
+        ]);
+        await api.update(didContract, [
+          {
+            type: did.DIDOperationType.AddVerificationMethodRelation,
+            relation: domain.VerificationMethodRelationType.Authentication,
+            methodId: 'key-multi' as domain.DIDKeyID,
+          },
+          {
+            type: did.DIDOperationType.AddVerificationMethodRelation,
+            relation: domain.VerificationMethodRelationType.AssertionMethod,
+            methodId: 'key-multi' as domain.DIDKeyID,
+          },
+          {
+            type: did.DIDOperationType.AddVerificationMethodRelation,
+            relation: domain.VerificationMethodRelationType.CapabilityInvocation,
+            methodId: 'key-multi' as domain.DIDKeyID,
+          },
+        ]);
+
+        const result = await resolveDID(didStr);
+        const expectedKeyRef = `${didStr}#key-multi`;
+
+        // Verify successful resolution
+        expect(result.didResolutionMetadata.error).toBeNull();
+
+        // Verify verification method exists
+        expect(result.didDocument.verificationMethod).toHaveLength(1);
+        expect(result.didDocument.verificationMethod[0].id).toBe(expectedKeyRef);
+        expect(result.didDocument.verificationMethod[0].type).toBe('JsonWebKey');
+        expect(result.didDocument.verificationMethod[0].controller).toBe(didStr);
+
+        // Verify the same key appears in multiple verification relationships
+        expect(result.didDocument.authentication).toContain(expectedKeyRef);
+        expect(result.didDocument.assertionMethod).toContain(expectedKeyRef);
+        expect(result.didDocument.capabilityInvocation).toContain(expectedKeyRef);
+
+        // Verify other relationships remain empty
+        expect(result.didDocument.keyAgreement).toEqual([]);
+        expect(result.didDocument.capabilityDelegation).toEqual([]);
+      });
+    });
   });
 }

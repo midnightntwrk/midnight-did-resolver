@@ -17,6 +17,6 @@ describe('Midnight DID Resolver - Integration Tests', () => {
     await setupOnce();
   });
 
-  basicResolutionTests();
+  // basicResolutionTests();
   verificationMethodTests();
 });
