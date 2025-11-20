@@ -4,9 +4,8 @@ import * as did from '@midnight-ntwrk/midnight-did';
 import { createTestDID, resolveDID } from '../setup';
 
 export function basicResolutionTests() {
-  describe('Basic DID Resolution', () => {
-    describe('Empty DID Document Resolution', () => {
-      test('should resolve newly created empty DID document', async () => {
+  describe('Empty DID Document', () => {
+    test('should resolve newly created empty DID document', async () => {
         const { didStr } = await createTestDID();
         const resolutionResult = await resolveDID(didStr);
 
@@ -44,10 +43,10 @@ export function basicResolutionTests() {
         expect(metadata.versionId).toBeDefined();
         expect(metadata.versionId).toBe('0');
       });
-    });
+  });
 
-    describe('Contract Version Handling', () => {
-      test('should handle contract version correctly in metadata', async () => {
+  describe('Contract Version and versionId', () => {
+    test('should handle contract version correctly in metadata', async () => {
         const { didContract, didStr } = await createTestDID();
         let resolutionResult = await resolveDID(didStr);
         expect(resolutionResult.didDocumentMetadata.versionId).toBe('0');
@@ -78,6 +77,5 @@ export function basicResolutionTests() {
         ]);
         expect(resolutionResult.didResolutionMetadata.error).toBeNull();
       });
-    });
   });
 }
