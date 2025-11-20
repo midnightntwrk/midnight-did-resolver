@@ -19,7 +19,7 @@ export function verificationMethodTests() {
               publicKeyJwk: {
                 kty: domain.KeyType.OKP,
                 crv: domain.CurveType.Ed25519,
-                x: 'Kg',
+                x: 'QgA=',
               },
             },
           },
@@ -32,8 +32,8 @@ export function verificationMethodTests() {
               publicKeyJwk: {
                 kty: domain.KeyType.EC,
                 crv: domain.CurveType.Jubjub,
-                x: 'Kg',
-                y: 'VA',
+                x: 'QgAB',
+                y: 'QgAC',
               },
             },
           },
@@ -46,7 +46,7 @@ export function verificationMethodTests() {
               publicKeyJwk: {
                 kty: domain.KeyType.OKP,
                 crv: domain.CurveType.Ed25519,
-                x: 'Kg',
+                x: 'QgAAAQ==',
               },
             },
           },
@@ -72,7 +72,7 @@ export function verificationMethodTests() {
         expect(ed25519Key1.controller).toBe(didStr);
         expect(ed25519Key1.publicKeyJwk.kty).toBe('OKP');
         expect(ed25519Key1.publicKeyJwk.crv).toBe('Ed25519');
-        expect(ed25519Key1.publicKeyJwk.x).toBe('Kg');
+        expect(ed25519Key1.publicKeyJwk.x).toBe('QgA');
 
         const ed25519Key2 = result.didDocument.verificationMethod.find(
           (vm: any) => vm.id === `${didStr}#key-ed25519-2`
@@ -82,7 +82,7 @@ export function verificationMethodTests() {
         expect(ed25519Key2.controller).toBe(didStr);
         expect(ed25519Key2.publicKeyJwk.kty).toBe('OKP');
         expect(ed25519Key2.publicKeyJwk.crv).toBe('Ed25519');
-        expect(ed25519Key2.publicKeyJwk.x).toBe('Kg');
+        expect(ed25519Key2.publicKeyJwk.x).toBe('QgAAAQ');
 
         // Verify JubJub key by ID with exact value assertions for x and y
         const jubjubKey = result.didDocument.verificationMethod.find(
@@ -93,8 +93,8 @@ export function verificationMethodTests() {
         expect(jubjubKey.controller).toBe(didStr);
         expect(jubjubKey.publicKeyJwk.kty).toBe('EC');
         expect(jubjubKey.publicKeyJwk.crv).toBe('Jubjub');
-        expect(jubjubKey.publicKeyJwk.x).toBe('Kg');
-        expect(jubjubKey.publicKeyJwk.y).toBe('VA');
+        expect(jubjubKey.publicKeyJwk.x).toBe('QgAB');
+        expect(jubjubKey.publicKeyJwk.y).toBe('QgAC');
       });
     });
   });

@@ -58,7 +58,8 @@ compact_struct!(Service {
 
 impl From<PublicKeyJwk> for identus_apollo::jwk::Jwk {
     fn from(value: PublicKeyJwk) -> Self {
-        let to_base64 = |bytes: CompactTypeField| {
+        let to_base64 = |mut bytes: CompactTypeField| {
+            bytes.0.reverse();
             if bytes.0.is_empty() { None } else { Some(bytes.0.into()) }
         };
         Self {
