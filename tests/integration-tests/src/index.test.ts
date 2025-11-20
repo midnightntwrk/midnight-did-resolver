@@ -25,6 +25,27 @@ async function resolveDID(didStr: string) {
   return resolutionResult;
 }
 
+async function createTestDID(): Promise<{
+  didContract: Awaited<ReturnType<typeof api.createDID>>;
+  didStr: string;
+  contractAddress: ReturnType<typeof did.parseContractAddress>;
+  privateState: Awaited<ReturnType<typeof api.initPrivateState>>;
+}> {
+  const privateState = await api.initPrivateState(providers);
+  const didContract = await api.createDID(providers, privateState);
+  const contractAddress = did.parseContractAddress(
+    didContract.deployTxData.public.contractAddress
+  );
+  const didStr = did.createMidnightDIDString(contractAddress, api.midnightNetwork);
+  
+  return {
+    didContract,
+    didStr,
+    contractAddress,
+    privateState
+  };
+}
+
 describe('Midnight DID Resolver - Integration Tests', () => {
   beforeAll(async () => {
     logger.info('═══════════════════════════════════════════════════════════════');
@@ -43,12 +64,9 @@ describe('Midnight DID Resolver - Integration Tests', () => {
     providers = await api.configureProviders(wallet, didConfig);
   });
 
-  describe('DID Resolution', () => {
-    test('should resolves newly created empty DID', async () => {
-      const privateState = await api.initPrivateState(providers);
-      const didContract = await api.createDID(providers, privateState);
-      const contractAddress = did.parseContractAddress(didContract.deployTxData.public.contractAddress);
-      const didStr = did.createMidnightDIDString(contractAddress, api.midnightNetwork);
+  describe('Basic DID Resolution', () => {
+    test('should resolve newly created empty DID document', async () => {
+      const { didStr } = await createTestDID();
       const resolutionResult = await resolveDID(didStr);
 
       // Verify successful resolution
@@ -59,17 +77,11 @@ describe('Midnight DID Resolver - Integration Tests', () => {
       // Verify DID Document structure
       const didDocument = resolutionResult.didDocument;
       expect(didDocument).toBeDefined();
-
-      // Verify @context
       expect(didDocument['@context']).toEqual([
         'https://www.w3.org/ns/did/v1',
         'https://w3c.github.io/vc-jws-2020/contexts/v1'
       ]);
-
-      // Verify id matches the requested DID
       expect(didDocument.id).toBe(didStr);
-
-      // Verify all arrays are empty
       expect(didDocument.alsoKnownAs).toEqual([]);
       expect(didDocument.verificationMethod).toEqual([]);
       expect(didDocument.authentication).toEqual([]);
@@ -90,6 +102,34 @@ describe('Midnight DID Resolver - Integration Tests', () => {
       expect(metadata.deactivated).toBe(false);
       expect(metadata.versionId).toBeDefined();
       expect(metadata.versionId).toBe("0");
+    });
+
+    test('should handle contract version correctly in metadata', async () => {
+      const { didContract, didStr } = await createTestDID();
+      let resolutionResult = await resolveDID(didStr);
+      expect(resolutionResult.didDocumentMetadata.versionId).toBe("0");
+
+      // First update
+      await api.update(didContract, [{
+        type: did.DIDOperationType.AddAlsoKnownAs,
+        aliasUri: "did:example:alias1"
+      }]);
+      resolutionResult = await resolveDID(didStr);
+      expect(resolutionResult.didDocumentMetadata.versionId).toBe("1");
+      expect(resolutionResult.didDocument.alsoKnownAs).toEqual(["did:example:alias1"]);
+
+      // Second update
+      await api.update(didContract, [{
+        type: did.DIDOperationType.AddAlsoKnownAs,
+        aliasUri: "did:example:alias2"
+      }]);
+      resolutionResult = await resolveDID(didStr);
+      expect(resolutionResult.didDocumentMetadata.versionId).toBe("2");
+      expect(resolutionResult.didDocument.alsoKnownAs).toEqual([
+        "did:example:alias1",
+        "did:example:alias2"
+      ]);
+      expect(resolutionResult.didResolutionMetadata.error).toBeNull();
     });
   });
 });
