@@ -8,20 +8,31 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did-api": "file:./vendor/api",
     "@midnight-ntwrk/midnight-did": "file:./vendor/did",
+    "@midnight-ntwrk/midnight-did-api": "file:./vendor/api",
     "@midnight-ntwrk/midnight-did-contract": "file:./vendor/contract",
     "@midnight-ntwrk/midnight-did-domain": "file:./vendor/domain"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/eslint__js": "^8.42.3",
     "@types/node": "^24.10.1",
     "@vitest/ui": "^2.1.8",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.47.0",
     "vitest": "^2.1.8"
   }
 }

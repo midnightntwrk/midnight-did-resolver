@@ -20,7 +20,7 @@ export function basicResolutionTests() {
         expect(didDocument).toBeDefined();
         expect(didDocument['@context']).toEqual([
           'https://www.w3.org/ns/did/v1',
-          'https://w3c.github.io/vc-jws-2020/contexts/v1'
+          'https://w3c.github.io/vc-jws-2020/contexts/v1',
         ]);
         expect(didDocument.id).toBe(didStr);
         expect(didDocument.alsoKnownAs).toEqual([]);
@@ -42,7 +42,7 @@ export function basicResolutionTests() {
         expect(metadata.deactivated).toBeDefined();
         expect(metadata.deactivated).toBe(false);
         expect(metadata.versionId).toBeDefined();
-        expect(metadata.versionId).toBe("0");
+        expect(metadata.versionId).toBe('0');
       });
     });
 
@@ -50,27 +50,31 @@ export function basicResolutionTests() {
       test('should handle contract version correctly in metadata', async () => {
         const { didContract, didStr } = await createTestDID();
         let resolutionResult = await resolveDID(didStr);
-        expect(resolutionResult.didDocumentMetadata.versionId).toBe("0");
+        expect(resolutionResult.didDocumentMetadata.versionId).toBe('0');
 
         // First update
-        await api.update(didContract, [{
-          type: did.DIDOperationType.AddAlsoKnownAs,
-          aliasUri: "did:example:alias1"
-        }]);
+        await api.update(didContract, [
+          {
+            type: did.DIDOperationType.AddAlsoKnownAs,
+            aliasUri: 'did:example:alias1',
+          },
+        ]);
         resolutionResult = await resolveDID(didStr);
-        expect(resolutionResult.didDocumentMetadata.versionId).toBe("1");
-        expect(resolutionResult.didDocument.alsoKnownAs).toEqual(["did:example:alias1"]);
+        expect(resolutionResult.didDocumentMetadata.versionId).toBe('1');
+        expect(resolutionResult.didDocument.alsoKnownAs).toEqual(['did:example:alias1']);
 
         // Second update
-        await api.update(didContract, [{
-          type: did.DIDOperationType.AddAlsoKnownAs,
-          aliasUri: "did:example:alias2"
-        }]);
+        await api.update(didContract, [
+          {
+            type: did.DIDOperationType.AddAlsoKnownAs,
+            aliasUri: 'did:example:alias2',
+          },
+        ]);
         resolutionResult = await resolveDID(didStr);
-        expect(resolutionResult.didDocumentMetadata.versionId).toBe("2");
+        expect(resolutionResult.didDocumentMetadata.versionId).toBe('2');
         expect(resolutionResult.didDocument.alsoKnownAs).toEqual([
-          "did:example:alias1",
-          "did:example:alias2"
+          'did:example:alias1',
+          'did:example:alias2',
         ]);
         expect(resolutionResult.didResolutionMetadata.error).toBeNull();
       });
