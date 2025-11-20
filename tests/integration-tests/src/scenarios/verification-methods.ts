@@ -6,8 +6,7 @@ import { createTestDID, resolveDID } from '../setup';
 
 export function verificationMethodTests() {
   describe('Verification Methods', () => {
-    describe('Multiple Verification Methods with Different Key Types', () => {
-      test('should serialize all supported key types', async () => {
+    test('should serialize all supported key types', async () => {
         const { didContract, didStr } = await createTestDID();
         await api.update(didContract, [
           {
@@ -96,10 +95,10 @@ export function verificationMethodTests() {
         expect(jubjubKey.publicKeyJwk.x).toBe('QgAB');
         expect(jubjubKey.publicKeyJwk.y).toBe('QgAC');
       });
-    });
+  });
 
-    describe('Verification Relationships', () => {
-      test('should serialize verification relationships', async () => {
+  describe('Verification Relationships', () => {
+    test('should serialize verification relationships', async () => {
         const { didContract, didStr } = await createTestDID();
 
         await api.update(didContract, [
@@ -156,6 +155,5 @@ export function verificationMethodTests() {
         expect(result.didDocument.keyAgreement).toEqual([]);
         expect(result.didDocument.capabilityDelegation).toEqual([]);
       });
-    });
   });
 }
