@@ -53,10 +53,20 @@ rec {
     rust = pkgs.rustTools.rustMinimal;
   };
 
-  midnight-did-resolver-docker = pkgs.callPackage ./midnight-did-resolver-docker.nix {
-    inherit version;
-    midnight-did-resolver = midnight-did-resolver-bin;
-  };
+  midnight-did-resolver-docker =
+    let
+      # Docker images require Linux binaries. On aarch64-darwin (Apple Silicon),
+      # we must use the cross-compiled Linux binary instead of the native macOS one.
+      target-bin =
+        if pkgs.stdenv.hostPlatform == "aarch64-darwin" then
+          bins.midnight-did-resolver-bin-aarch64-linux
+        else
+          midnight-did-resolver-bin;
+    in
+    pkgs.callPackage ./midnight-did-resolver-docker.nix {
+      inherit version;
+      midnight-did-resolver = target-bin;
+    };
 
   midnight-did-resolver-docker-latest = midnight-did-resolver-docker.override { version = "latest"; };
 
