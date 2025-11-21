@@ -50,8 +50,8 @@ rec {
   };
 
   patchScript = ''
-    mkdir -p /build/cargo-vendor-dir/static
-    cp ./vendor-from-indexer/static/bls_filecoin_2p14 /build/cargo-vendor-dir/static/bls_filecoin_2p14
+    mkdir -p $out/cargo-vendor-dir/static
+    cp ./vendor-from-indexer/static/bls_filecoin_2p14 $out/cargo-vendor-dir/static/bls_filecoin_2p14
     touch ./vendor-from-indexer/midnight-circuits/README.md
   '';
 }
