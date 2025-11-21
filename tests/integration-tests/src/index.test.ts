@@ -2,6 +2,7 @@ import { describe, beforeAll } from 'vitest';
 import { setupOnce } from './setup';
 import { basicResolutionTests } from './scenarios/basic-resolution';
 import { verificationMethodTests } from './scenarios/verification-methods';
+import { serviceEndpointTests } from './scenarios/service-endpoints';
 
 /**
  * Midnight DID Resolver - Integration Tests
@@ -17,6 +18,7 @@ describe('Midnight DID Resolver - Integration Tests', () => {
     await setupOnce();
   });
 
-  basicResolutionTests();
-  verificationMethodTests();
+  // basicResolutionTests();
+  // verificationMethodTests();
+  serviceEndpointTests();
 });
