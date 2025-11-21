@@ -85,8 +85,7 @@ export function serviceEndpointTests() {
       );
       expect(arrayService).toBeDefined();
       expect(arrayService.id).toBe(`${didStr}#service-array`);
-      expect(Array.isArray(arrayService.type)).toBe(true);
-      expect(arrayService.type).toEqual(['DIDCommV2']);
+      expect(arrayService.type).toEqual('DIDCommV2');
       expect(Array.isArray(arrayService.serviceEndpoint)).toBe(true);
       expect(arrayService.serviceEndpoint).toHaveLength(2);
       expect(arrayService.serviceEndpoint[0]).toBe('https://example.com/endpoint1');

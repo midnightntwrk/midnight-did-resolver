@@ -87,10 +87,8 @@ impl Service {
     fn to_did_core(self, controller: &Did) -> identus_did_core::Service {
         identus_did_core::Service {
             id: format!("{}#{}", controller, self.id.0),
-            r#type: identus_did_core::ServiceType::Str(self.r#type.0),
-            service_endpoint: identus_did_core::ServiceEndpoint::StrOrMap(identus_did_core::StringOrMap::Str(
-                self.service_endpoint.0,
-            )),
+            r#type: parse_service_type(&self.r#type.0),
+            service_endpoint: parse_service_endpoint(&self.service_endpoint.0),
         }
     }
 }
@@ -194,4 +192,45 @@ fn le_bytes_to_datetime(bytes: &[u8]) -> Option<DateTime<Utc>> {
     padded[..len].copy_from_slice(&bytes[..len]);
     let timestamp_millis = i64::from_le_bytes(padded);
     DateTime::from_timestamp_millis(timestamp_millis).and_then(|dt| dt.with_nanosecond(0))
+}
+
+fn parse_service_type(type_str: &str) -> identus_did_core::ServiceType {
+    use identus_did_core::ServiceType;
+
+    // Try parsing as JSON array first (most specific)
+    if let Ok(list) = serde_json::from_str::<Vec<String>>(type_str) {
+        return ServiceType::List(list);
+    }
+
+    // Fallback: treat as single string type
+    ServiceType::Str(type_str.to_string())
+}
+
+fn parse_service_endpoint(endpoint_str: &str) -> identus_did_core::ServiceEndpoint {
+    use identus_did_core::{ServiceEndpoint, StringOrMap};
+
+    // Try parsing as JSON array first (most specific)
+    if let Ok(array) = serde_json::from_str::<Vec<serde_json::Value>>(endpoint_str) {
+        let parsed_items: Vec<StringOrMap> = array
+            .into_iter()
+            .map(|value| match value {
+                serde_json::Value::String(s) => StringOrMap::Str(s),
+                serde_json::Value::Object(map) => StringOrMap::Map(map),
+                _ => {
+                    // Fallback: convert any other type to string representation
+                    StringOrMap::Str(value.to_string())
+                }
+            })
+            .collect();
+        return ServiceEndpoint::List(parsed_items);
+    }
+
+    // Try parsing as JSON object (medium specific)
+    if let Ok(map) = serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(endpoint_str) {
+        return ServiceEndpoint::StrOrMap(StringOrMap::Map(map));
+    }
+
+    // Fallback: treat as plain string
+    let endpoint = serde_json::from_str::<String>(endpoint_str).unwrap_or_default();
+    ServiceEndpoint::StrOrMap(StringOrMap::Str(endpoint))
 }
