@@ -58,10 +58,7 @@ rec {
     midnight-did-resolver = midnight-did-resolver-bin;
   };
 
-  midnight-did-resolver-docker-latest = pkgs.callPackage ./midnight-did-resolver-docker.nix {
-    version = "latest";
-    midnight-did-resolver = midnight-did-resolver-bin;
-  };
+  midnight-did-resolver-docker-latest = midnight-did-resolver-docker.override { version = "latest"; };
 
   midnight-circuit-params = pkgs.callPackage ./midnight-circuit-params.nix { };
 
