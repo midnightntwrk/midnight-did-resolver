@@ -73,7 +73,7 @@ impl From<PublicKeyJwk> for identus_apollo::jwk::Jwk {
 
 impl VerificationMethod {
     fn to_did_core(self, controller: &Did) -> identus_did_core::VerificationMethod {
-        let id = handle_verificationmethod_id(&self.id, controller);
+        let id = format!("{}#{}", controller, self.id.0);
         identus_did_core::VerificationMethod {
             id,
             r#type: self.r#type.to_string(),
@@ -116,7 +116,7 @@ impl ContractStateDeserializer for DidContractDeserializer {
         let verification_relation = |keys: Vec<CompactTypeOpaqueString>| {
             Some(
                 keys.into_iter()
-                    .map(|pk| identus_did_core::VerificationMethodOrRef::Ref(handle_verificationmethod_id(&pk, &did)))
+                    .map(|pk| identus_did_core::VerificationMethodOrRef::Ref(format!("{}#{}", &did, &pk.0)))
                     .collect::<Vec<_>>(),
             )
         };
@@ -165,15 +165,6 @@ impl ContractStateDeserializer for DidContractDeserializer {
         };
 
         Ok((did_doc_metadata, did_doc))
-    }
-}
-
-// FIXME: we need to make did:midnight JS not write prefix "did:midnight:" to the ledger
-fn handle_verificationmethod_id(id: &CompactTypeOpaqueString, controller: &Did) -> String {
-    if id.0.starts_with("did:midnight") {
-        id.0.clone()
-    } else {
-        format!("{}#{}", controller, id.0)
     }
 }
 
