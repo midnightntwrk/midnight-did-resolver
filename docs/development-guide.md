@@ -21,16 +21,75 @@ Before you begin, ensure you have the following:
    nix develop
    ```
 
-2. **Run the resolver in development mode:**
+2. **Initialize the project:**
+   ```bash
+   just init
+   ```
+   This builds the `midnight-did-js` package and installs npm dependencies for integration tests.
+
+3. **Run the resolver in development mode:**
+   ```bash
+   just run <INDEXER_URL>
+   ```
+   Or using cargo directly:
    ```bash
    cargo run -p midnight-did-resolver serve --indexer-url <INDEXER_URL>
    ```
    Replace `<INDEXER_URL>` with your Midnight Indexer instance URL.
 
-3. **Access the Swagger UI:**
+4. **Access the Swagger UI:**
    - Open [http://localhost:8080](http://localhost:8080) in your browser to view the API documentation.
 
-### Midnight-ledger Dependencies
+## Development Workflow
+
+This project uses [Just](https://github.com/casey/just), a command runner similar to `make`, to simplify common development tasks. Just is available in the Nix development shell.
+
+To see all available commands:
+
+```bash
+just
+```
+
+### Code Formatting
+
+Format all source files (Nix, TOML, justfile, and Rust):
+
+```bash
+just format
+```
+
+### Building and Testing
+
+Build the project with all features:
+
+```bash
+just build
+```
+
+Run tests for owned crates (excludes vendored dependencies):
+
+```bash
+just test
+```
+
+Clean build artifacts:
+
+```bash
+just clean
+```
+
+### End-to-End Testing
+
+The project includes integration tests using Docker Compose to verify DID resolver functionality with all required services.
+
+See the [Integration Tests Guide](./integration-tests.md) for details.
+
+**Quick commands:**
+```bash
+just e2e-up && just e2e-run && just e2e-down
+```
+
+## Midnight-ledger Dependencies
 
 This project currently uses `ledger-4.0.0` as a core dependency.
 However, due to conflicting feature gates in the dependency resolution process, we rely on vendored dependencies from `midnight-indexer` version `2.1.4`.

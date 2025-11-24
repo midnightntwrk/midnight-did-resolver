@@ -20,6 +20,10 @@ format:
 build:
     cargo build --all-features
 
+# Run the resolver in development mode
+run INDEXER_URL:
+    cargo run -p midnight-did-resolver serve --indexer-url {{INDEXER_URL}}
+
 # Clean the build artifacts
 clean:
     cargo clean
