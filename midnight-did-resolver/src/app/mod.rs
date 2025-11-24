@@ -68,6 +68,5 @@ pub fn open_api_custom_host<H: IntoIterator<Item = S>, S: AsRef<str>>(hosts: H) 
 }
 
 pub fn open_api() -> utoipa::openapi::OpenApi {
-    let a = ["http://localhost:8080"];
-    open_api_custom_host(&a)
+    open_api_custom_host(&["http://localhost:8080"])
 }
