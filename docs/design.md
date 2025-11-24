@@ -15,14 +15,10 @@ The Midnight DID Resolver project is organized as a multi-crate cargo workspace.
 - **midnight-did-serde**  
   Serialization and deserialization utilities for DID documents and contracts.
   This crate implements native Rust deserialization, porting logic from the `compact-runtime`.
-
-- **midnight-did-serde-js**  
-  JavaScript/TypeScript package for DID serialization and deserialization.
-  Built from the compiled DID compact contract and bundled as a JS package, it enables easy deserialization as a blackbox, invoked by the resolver via CLI during the prototype phase.
-  These deserialization utilities will be deprecated in favor of a native Rust implementation.
+  The implementation supports versioned compact runtime formats (e.g., `compact_v0_9`) and provides the `DefaultContractStateDeserializer` for production use.
 
 - **midnight-did-resolver**  
-  Main resolver application and CLI, orchestrating DID resolution by integrating core logic, indexer queries, and serialization.
+  Main resolver application and CLI, orchestrating DID resolution by integrating core logic, indexer queries, and native Rust serialization.
 
 ### Crate Dependency Diagram
 
@@ -31,11 +27,15 @@ graph TD
     midnight-did
     midnight-did-indexer-client --> midnight-did
     midnight-did-serde --> midnight-did
-    midnight-did-serde -- wrapped CLI --> midnight-did-serde-js
     midnight-did-resolver --> midnight-did
     midnight-did-resolver --> midnight-did-indexer-client
     midnight-did-resolver --> midnight-did-serde
 ```
+
+### Additional Build Artifacts
+
+- **midnight-did-js** (Nix package)  
+  A separate JavaScript/TypeScript package available via Nix build (`.#midnight-did-js`), containing DID serialization utilities compiled from the Midnight compact contract. This package is independent of the main Rust resolver and can be used for JavaScript-based integrations.
 
 ## Resolution Flow
 
@@ -64,4 +64,4 @@ sequenceDiagram
 4. **DID Resolution Request**: The Verifier requests DID resolution from the Midnight DID Resolver.
 5. **Contract State Query**: The Resolver asks the Indexer for the latest DID contract state.
 6. **State Retrieval**: The Indexer returns the current contract state to the Resolver.
-7. **DID Document Delivery**: The Resolver validates and formats the DID Document, then sends it to the Verifier.
+7. **DID Document Delivery**: The Resolver deserializes the contract state using native Rust deserialization, validates and formats the DID Document, then sends it to the Verifier.
