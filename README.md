@@ -31,8 +31,6 @@ It exposes an HTTP API for language-agnostic integration, ensuring seamless inte
 
 Get up and running with the Midnight DID Resolver using one of the available methods.
 
-> **Note:** Currently, only the Nix package is supported. Other package distribution methods will be available soon.
-
 ### 🧰 Method 1: Using Nix to build binary
 
 **1. Pre-requisites**
@@ -84,6 +82,89 @@ Get up and running with the Midnight DID Resolver using one of the available met
 
 **4. Access the Swagger UI**
 - After starting the container, access the Swagger UI at [http://localhost:8080](http://localhost:8080).
+
+## Configuration
+
+### Environment Variables
+
+The resolver can be configured using environment variables or command-line arguments:
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `MIDNIGHT_INDEXER_URL` | URL for the Midnight Indexer GraphQL API (e.g., `http://localhost:8088/api/v1/graphql`) | - | Yes |
+| `SERVER_ADDRESS` | HTTP server binding address | `0.0.0.0` | No |
+| `SERVER_PORT` | HTTP server listening port | `8080` | No |
+| `SERVER_CORS_ENABLED` | Enable permissive CORS for cross-origin requests | `false` | No |
+| `SERVER_EXTERNAL_URL` | Public URL for external access; used in Swagger docs and as the public endpoint | - | No |
+| `RUST_LOG` | Logging level (e.g., `info`, `debug`, `warn`) | `info` | No |
+
+### Example Usage with Environment Variables
+
+```bash
+export MIDNIGHT_INDEXER_URL=http://localhost:8088/api/v1/graphql
+export SERVER_PORT=3000
+export SERVER_CORS_ENABLED=true
+export RUST_LOG=debug
+
+./midnight-did-resolver serve
+```
+
+### Command-Line Arguments
+
+All configuration options can also be provided as command-line arguments:
+
+```bash
+./midnight-did-resolver serve \
+  --indexer-url http://localhost:8088/api/v1/graphql \
+  --address 0.0.0.0 \
+  --port 8080 \
+  --cors-enabled \
+  --external-url https://resolver.example.com
+```
+
+## API Documentation
+
+### Generating OpenAPI Specification
+
+You can generate the OpenAPI specification in JSON format:
+
+```bash
+# Output to stdout
+./midnight-did-resolver generate-openapi
+
+# Output to file
+./midnight-did-resolver generate-openapi --output openapi.json
+```
+
+### Interactive API Documentation
+
+Once the resolver is running, access the interactive Swagger UI at:
+- [http://localhost:8080](http://localhost:8080) (or your configured port)
+
+### Example DID Resolution Request
+
+**Resolve a DID:**
+```bash
+curl http://localhost:8080/identifiers/did:midnight:testnet:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123
+```
+
+**Response:**
+```json
+{
+  "didDocument": {
+    "@context": ["https://www.w3.org/ns/did/v1"],
+    "id": "did:midnight:testnet:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123",
+    "verificationMethod": [...],
+    "authentication": [...],
+    "assertionMethod": [...],
+    "service": [...]
+  },
+  "didResolutionMetadata": {
+    "contentType": "application/did"
+  },
+  "didDocumentMetadata": {}
+}
+```
 
 ## Contributing
 
