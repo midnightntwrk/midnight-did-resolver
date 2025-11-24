@@ -4,6 +4,7 @@
 
 - [Design](./design.md)
 - [Contract Deserialization](./contract-deserialization.md)
+- [Integration Tests](./integration-tests.md)
 
 ## Development Setup
 

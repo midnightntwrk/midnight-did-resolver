@@ -170,7 +170,6 @@ curl http://localhost:8080/api/dids/<midnight_did>
 
 - [Contributing](./CONTRIBUTING.md)
 - [Development Guide](./docs/development-guide.md)
-- [Integration Tests](./docs/integration-tests.md)
 
 ## References
 
