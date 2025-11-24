@@ -145,7 +145,7 @@ Once the resolver is running, access the interactive Swagger UI at:
 
 **Resolve a DID:**
 ```bash
-curl http://localhost:8080/identifiers/did:midnight:testnet:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123
+curl http://localhost:8080/api/dids/<midnight_did>
 ```
 
 **Response:**
@@ -153,7 +153,7 @@ curl http://localhost:8080/identifiers/did:midnight:testnet:0123456789abcdef0123
 {
   "didDocument": {
     "@context": ["https://www.w3.org/ns/did/v1"],
-    "id": "did:midnight:testnet:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123",
+    "id": "<midnight_did>",
     "verificationMethod": [...],
     "authentication": [...],
     "assertionMethod": [...],
