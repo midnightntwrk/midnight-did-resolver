@@ -41,11 +41,9 @@ test:
 # Run e2e tests
 [working-directory('tests/integration-tests')]
 e2e-run:
-    # just e2e-up
     rm -rf midnight-level-db
     npm run format
     npm run test
-    # just e2e-down
 
 # Start the e2e test environment
 e2e-up:
