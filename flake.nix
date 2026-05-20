@@ -11,7 +11,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
     midnight-did-src = {
-      url = "github:midnightntwrk/midnight-did/main";
+      url = "github:midnightntwrk/midnight-did/develop";
       flake = false;
     };
   };

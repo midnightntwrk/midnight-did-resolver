@@ -32,7 +32,7 @@ The `midnight-did-js` package is built directly from the [midnight-did](https://
 # flake.nix
 inputs = {
   midnight-did-src = {
-    url = "github:midnightntwrk/midnight-did/main";
+    url = "github:midnightntwrk/midnight-did/develop";
     flake = false;
   };
 }
