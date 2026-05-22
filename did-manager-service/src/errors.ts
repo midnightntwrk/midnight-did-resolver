@@ -1,8 +1,52 @@
-type ManagerHttpError = {
+export type ManagerHttpError = {
   statusCode: number;
   errorCode: string;
   message: string;
 };
+
+export class ManagerServiceError extends Error {
+  constructor(
+    readonly errorCode: string,
+    readonly statusCode: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = new.target.name;
+  }
+}
+
+export class ManagerInvalidRequestError extends ManagerServiceError {
+  constructor(message: string) {
+    super("invalidRequest", 400, message);
+  }
+}
+
+export class ManagerInvalidSeedError extends ManagerServiceError {
+  constructor(message: string) {
+    super("invalidSeed", 400, message);
+  }
+}
+
+export class ManagerConflictError extends ManagerServiceError {
+  constructor(errorCode: "operationBusy" | "sessionLocked", message: string) {
+    super(errorCode, 409, message);
+  }
+}
+
+export class ManagerNotFoundError extends ManagerServiceError {
+  constructor(
+    errorCode: "contractNotFound" | "operationNotFound" | "secretNotFound",
+    message: string,
+  ) {
+    super(errorCode, 404, message);
+  }
+}
+
+export class ManagerUpstreamUnavailableError extends ManagerServiceError {
+  constructor(message: string) {
+    super("upstreamUnavailable", 503, message);
+  }
+}
 
 const zodLikeMessage = (error: unknown): string | null => {
   if (
@@ -31,19 +75,20 @@ const upstreamFailurePatterns = [
 ];
 
 const invalidRequestMessagePatterns = [
-  "Active DID is deactivated",
-  "Selected key ",
-  "Bytes payload ",
-  "JSON payload ",
-  "Verification method ",
-  "Local key verification requires ",
-  "DID verification requires ",
-  "Verification requires exactly one source",
-  "Unsupported signature curve ",
-  "Signature must be a valid base64url-encoded byte string",
+  "verificationMethod",
+  "serviceEndpoint",
+  "relation ",
 ];
 
 export const classifyManagerHttpError = (error: unknown): ManagerHttpError => {
+  if (error instanceof ManagerServiceError) {
+    return {
+      statusCode: error.statusCode,
+      errorCode: error.errorCode,
+      message: error.message,
+    };
+  }
+
   const zodMessage = zodLikeMessage(error);
   const message =
     zodMessage ??
@@ -79,10 +124,7 @@ export const classifyManagerHttpError = (error: unknown): ManagerHttpError => {
     };
   }
 
-  if (
-    errorName === "SecretNotFoundError" ||
-    message.startsWith("Key not found in secret storage:")
-  ) {
+  if (errorName === "SecretNotFoundError") {
     return {
       statusCode: 404,
       errorCode: "secretNotFound",
@@ -114,22 +156,6 @@ export const classifyManagerHttpError = (error: unknown): ManagerHttpError => {
     };
   }
 
-  if (message.startsWith("Another operation is already running")) {
-    return {
-      statusCode: 409,
-      errorCode: "operationBusy",
-      message,
-    };
-  }
-
-  if (message.startsWith("Operation not found:")) {
-    return {
-      statusCode: 404,
-      errorCode: "operationNotFound",
-      message,
-    };
-  }
-
   if (
     message.includes("Profile name") ||
     message.includes("No stored seed") ||
@@ -137,10 +163,7 @@ export const classifyManagerHttpError = (error: unknown): ManagerHttpError => {
     message.includes("does not match the prepared funding seed") ||
     message.includes("Prepared funding state is inconsistent") ||
     message.includes("Seed mode generated is not allowed for Start session") ||
-    message.includes("verificationMethod") ||
-    message.includes("serviceEndpoint") ||
-    message.includes("relation ") ||
-    invalidRequestMessagePatterns.some((pattern) => message.startsWith(pattern))
+    invalidRequestMessagePatterns.some((pattern) => message.includes(pattern))
   ) {
     return {
       statusCode: 400,

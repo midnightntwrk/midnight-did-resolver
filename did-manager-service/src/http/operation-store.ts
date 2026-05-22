@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import { classifyManagerHttpError } from '../errors.js';
+import { classifyManagerHttpError, ManagerConflictError } from '../errors.js';
 import type { ManagerOperationStatus, ManagerOperationType } from '../types.js';
 
 const nowIso = (): string => new Date().toISOString();
@@ -27,8 +27,11 @@ export class OperationStore {
 
   start<T>(type: ManagerOperationType, task: () => Promise<T>): ManagerOperationStatus {
     const running = this.current();
-    if (running !== null && running.status === 'running') {
-      throw new Error(`Another operation is already running: ${running.type}`);
+    if (running !== null) {
+      throw new ManagerConflictError(
+        'operationBusy',
+        `Another operation is already running: ${running.type}`,
+      );
     }
 
     const operation: ManagerOperationStatus = {
@@ -43,27 +46,32 @@ export class OperationStore {
     this.operations.set(operation.id, operation);
     this.currentOperationId = operation.id;
 
-    void (async () => {
-      try {
-        operation.result = await task();
-        operation.status = 'succeeded';
-        operation.completedAt = nowIso();
-      } catch (error) {
-        const failure = classifyManagerHttpError(error);
-        operation.status = 'failed';
-        operation.completedAt = nowIso();
-        operation.error = {
-          message: failure.message,
-          errorCode: failure.errorCode,
-          statusCode: failure.statusCode,
-        };
-      } finally {
+    const taskPromise = Promise.resolve()
+      .then(task)
+      .then(
+        (result) => {
+          operation.result = result;
+          operation.status = 'succeeded';
+          operation.completedAt = nowIso();
+        },
+        (error: unknown) => {
+          const failure = classifyManagerHttpError(error);
+          operation.status = 'failed';
+          operation.completedAt = nowIso();
+          operation.error = {
+            message: failure.message,
+            errorCode: failure.errorCode,
+            statusCode: failure.statusCode,
+          };
+        },
+      )
+      .finally(() => {
         if (this.currentOperationId === operation.id) {
           this.currentOperationId = null;
         }
         this.trimCompleted();
-      }
-    })();
+      });
+    void taskPromise;
 
     return operation;
   }

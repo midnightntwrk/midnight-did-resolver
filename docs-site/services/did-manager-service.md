@@ -56,7 +56,8 @@ stateDiagram-v2
 | `DID_MANAGER_DATA_DIR` | Persistent local data directory |
 | `DID_MANAGER_SESSION_FILE` | Optional explicit session file path |
 | `DID_MANAGER_SECRET_FILE` | Optional explicit secret store file path |
-| `DID_MANAGER_SECRET_PASSPHRASE` | Secret store passphrase |
+| `DID_MANAGER_SECRET_PASSPHRASE` | Secret store passphrase; required for `preprod` and `mainnet` |
+| `DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE` | Explicit local-testing opt-in for the dev fallback outside standalone |
 | `DID_MANAGER_LOG_FILE` | Log output file |
 
 ## Run
@@ -81,11 +82,18 @@ npm run dev -w @midnight-ntwrk/midnight-did-manager-service
 - `did-manager-service/src/ui/`
 - `did-manager-service/README.md`
 
+## Runtime hardening
+
+Mutating API routes run through a single-flight operation store. Runtime wallet/session state is serialized inside `ManagerRuntimeState`, and unlock startup is generation-guarded so stale wallet contexts cannot attach after a newer lock or unlock begins.
+
+DID-based detached verification also checks that the requested verification method is bound to the DID returned by the resolver before checking the signature.
+
 ## Architecture
 
 - [DID Manager Architecture](/architecture/did-manager-service)
 - [ADR: Shared Seed and Local Profiles](/architecture/adr-shared-seed-and-profiles)
 - [ADR: Resolver vs Manager Service Split](/architecture/adr-service-split)
+- [ADR: Service Runtime Hardening](/architecture/adr-service-runtime-hardening)
 
 ## Full source doc
 

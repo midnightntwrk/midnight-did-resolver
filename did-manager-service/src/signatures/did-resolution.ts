@@ -11,6 +11,7 @@ import type { PublicJwk } from '@midnight-ntwrk/midnight-did-secret-storage';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 
 import type { SetupProfile } from '../config.js';
+import { ManagerInvalidRequestError } from '../errors.js';
 
 export type ResolvedDidVerificationMethod = {
   did: MidnightDIDString;
@@ -29,7 +30,7 @@ const parseAbsoluteVerificationMethodId = (
 ): { did: MidnightDIDString; verificationMethodId: string; fragment: string } => {
   const hashIndex = value.indexOf('#');
   if (hashIndex <= 0 || hashIndex === value.length - 1) {
-    throw new Error(
+    throw new ManagerInvalidRequestError(
       'Verification method id must be an absolute Midnight DID URL with a fragment.',
     );
   }
@@ -74,14 +75,14 @@ export const createDidVerificationMethodResolver = (input: {
       ) ?? null;
 
     if (method === null) {
-      throw new Error(
+      throw new ManagerInvalidRequestError(
         `Verification method ${verificationMethodId} was not found in ${parsed.did}.`,
       );
     }
 
     const { network } = parseMidnightDID(parsed.did);
     if (network !== expectedNetwork) {
-      throw new Error(
+      throw new ManagerInvalidRequestError(
         `Verification method network ${network} does not match active setup ${expectedNetwork}.`,
       );
     }

@@ -486,4 +486,64 @@ describe('did-manager-service app', () => {
     });
     await app.close();
   });
+
+  it('rejects a second long-running operation while the first is still current', async () => {
+    let releasePrepareFunding!: () => void;
+    const manager = {
+      getSetupStatus: vi.fn(),
+      listProfiles: vi.fn(),
+      listStoredContracts: vi.fn(),
+      getSessionStatus: vi.fn(),
+      prepareFunding: vi.fn().mockImplementation(
+        () => new Promise((resolve) => {
+          releasePrepareFunding = () => resolve({ unshieldedAddress: 'mn_test1...', faucetUrl: null });
+        }),
+      ),
+      unlock: vi.fn(),
+      lock: vi.fn(),
+      closeSession: vi.fn(),
+      updatePreferences: vi.fn(),
+      signPayload: vi.fn(),
+      verifyPayload: vi.fn(),
+      deployDid: vi.fn(),
+      joinDid: vi.fn(),
+      getDidState: vi.fn(),
+      getDidDocument: vi.fn(),
+      deactivateDid: vi.fn(),
+      listKeys: vi.fn(),
+      generateKey: vi.fn(),
+      importKey: vi.fn(),
+      deleteKey: vi.fn(),
+      addVerificationMethod: vi.fn(),
+      updateVerificationMethod: vi.fn(),
+      removeVerificationMethod: vi.fn(),
+      addRelation: vi.fn(),
+      removeRelation: vi.fn(),
+      addService: vi.fn(),
+      updateService: vi.fn(),
+      removeService: vi.fn(),
+      addAlsoKnownAs: vi.fn(),
+      removeAlsoKnownAs: vi.fn(),
+    } as any;
+    const app = await createApp(manager);
+
+    const first = await app.inject({
+      method: 'POST',
+      url: '/api/session/prepare-funding',
+      payload: { seedMode: 'generated' },
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: '/api/session/prepare-funding',
+      payload: { seedMode: 'generated' },
+    });
+    releasePrepareFunding();
+
+    expect(first.statusCode).toBe(202);
+    expect(second.statusCode).toBe(409);
+    expect(second.json()).toMatchObject({ ok: false, errorCode: 'operationBusy' });
+
+    await app.close();
+  });
+
 });

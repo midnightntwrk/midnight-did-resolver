@@ -126,6 +126,32 @@ describe("did-resolver-service app", () => {
     await app.close();
   });
 
+  it("preserves notFound DID resolution payloads on resolve routes", async () => {
+    const service = {
+      resolve: vi.fn().mockResolvedValue({
+        statusCode: 404,
+        payload: {
+          didDocument: null,
+          didDocumentMetadata: {},
+          didResolutionMetadata: {
+            contentType: null,
+            error: "notFound",
+          },
+        },
+      }),
+    } as unknown as ResolverService;
+    const app = await createApp(service, { enableDocs: false });
+    const response = await app.inject({
+      method: "GET",
+      url: "/resolve/did%3Amidnight%3Adevnet%3Aabc",
+    });
+
+    expect(response.statusCode).toBe(404);
+    expect(response.json().didResolutionMetadata.error).toBe("notFound");
+
+    await app.close();
+  });
+
   it("can disable Swagger docs route", async () => {
     const service = {
       resolve: vi.fn(),

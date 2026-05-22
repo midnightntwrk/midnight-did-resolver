@@ -11,6 +11,10 @@ const didInputErrorMessages = [
   "indexerUrl must use http or https",
   "indexerWsUrl must use ws or wss",
   "Invalid URL",
+  "indexerUrl must not target",
+  "indexerWsUrl must not target",
+  "indexerUrl must not include credentials",
+  "indexerWsUrl must not include credentials",
 ] as const;
 
 export const classifyResolutionError = (

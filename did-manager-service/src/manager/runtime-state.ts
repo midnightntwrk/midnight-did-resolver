@@ -4,6 +4,7 @@ import type { Logger } from 'pino';
 import type { Subscription } from 'rxjs';
 
 import type { SessionStatus } from '../types.js';
+import { AsyncSerialQueue } from './async-serial-queue.js';
 
 type UnlockedRuntime = {
   providers: api.MidnightDIDProviders;
@@ -25,6 +26,7 @@ export class ManagerRuntimeState {
   private reusedPersistedState = false;
   private activeSeedHash: string | null = null;
   private didLastError: string | null = null;
+  private readonly mutationQueue = new AsyncSerialQueue();
   private walletBalances: SessionStatus['walletBalances'] = {
     night: null,
     dust: null,
@@ -35,6 +37,10 @@ export class ManagerRuntimeState {
     private readonly sessionIdleMs: number,
     private readonly onIdle: () => Promise<void>,
   ) {}
+
+  async runExclusive<T>(operation: () => Promise<T>): Promise<T> {
+    return await this.mutationQueue.run(operation);
+  }
 
   getWalletContext(): api.MidnightDIDWalletContext | null {
     return this.walletCtx;
@@ -206,19 +212,21 @@ export class ManagerRuntimeState {
     if (this.walletCtx === null) return;
     this.walletSubscription = this.walletCtx.wallet.state().subscribe({
       next: (state) => {
-        if (generation !== this.unlockGeneration) return;
-        this.setWalletBalances(api.getWalletBalances(state));
-        if (this.connectionPhase === 'ready' || this.connectionPhase === 'error' || this.connectionPhase === 'locked') {
-          return;
-        }
-        this.connectionLastError = null;
-        if (state.isSynced) {
-          if (this.connectionPhase === 'syncing' || this.connectionPhase === 'restoring' || this.connectionPhase === 'starting') {
-            this.connectionPhase = 'waitingForFunds';
+        void this.runExclusive(async () => {
+          if (generation !== this.unlockGeneration) return;
+          this.setWalletBalances(api.getWalletBalances(state));
+          if (this.connectionPhase === 'ready' || this.connectionPhase === 'error' || this.connectionPhase === 'locked') {
+            return;
           }
-        } else if (this.connectionPhase === 'restoring' || this.connectionPhase === 'starting' || this.connectionPhase === 'waitingForFunds') {
-          this.connectionPhase = 'syncing';
-        }
+          this.connectionLastError = null;
+          if (state.isSynced) {
+            if (this.connectionPhase === 'syncing' || this.connectionPhase === 'restoring' || this.connectionPhase === 'starting') {
+              this.connectionPhase = 'waitingForFunds';
+            }
+          } else if (this.connectionPhase === 'restoring' || this.connectionPhase === 'starting' || this.connectionPhase === 'waitingForFunds') {
+            this.connectionPhase = 'syncing';
+          }
+        });
       },
       error: (error) => {
         if (generation !== this.unlockGeneration) return;
@@ -227,32 +235,38 @@ export class ManagerRuntimeState {
     });
   }
 
-  async stopRuntimeSession(persistSnapshot?: (seedHash: string) => Promise<void>): Promise<void> {
-    this.clearIdleTimer();
-    this.clearWalletSubscription();
-    if (this.walletCtx !== null) {
-      try {
-        if (persistSnapshot !== undefined && this.activeSeedHash !== null) {
-          await persistSnapshot(this.activeSeedHash);
+  async stopRuntimeSession(
+    persistSnapshot?: (seedHash: string, walletCtx: api.MidnightDIDWalletContext) => Promise<void>,
+  ): Promise<void> {
+    await this.runExclusive(async () => {
+      this.clearIdleTimer();
+      this.clearWalletSubscription();
+      const walletCtx = this.walletCtx;
+      const seedHash = this.activeSeedHash;
+      if (walletCtx !== null) {
+        try {
+          if (persistSnapshot !== undefined && seedHash !== null) {
+            await persistSnapshot(seedHash, walletCtx);
+          }
+        } catch (error) {
+          this.logger.warn({ err: error }, 'Failed to persist wallet state during session stop');
         }
-      } catch (error) {
-        this.logger.warn({ err: error }, 'Failed to persist wallet state during session stop');
+        await walletCtx.wallet.stop().catch((error) => {
+          this.logger.warn({ err: error }, 'Failed to stop wallet facade cleanly');
+        });
       }
-      await this.walletCtx.wallet.stop().catch((error) => {
-        this.logger.warn({ err: error }, 'Failed to stop wallet facade cleanly');
-      });
-    }
 
-    this.unlocked = false;
-    this.walletCtx = null;
-    this.providers = null;
-    this.didContract = null;
-    this.secretStore = null;
-    this.activeSeedHash = null;
-    this.reusedPersistedState = false;
-    this.didLastError = null;
-    this.walletBalances = { night: null, dust: null };
-    this.setConnectionState('locked', { lastError: null, reusedPersistedState: false, seedHash: null });
+      this.unlocked = false;
+      this.walletCtx = null;
+      this.providers = null;
+      this.didContract = null;
+      this.secretStore = null;
+      this.activeSeedHash = null;
+      this.reusedPersistedState = false;
+      this.didLastError = null;
+      this.walletBalances = { night: null, dust: null };
+      this.setConnectionState('locked', { lastError: null, reusedPersistedState: false, seedHash: null });
+    });
   }
 
   markUnlockFailed(error: unknown): void {

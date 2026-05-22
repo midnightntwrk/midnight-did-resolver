@@ -44,3 +44,14 @@ nix develop
 just build
 just test
 ```
+
+
+## Non-Standalone Manager Secret Policy
+
+For `preprod` and `mainnet`, set an explicit manager secret passphrase before starting the manager:
+
+```bash
+export DID_MANAGER_SECRET_PASSPHRASE=replace-with-a-local-operator-secret
+```
+
+Use `DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE=true` only for local testing when you intentionally want the development fallback outside standalone mode.

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 
-import { classifyManagerHttpError } from "../errors.js";
+import {
+  classifyManagerHttpError,
+  ManagerInvalidRequestError,
+  ManagerNotFoundError,
+} from "../errors.js";
 
 describe("classifyManagerHttpError", () => {
   it("flattens zod seed validation errors into a readable message", () => {
@@ -40,7 +44,7 @@ describe("classifyManagerHttpError", () => {
     "Unsupported signature curve secp256k1",
     "Signature must be a valid base64url-encoded byte string.",
   ])("maps signature validation errors to invalidRequest: %s", (message) => {
-    expect(classifyManagerHttpError(new Error(message))).toEqual({
+    expect(classifyManagerHttpError(new ManagerInvalidRequestError(message))).toEqual({
       statusCode: 400,
       errorCode: "invalidRequest",
       message,
@@ -50,7 +54,7 @@ describe("classifyManagerHttpError", () => {
   it("maps missing local signing keys to secretNotFound", () => {
     const message = "Key not found in secret storage: key-ref-1";
 
-    expect(classifyManagerHttpError(new Error(message))).toEqual({
+    expect(classifyManagerHttpError(new ManagerNotFoundError("secretNotFound", message))).toEqual({
       statusCode: 404,
       errorCode: "secretNotFound",
       message,
@@ -60,7 +64,7 @@ describe("classifyManagerHttpError", () => {
   it("maps unresolved active DID contracts to contractNotFound", () => {
     const message = "Active DID contract could not be resolved on the current network.";
 
-    expect(classifyManagerHttpError(new Error(message))).toEqual({
+    expect(classifyManagerHttpError(new ManagerNotFoundError("contractNotFound", message))).toEqual({
       statusCode: 404,
       errorCode: "contractNotFound",
       message,

@@ -5,6 +5,7 @@ import {
 import { DIDContract } from "@midnight-ntwrk/midnight-did-contract";
 import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
 
+import { didResolutionErrorPayload } from "./did-resolution-response.js";
 import { IndexerEndpointPolicy } from "./indexer-endpoint-policy.js";
 import {
   classifyResolutionError,
@@ -64,12 +65,6 @@ const defaultLogger: ResolverLogger = {
     console.error(message, context);
   },
 };
-
-const errorPayload = (error: ResolutionErrorCode) => ({
-  didDocument: null,
-  didDocumentMetadata: {},
-  didResolutionMetadata: { contentType: null, error },
-});
 
 export class ResolverService {
   private readonly expectedNetwork: MidnightNetwork | undefined;
@@ -151,37 +146,46 @@ export class ResolverService {
     return resolver;
   }
 
+  private async resolveResultWithTimeout(
+    did: string,
+    options?: ResolveRequestOptions,
+  ): Promise<Awaited<ReturnType<MidnightDIDResolver["resolveResult"]>>> {
+    const abortController = new AbortController();
+    let timer: ReturnType<typeof globalThis.setTimeout> | null = null;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = globalThis.setTimeout(() => {
+        abortController.abort();
+        reject(
+          new Error(
+            `Resolution timed out after ${this.resolveTimeoutMs}ms for DID: ${did}`,
+          ),
+        );
+      }, this.resolveTimeoutMs);
+    });
+
+    try {
+      return await Promise.race([
+        this.resolverFor(options).resolveResult(did),
+        timeout,
+      ]);
+    } finally {
+      if (timer !== null) {
+        globalThis.clearTimeout(timer);
+      }
+      abortController.abort();
+    }
+  }
+
   async resolve(
     did: string,
     options?: ResolveRequestOptions,
   ): Promise<ResolveResponse> {
     try {
-      const result = await new Promise<
-        Awaited<ReturnType<MidnightDIDResolver["resolveResult"]>>
-      >((resolve, reject) => {
-        const timer = setTimeout(() => {
-          reject(
-            new Error(
-              `Resolution timed out after ${this.resolveTimeoutMs}ms for DID: ${did}`,
-            ),
-          );
-        }, this.resolveTimeoutMs);
-
-        this.resolverFor(options)
-          .resolveResult(did)
-          .then((value) => {
-            clearTimeout(timer);
-            resolve(value);
-          })
-          .catch((error) => {
-            clearTimeout(timer);
-            reject(error);
-          });
-      });
+      const result = await this.resolveResultWithTimeout(did, options);
       if (result === null) {
         return {
           statusCode: 404,
-          payload: errorPayload("notFound"),
+          payload: didResolutionErrorPayload("notFound"),
         };
       }
 
@@ -201,7 +205,7 @@ export class ResolverService {
       const statusCode = statusCodeForResolutionError(resolveError);
       return {
         statusCode,
-        payload: errorPayload(resolveError),
+        payload: didResolutionErrorPayload(resolveError),
       };
     }
   }

@@ -2,6 +2,7 @@ import { Buffer } from 'node:buffer';
 
 import canonicalize from 'canonicalize';
 
+import { ManagerInvalidRequestError } from '../errors.js';
 import type { PayloadType } from '../types.js';
 
 export type NormalizedPayload = {
@@ -16,7 +17,7 @@ const encoder = new TextEncoder();
 const decodeHex = (value: string): Uint8Array => {
   if (value.length === 0) return new Uint8Array(0);
   if (!/^[0-9a-fA-F]+$/.test(value) || value.length % 2 !== 0) {
-    throw new Error('Bytes payload must be an even-length hexadecimal string');
+    throw new ManagerInvalidRequestError('Bytes payload must be an even-length hexadecimal string');
   }
   return new Uint8Array(Buffer.from(value, 'hex'));
 };
@@ -27,12 +28,12 @@ const normalizeJson = (value: string): string => {
     parsed = JSON.parse(value);
   } catch (error) {
     const detail = error instanceof Error ? `: ${error.message}` : '';
-    throw new Error(`JSON payload is invalid${detail}`);
+    throw new ManagerInvalidRequestError(`JSON payload is invalid${detail}`);
   }
 
   const canonical = canonicalize(parsed);
   if (canonical === undefined) {
-    throw new Error('JSON payload could not be canonicalized with RFC 8785');
+    throw new ManagerInvalidRequestError('JSON payload could not be canonicalized with RFC 8785');
   }
   return canonical;
 };

@@ -15,6 +15,7 @@ import {
 import type { Logger } from 'pino';
 
 import type { ManagerConfig, SetupProfile } from './config.js';
+import { ManagerInvalidRequestError } from './errors.js';
 import {
   addAlsoKnownAs as addDidAlsoKnownAs,
   addRelation as addDidRelation,
@@ -153,7 +154,7 @@ export class DidManagerService {
   private async stopRuntimeSessionInternal(): Promise<void> {
     await this.runtime.stopRuntimeSession(
       this.shouldPersistWalletState()
-        ? async (seedHash) => await this.persistWalletSnapshot(seedHash)
+        ? async (seedHash, walletCtx) => await this.persistWalletSnapshot(seedHash, walletCtx)
         : undefined,
     );
   }
@@ -169,8 +170,10 @@ export class DidManagerService {
     return path.join(this.baseDataDir(), 'backup', 'wallet-state', this.setupProfile(), this.selectedProfileName());
   }
 
-  private async persistWalletSnapshot(seedHash = this.runtime.getActiveSeedHash()): Promise<void> {
-    const walletCtx = this.runtime.getWalletContext();
+  private async persistWalletSnapshot(
+    seedHash = this.runtime.getActiveSeedHash(),
+    walletCtx = this.runtime.getWalletContext(),
+  ): Promise<void> {
     if (!this.shouldPersistWalletState() || walletCtx === null || seedHash === null) return;
     const snapshot = await api.serializeWalletState(walletCtx);
     await writeWalletState(
@@ -397,6 +400,19 @@ export class DidManagerService {
     this.runtime.startWalletStateTracking(generation);
   }
 
+  private isUnlockGenerationCurrent(generation: number): boolean {
+    return generation === this.runtime.getUnlockGeneration();
+  }
+
+  private async stopCancelledWallet(
+    generation: number,
+    walletCtx: api.MidnightDIDWalletContext,
+  ): Promise<boolean> {
+    if (this.isUnlockGenerationCurrent(generation)) return false;
+    await walletCtx.wallet.stop().catch(() => undefined);
+    return true;
+  }
+
   private async runUnlockSession(
     generation: number,
     seed: string,
@@ -409,12 +425,14 @@ export class DidManagerService {
       ...config,
       midnightDbName: this.midnightDbPath(seed),
     };
+    if (!this.isUnlockGenerationCurrent(generation)) return;
     this.logger.info(
       { profile: this.setupProfile(), profileName: this.selectedProfileName(), midnightDbName: providerConfig.midnightDbName },
       'Using isolated Midnight private state store',
     );
 
     let persistedWalletState = await this.restorePersistedWalletState(seedHash);
+    if (!this.isUnlockGenerationCurrent(generation)) return;
     let reusedPersistedState = persistedWalletState !== null;
     this.setConnectionState(
       persistedWalletState === null ? 'starting' : 'restoring',
@@ -430,6 +448,7 @@ export class DidManagerService {
           walletCtx = await api.restoreWalletFromState(config, seed, persistedWalletState);
         } catch (restoreError) {
           await this.backupAndResetIncompatibleWalletState(seedHash, restoreError);
+          if (!this.isUnlockGenerationCurrent(generation)) return;
           persistedWalletState = null;
           reusedPersistedState = false;
           this.setConnectionState('starting', { lastError: null, reusedPersistedState, seedHash });
@@ -437,10 +456,7 @@ export class DidManagerService {
         }
       }
 
-      if (generation !== this.runtime.getUnlockGeneration()) {
-        await walletCtx.wallet.stop().catch(() => undefined);
-        return;
-      }
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
 
       this.runtime.attachWalletContext(walletCtx);
       this.startWalletStateTracking(generation);
@@ -450,13 +466,15 @@ export class DidManagerService {
       );
 
       const syncedState = await api.waitForWalletSync(walletCtx);
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
       this.runtime.setWalletBalances(api.getWalletBalances(syncedState));
-      if (generation !== this.runtime.getUnlockGeneration()) return;
 
       if (this.shouldPersistWalletState()) {
         await this.ensureWalletStateBackupRoot(seedHash);
-        await this.persistWalletSnapshot(seedHash);
+        if (await this.stopCancelledWallet(generation, walletCtx)) return;
+        await this.persistWalletSnapshot(seedHash, walletCtx);
       }
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
 
       this.setConnectionState('waitingForFunds', {
         lastError: null,
@@ -464,11 +482,12 @@ export class DidManagerService {
         seedHash,
       });
       await api.waitForWalletFunds(walletCtx);
-      if (generation !== this.runtime.getUnlockGeneration()) return;
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
 
       if (this.shouldPersistWalletState()) {
-        await this.persistWalletSnapshot(seedHash);
+        await this.persistWalletSnapshot(seedHash, walletCtx);
       }
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
 
       this.setConnectionState('configuringProviders', {
         lastError: null,
@@ -480,9 +499,10 @@ export class DidManagerService {
         'Wallet ready, configuring providers',
       );
       const providers = await api.configureProviders(walletCtx, providerConfig);
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
       const secretStore = await this.createSecretStore(input.passphrase);
 
-      if (generation !== this.runtime.getUnlockGeneration()) return;
+      if (await this.stopCancelledWallet(generation, walletCtx)) return;
 
       this.runtime.attachReadySession({
         walletCtx,
@@ -500,6 +520,7 @@ export class DidManagerService {
         'Manager session is ready',
       );
 
+      if (!this.isUnlockGenerationCurrent(generation)) return;
       await this.saveCurrentProfileState({
         seed,
         unshieldedAddress: deriveUnshieldedAddress(seed),
@@ -594,7 +615,7 @@ export class DidManagerService {
     return this.lock();
   }
 
-  async deployDid(): Promise<unknown> {
+  async deployDid(): Promise<{ contractAddress: string | null }> {
     const { providers } = this.requireUnlockedNoContract();
     const walletCtx = this.runtime.getWalletContext();
     if (walletCtx === null) {
@@ -614,7 +635,7 @@ export class DidManagerService {
     return result;
   }
 
-  async joinDid(input: { contractAddress: string }): Promise<unknown> {
+  async joinDid(input: { contractAddress: string }): Promise<{ contractAddress: string | null }> {
     const { providers } = this.requireUnlockedNoContract();
     try {
       this.runtime.setDidContract(await this.joinExistingContract(providers, input.contractAddress));
@@ -644,7 +665,7 @@ export class DidManagerService {
       throw new Error('Active DID contract could not be resolved on the current network.');
     }
     if (resolution.didDocumentMetadata.deactivated === true) {
-      throw new Error('Active DID is deactivated and cannot sign payloads.');
+      throw new ManagerInvalidRequestError('Active DID is deactivated and cannot sign payloads.');
     }
     return await signDetachedPayload({
       secretStore,
@@ -666,17 +687,17 @@ export class DidManagerService {
     });
   }
 
-  async listKeys(): Promise<unknown> {
+  async listKeys(): Promise<Awaited<ReturnType<FileSecretStore['listKeys']>>> {
     const { secretStore } = this.requireUnlockedNoContract();
     return secretStore.listKeys();
   }
 
-  async generateKey(input: GenerateKeyInput): Promise<unknown> {
+  async generateKey(input: GenerateKeyInput): Promise<Awaited<ReturnType<FileSecretStore['generateKey']>>> {
     const { secretStore } = this.requireUnlockedNoContract();
     return secretStore.generateKey(input);
   }
 
-  async importKey(input: ImportKeyInput): Promise<unknown> {
+  async importKey(input: ImportKeyInput): Promise<Awaited<ReturnType<FileSecretStore['importKey']>>> {
     const { secretStore } = this.requireUnlockedNoContract();
     return secretStore.importKey(input);
   }
@@ -686,7 +707,7 @@ export class DidManagerService {
     await secretStore.deleteKey(input.keyRef);
   }
 
-  async addVerificationMethod(input: { methodId: string; keyRef: string }): Promise<unknown> {
+  async addVerificationMethod(input: { methodId: string; keyRef: string }): Promise<{ updated: true }> {
     const { didContract, secretStore } = this.requireUnlocked();
     const { method } = await buildNormalizedVerificationMethod(
       didContract,
@@ -698,7 +719,7 @@ export class DidManagerService {
     return await addDidVerificationMethod(didContract, method, async () => await this.persistRuntimeSession());
   }
 
-  async updateVerificationMethod(input: { methodId: string; keyRef: string }): Promise<unknown> {
+  async updateVerificationMethod(input: { methodId: string; keyRef: string }): Promise<{ updated: true }> {
     const { didContract, secretStore } = this.requireUnlocked();
     const { method } = await buildNormalizedVerificationMethod(
       didContract,
@@ -710,7 +731,7 @@ export class DidManagerService {
     return await updateDidVerificationMethod(didContract, method, async () => await this.persistRuntimeSession());
   }
 
-  async removeVerificationMethod(input: { methodId: string }): Promise<unknown> {
+  async removeVerificationMethod(input: { methodId: string }): Promise<{ removed: true }> {
     const { didContract, providers } = this.requireUnlocked();
     return await removeDidVerificationMethod(
       didContract,
@@ -720,7 +741,7 @@ export class DidManagerService {
     );
   }
 
-  async addRelation(input: { methodId: string; relation: VerificationMethodRelationType }): Promise<unknown> {
+  async addRelation(input: { methodId: string; relation: VerificationMethodRelationType }): Promise<{ updated: true }> {
     const { didContract, providers } = this.requireUnlocked();
     return await addDidRelation(
       didContract,
@@ -731,7 +752,7 @@ export class DidManagerService {
     );
   }
 
-  async removeRelation(input: { methodId: string; relation: VerificationMethodRelationType }): Promise<unknown> {
+  async removeRelation(input: { methodId: string; relation: VerificationMethodRelationType }): Promise<{ removed: true }> {
     const { didContract, providers } = this.requireUnlocked();
     return await removeDidRelation(
       didContract,
@@ -742,32 +763,32 @@ export class DidManagerService {
     );
   }
 
-  async addService(input: { id: string; type: string; serviceEndpoint: ServiceEndpoint }): Promise<unknown> {
+  async addService(input: { id: string; type: string; serviceEndpoint: ServiceEndpoint }): Promise<{ updated: true }> {
     const { didContract } = this.requireUnlocked();
     return await addDidService(didContract, input, async () => await this.persistRuntimeSession());
   }
 
-  async updateService(input: { id: string; type: string; serviceEndpoint: ServiceEndpoint }): Promise<unknown> {
+  async updateService(input: { id: string; type: string; serviceEndpoint: ServiceEndpoint }): Promise<{ updated: true }> {
     const { didContract } = this.requireUnlocked();
     return await updateDidService(didContract, input, async () => await this.persistRuntimeSession());
   }
 
-  async removeService(input: { id: string }): Promise<unknown> {
+  async removeService(input: { id: string }): Promise<{ removed: true }> {
     const { didContract } = this.requireUnlocked();
     return await removeDidService(didContract, input.id, async () => await this.persistRuntimeSession());
   }
 
-  async addAlsoKnownAs(input: { value: string }): Promise<unknown> {
+  async addAlsoKnownAs(input: { value: string }): Promise<{ updated: true }> {
     const { didContract } = this.requireUnlocked();
     return await addDidAlsoKnownAs(didContract, input.value, async () => await this.persistRuntimeSession());
   }
 
-  async removeAlsoKnownAs(input: { value: string }): Promise<unknown> {
+  async removeAlsoKnownAs(input: { value: string }): Promise<{ removed: true }> {
     const { didContract } = this.requireUnlocked();
     return await removeDidAlsoKnownAs(didContract, input.value, async () => await this.persistRuntimeSession());
   }
 
-  async deactivateDid(): Promise<unknown> {
+  async deactivateDid(): Promise<{ deactivated: true }> {
     const { didContract } = this.requireUnlocked();
     return await deactivateDidContract(didContract, async () => await this.persistRuntimeSession());
   }

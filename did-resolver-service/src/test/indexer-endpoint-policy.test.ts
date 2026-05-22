@@ -48,6 +48,24 @@ describe("did-resolver-service indexer endpoint policy", () => {
     });
   });
 
+  it("rejects private-network override endpoints", () => {
+    const policy = new IndexerEndpointPolicy({
+      indexerHttpUrl: "http://127.0.0.1:8088/api/v3/graphql",
+      indexerWsUrl: "ws://127.0.0.1:8088/api/v3/graphql/ws",
+    });
+
+    expect(() =>
+      policy.resolve({ indexerUrl: "http://127.0.0.1:8088/api/v3/graphql" }),
+    ).toThrow(
+      "indexerUrl must not target localhost, private, link-local, or otherwise non-public hosts",
+    );
+    expect(() =>
+      policy.resolve({ indexerWsUrl: "ws://[::1]:8088/api/v3/graphql/ws" }),
+    ).toThrow(
+      "indexerWsUrl must not target localhost, private, link-local, or otherwise non-public hosts",
+    );
+  });
+
   it("fails on invalid protocols", () => {
     const policy = new IndexerEndpointPolicy({
       indexerHttpUrl: "http://default.example/api/v3/graphql",

@@ -7,9 +7,9 @@ import Fastify, {
 } from "fastify";
 import { type Logger } from "pino";
 
+import { didResolutionErrorPayload } from "./did-resolution-response.js";
 import {
   classifyResolutionError,
-  type ResolutionErrorCode,
   statusCodeForResolutionError,
 } from "./resolution-errors.js";
 import { type ResolverService } from "./service.js";
@@ -63,15 +63,6 @@ const resolveDidWithOptions = async (
   options: ResolveQuery,
 ) => resolverService.resolve(did, options);
 
-const errorPayload = (error: ResolutionErrorCode) => ({
-  didDocument: null,
-  didDocumentMetadata: {},
-  didResolutionMetadata: {
-    contentType: null,
-    error,
-  },
-});
-
 const hasValidationErrors = (
   error: unknown,
 ): error is { validation: unknown[] } =>
@@ -113,11 +104,7 @@ export const createApp = async (
         : classifyResolutionError(error);
       return reply
         .code(statusCodeForResolutionError(resolutionError))
-        .send(
-          errorPayload(
-            resolutionError === "notFound" ? "internalError" : resolutionError,
-          ),
-        );
+        .send(didResolutionErrorPayload(resolutionError));
     }
 
     const message =

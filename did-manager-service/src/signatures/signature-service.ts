@@ -8,6 +8,7 @@ import type {
 } from '@midnight-ntwrk/midnight-did-secret-storage';
 import { verifyWithPublicJwk } from '@midnight-ntwrk/midnight-did-secret-storage';
 
+import { ManagerInvalidRequestError, ManagerNotFoundError } from '../errors.js';
 import type {
   SignatureFormat,
   SignPayloadRequest,
@@ -35,7 +36,7 @@ const base64UrlPattern = /^[A-Za-z0-9_-]+$/;
 
 const fromBase64Url = (value: string): Uint8Array => {
   if (!base64UrlPattern.test(value) || value.length % 4 === 1) {
-    throw new Error('Signature must be a valid base64url-encoded byte string.');
+    throw new ManagerInvalidRequestError('Signature must be a valid base64url-encoded byte string.');
   }
   return new Uint8Array(Buffer.from(value, 'base64url'));
 };
@@ -50,7 +51,7 @@ const signatureFormatFor = (publicJwk: Pick<PublicJwk, 'crv'>): SignatureFormat 
   if (publicJwk.crv === 'Ed25519') return 'ed25519-raw';
   if (publicJwk.crv === 'Jubjub') return 'jubjub-raw-96';
   if (publicJwk.crv === 'P-256') return 'ecdsa-der';
-  throw new Error(`Unsupported signature curve ${String(publicJwk.crv)}`);
+  throw new ManagerInvalidRequestError(`Unsupported signature curve ${String(publicJwk.crv)}`);
 };
 
 const findStoredKey = async (
@@ -59,9 +60,19 @@ const findStoredKey = async (
 ): Promise<StoredKeyMeta> => {
   const key = (await secretStore.listKeys()).find((entry) => entry.keyRef === keyRef);
   if (key === undefined) {
-    throw new Error(`Key not found in secret storage: ${keyRef}`);
+    throw new ManagerNotFoundError('secretNotFound', `Key not found in secret storage: ${keyRef}`);
   }
   return key;
+};
+
+const didFromVerificationMethodId = (verificationMethodId: string): string => {
+  const fragmentIndex = verificationMethodId.indexOf('#');
+  if (fragmentIndex <= 0) {
+    throw new ManagerInvalidRequestError(
+      'Verification method id must be an absolute Midnight DID URL with a fragment.',
+    );
+  }
+  return verificationMethodId.slice(0, fragmentIndex);
 };
 
 const findVerificationMethodForPublicKey = (
@@ -82,7 +93,7 @@ export const signPayload = async (input: {
   const { secretStore, didDocument, request } = input;
   const key = await findStoredKey(secretStore, request.keyRef);
   if (key.did !== undefined && key.did !== didDocument.id) {
-    throw new Error(
+    throw new ManagerInvalidRequestError(
       `Selected key is associated with ${key.did}, not the active DID ${didDocument.id}.`,
     );
   }
@@ -93,7 +104,7 @@ export const signPayload = async (input: {
     publicJwk,
   );
   if (verificationMethodId === null) {
-    throw new Error(
+    throw new ManagerInvalidRequestError(
       'Selected key is not published in the active DID document as a verification method.',
     );
   }
@@ -136,7 +147,7 @@ export const verifyPayload = async (input: {
     request.verificationMethodId !== undefined,
   ].filter(Boolean).length;
   if (sourceCount !== 1) {
-    throw new Error(
+    throw new ManagerInvalidRequestError(
       'Verification requires exactly one source: keyRef, publicJwk, or verificationMethodId.',
     );
   }
@@ -148,7 +159,7 @@ export const verifyPayload = async (input: {
 
   if (request.keyRef !== undefined) {
     if (secretStore === undefined) {
-      throw new Error('Local key verification requires an active secret store session.');
+      throw new ManagerInvalidRequestError('Local key verification requires an active secret store session.');
     }
     publicJwk = await secretStore.getPublicKey(request.keyRef);
     source = 'localKey';
@@ -157,15 +168,26 @@ export const verifyPayload = async (input: {
     source = 'publicJwk';
   } else if (request.verificationMethodId !== undefined) {
     if (resolveVerificationMethod === undefined) {
-      throw new Error('DID verification requires a verification method resolver.');
+      throw new ManagerInvalidRequestError('DID verification requires a verification method resolver.');
     }
+    const expectedDid = didFromVerificationMethodId(request.verificationMethodId);
     const resolved = await resolveVerificationMethod(request.verificationMethodId);
+    if (resolved.did !== expectedDid) {
+      throw new ManagerInvalidRequestError(
+        `Verification method ${request.verificationMethodId} resolved to ${resolved.did}, expected ${expectedDid}.`,
+      );
+    }
+    if (resolved.verificationMethodId !== request.verificationMethodId) {
+      throw new ManagerInvalidRequestError(
+        `Verification method resolver returned ${resolved.verificationMethodId}, expected ${request.verificationMethodId}.`,
+      );
+    }
     did = resolved.did;
     verificationMethodId = resolved.verificationMethodId;
     publicJwk = resolved.publicJwk;
     source = 'didDocument';
   } else {
-    throw new Error(
+    throw new ManagerInvalidRequestError(
       'Verification requires exactly one source: keyRef, publicJwk, or verificationMethodId.',
     );
   }

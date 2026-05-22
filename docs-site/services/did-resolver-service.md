@@ -64,6 +64,10 @@ npm run dev -w @midnight-ntwrk/midnight-did-resolver-service
 
 You can override both with `MIDNIGHT_INDEXER_HTTP_URL` and `MIDNIGHT_INDEXER_WS_URL`.
 
+## Endpoint override policy
+
+Request-level `indexerUrl` and `indexerWsUrl` overrides must use public network endpoints. The service rejects override URLs with embedded credentials or localhost/private/link-local/non-public IP literals. Configured defaults may still point at local standalone infrastructure.
+
 ## Main repository paths
 
 - `did-resolver-service/src/index.ts`
@@ -74,3 +78,8 @@ You can override both with `MIDNIGHT_INDEXER_HTTP_URL` and `MIDNIGHT_INDEXER_WS_
 ## Full source doc
 
 - [Embedded Resolver README](/source/did-resolver-service-readme)
+
+
+## Architecture
+
+- [ADR: Service Runtime Hardening](/architecture/adr-service-runtime-hardening)

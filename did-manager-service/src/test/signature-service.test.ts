@@ -143,6 +143,41 @@ describe('signature-service', () => {
     expect(verified.verificationMethodId).toBe(`${did}#auth-1`);
   });
 
+
+  it('rejects DID verification when the resolver returns a method bound to another DID', async () => {
+    const generated = await secretStore.generateKey({
+      id: 'resolver-wrong-did',
+      kty: 'OKP',
+      crv: 'Ed25519',
+      did,
+    });
+    const signed = await signPayload({
+      secretStore,
+      didDocument: makeDidDocument(generated.publicJwk, `${did}#auth-1`),
+      request: {
+        keyRef: generated.keyRef,
+        payloadType: 'string',
+        payload: 'hello midnight',
+      },
+    });
+
+    await expect(
+      verifyPayload({
+        request: {
+          payloadType: 'string',
+          payload: 'hello midnight',
+          signatureBase64Url: signed.signatureBase64Url,
+          verificationMethodId: `${did}#auth-1`,
+        },
+        resolveVerificationMethod: async (verificationMethodId) => ({
+          did: `did:midnight:preprod:${'b'.repeat(64)}`,
+          verificationMethodId,
+          publicJwk: generated.publicJwk,
+        }),
+      }),
+    ).rejects.toThrow(`Verification method ${did}#auth-1 resolved to did:midnight:preprod:${'b'.repeat(64)}, expected ${did}.`);
+  });
+
   it('rejects signing when the key is not associated with the active DID', async () => {
     const generated = await secretStore.generateKey({
       id: 'wrong-did',

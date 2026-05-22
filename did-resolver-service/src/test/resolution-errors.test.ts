@@ -13,6 +13,13 @@ describe("did-resolver-service resolution errors", () => {
     expect(
       classifyResolutionError(new Error("indexerWsUrl must use ws or wss")),
     ).toBe("invalidDid");
+    expect(
+      classifyResolutionError(
+        new Error(
+          "indexerUrl must not target localhost, private, link-local, or otherwise non-public hosts",
+        ),
+      ),
+    ).toBe("invalidDid");
   });
 
   it("classifies network mismatch and internal errors", () => {

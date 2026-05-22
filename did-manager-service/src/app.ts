@@ -5,7 +5,7 @@ import type { GenerateKeyInput, ImportKeyInput } from '@midnight-ntwrk/midnight-
 import Fastify from 'fastify';
 import type { Logger } from 'pino';
 
-import { classifyManagerHttpError } from './errors.js';
+import { classifyManagerHttpError, ManagerNotFoundError } from './errors.js';
 import { OperationStore } from './http/operation-store.js';
 import {
   keyRefParamSchema,
@@ -155,7 +155,7 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
     async (req) => {
       const operation = operations.get(req.params.id);
       if (operation === undefined) {
-        throw new Error(`Operation not found: ${req.params.id}`);
+        throw new ManagerNotFoundError('operationNotFound', `Operation not found: ${req.params.id}`);
       }
       return wrap(operation);
     },
