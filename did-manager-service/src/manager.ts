@@ -194,6 +194,11 @@ export class DidManagerService {
     return buildProfileConfig(this.cfg, this.setupProfile());
   }
 
+  private ensureNetworkInitialized(): void {
+    // Address derivation reads the global Midnight network id configured by the active profile.
+    void this.profileConfig();
+  }
+
   private midnightDbPath(seed: string): string {
     return midnightDbPath(this.profileRootDir(), privateStateDbSeedHash(seed));
   }
@@ -307,7 +312,7 @@ export class DidManagerService {
 
     const profile = this.setupProfile();
     const { seed, generatedSeed } = resolveSeedInput(this.setupProfile(), this.currentProfileState(), input);
-    this.profileConfig();
+    this.ensureNetworkInitialized();
     const unshieldedAddress = deriveUnshieldedAddress(seed);
 
     await this.saveCurrentProfileState({
@@ -531,12 +536,11 @@ export class DidManagerService {
     if (preparedSeed !== seed) {
       throw new Error('Provided seed does not match the prepared funding seed for this profile. Click Prepare funding again.');
     }
+    this.ensureNetworkInitialized();
     const expectedUnshieldedAddress = deriveUnshieldedAddress(seed);
     if (profileState.unshieldedAddress !== expectedUnshieldedAddress) {
       throw new Error('Prepared funding state is inconsistent for this profile. Click Prepare funding again.');
     }
-
-    this.profileConfig();
     if (typeof input.rememberUnlockedSession === 'boolean') {
       await this.profileStore.updateRememberUnlockedSession(input.rememberUnlockedSession);
     }

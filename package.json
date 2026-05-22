@@ -19,8 +19,8 @@
     "lint": "turbo run lint --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "lint:fix": "turbo run lint:fix --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "typecheck:all": "turbo run typecheck --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
-    "build:did-jubjub-schnorr": "npm --prefix ../midnight-did run build -w jubjub-schnorr",
-    "build:did-prereqs": "npm --prefix ../midnight-did run build -w jubjub-schnorr && npm --prefix ../midnight-did run build:prepared -w contract && npm --prefix ../midnight-did run build -w domain && npm --prefix ../midnight-did run build -w did && npm --prefix ../midnight-did run build -w api",
+    "build:did-jubjub-schnorr": "npm --prefix ../midnight-did run build -w ./packages/jubjub-schnorr",
+    "build:did-prereqs": "npm --prefix ../midnight-did run build -w ./packages/jubjub-schnorr && npm --prefix ../midnight-did run build:prepared -w ./packages/contract && npm --prefix ../midnight-did run build -w ./packages/domain && npm --prefix ../midnight-did run build -w ./packages/did && npm --prefix ../midnight-did run build -w ./packages/api",
     "build:all": "npm run build -w @midnight-ntwrk/midnight-did-secret-storage && npm run build:did-prereqs && npm run build -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service",
     "test:all": "npm run test -w @midnight-ntwrk/midnight-did-secret-storage && npm run test -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run test -w @midnight-ntwrk/midnight-did-manager-service",
     "ci:typescript": "npm run check:run-target-catalog && npm run lint && npm run build:all && npm run test:all",
@@ -32,11 +32,11 @@
     "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did": "file:../midnight-did/did",
-    "@midnight-ntwrk/midnight-did-api": "file:../midnight-did/api",
-    "@midnight-ntwrk/midnight-did-contract": "file:../midnight-did/contract",
-    "@midnight-ntwrk/midnight-did-domain": "file:../midnight-did/domain",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../midnight-did/jubjub-schnorr"
+    "@midnight-ntwrk/midnight-did": "file:../midnight-did/packages/did",
+    "@midnight-ntwrk/midnight-did-api": "file:../midnight-did/packages/api",
+    "@midnight-ntwrk/midnight-did-contract": "file:../midnight-did/packages/contract",
+    "@midnight-ntwrk/midnight-did-domain": "file:../midnight-did/packages/domain",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../midnight-did/packages/jubjub-schnorr"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
