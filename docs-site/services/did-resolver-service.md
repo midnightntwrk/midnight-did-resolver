@@ -68,6 +68,10 @@ You can override both with `MIDNIGHT_INDEXER_HTTP_URL` and `MIDNIGHT_INDEXER_WS_
 
 Request-level `indexerUrl` and `indexerWsUrl` overrides must use public network endpoints. The service rejects override URLs with embedded credentials or localhost/private/link-local/non-public IP literals. Configured defaults may still point at local standalone infrastructure.
 
+## Container runtime
+
+The runtime Docker image switches to the bundled `node` user before starting the resolver process. Dependency install and artifact copy remain build/setup steps; the deployed service process does not run as root.
+
 ## Main repository paths
 
 - `did-resolver-service/src/index.ts`

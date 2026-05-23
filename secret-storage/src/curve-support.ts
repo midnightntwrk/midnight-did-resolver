@@ -48,6 +48,12 @@ const ensure32Bytes = (value: Buffer): Buffer => {
   return Buffer.concat([value, Buffer.alloc(32 - value.length)]);
 };
 
+const isDistinctBuffer = (candidate: Buffer, source: Buffer): boolean =>
+  candidate.buffer !== source.buffer ||
+  candidate.byteOffset < source.byteOffset ||
+  candidate.byteOffset + candidate.byteLength >
+    source.byteOffset + source.byteLength;
+
 const bufferToBase64url = (value: Buffer): string =>
   value
     .toString("base64")
@@ -111,7 +117,13 @@ const deriveJubjubPublic = async (
   privateKey: Buffer,
 ): Promise<{ x: bigint; y: bigint }> => {
   const normalized = ensure32Bytes(privateKey);
-  return deriveJubjubPublicKeyFromSeed(normalized);
+  try {
+    return await deriveJubjubPublicKeyFromSeed(normalized);
+  } finally {
+    if (isDistinctBuffer(normalized, privateKey)) {
+      normalized.fill(0);
+    }
+  }
 };
 
 const createEd25519Pkcs8 = (privateKey: Buffer): Buffer => {
@@ -131,12 +143,18 @@ const createP256Pkcs8 = (privateKey: Buffer): Buffer => {
   ]);
 };
 
-const createDerPrivateKey = (record: StoredPrivateRecord) =>
-  createPrivateKey({
-    key: Buffer.from(record.privateKey, "base64"),
-    format: "der",
-    type: "pkcs8",
-  });
+const createDerPrivateKey = (record: StoredPrivateRecord) => {
+  const privateDer = Buffer.from(record.privateKey, "base64");
+  try {
+    return createPrivateKey({
+      key: privateDer,
+      format: "der",
+      type: "pkcs8",
+    });
+  } finally {
+    privateDer.fill(0);
+  }
+};
 
 export const generateCurveKey = async (
   kty: "OKP" | "EC",
@@ -144,26 +162,31 @@ export const generateCurveKey = async (
 ): Promise<{ record: StoredPrivateRecord; publicJwk: PublicJwk }> => {
   if (kty === "OKP" && crv === "Ed25519") {
     for (let attempt = 0; attempt < 512; attempt += 1) {
-      const pair = generateKeyPairSync("ed25519");
-      const privateDer = pair.privateKey.export({
-        type: "pkcs8",
-        format: "der",
-      }) as Buffer;
-      const publicJwk = curveFromJwk(
-        pair.publicKey.export({ format: "jwk" }) as LocalJsonWebKey,
-      );
-      if (!isPublicJwkLedgerCompatible(publicJwk)) {
-        continue;
+      let privateDer: Buffer | undefined;
+      try {
+        const pair = generateKeyPairSync("ed25519");
+        privateDer = pair.privateKey.export({
+          type: "pkcs8",
+          format: "der",
+        }) as Buffer;
+        const publicJwk = curveFromJwk(
+          pair.publicKey.export({ format: "jwk" }) as LocalJsonWebKey,
+        );
+        if (!isPublicJwkLedgerCompatible(publicJwk)) {
+          continue;
+        }
+        return {
+          record: {
+            kty,
+            crv,
+            privateKey: privateDer.toString("base64"),
+            encoding: "pkcs8-der",
+          },
+          publicJwk,
+        };
+      } finally {
+        privateDer?.fill(0);
       }
-      return {
-        record: {
-          kty,
-          crv,
-          privateKey: privateDer.toString("base64"),
-          encoding: "pkcs8-der",
-        },
-        publicJwk,
-      };
     }
     throw new Error(
       "Failed to generate a ledger-compatible Ed25519 public key",
@@ -171,54 +194,64 @@ export const generateCurveKey = async (
   }
   if (kty === "EC" && crv === "P-256") {
     for (let attempt = 0; attempt < 512; attempt += 1) {
-      const pair = generateKeyPairSync("ec", { namedCurve: "P-256" });
-      const privateDer = pair.privateKey.export({
-        type: "pkcs8",
-        format: "der",
-      }) as Buffer;
-      const publicJwk = curveFromJwk(
-        pair.publicKey.export({ format: "jwk" }) as LocalJsonWebKey,
-      );
-      if (!isPublicJwkLedgerCompatible(publicJwk)) {
-        continue;
+      let privateDer: Buffer | undefined;
+      try {
+        const pair = generateKeyPairSync("ec", { namedCurve: "P-256" });
+        privateDer = pair.privateKey.export({
+          type: "pkcs8",
+          format: "der",
+        }) as Buffer;
+        const publicJwk = curveFromJwk(
+          pair.publicKey.export({ format: "jwk" }) as LocalJsonWebKey,
+        );
+        if (!isPublicJwkLedgerCompatible(publicJwk)) {
+          continue;
+        }
+        return {
+          record: {
+            kty,
+            crv,
+            privateKey: privateDer.toString("base64"),
+            encoding: "pkcs8-der",
+          },
+          publicJwk,
+        };
+      } finally {
+        privateDer?.fill(0);
       }
-      return {
-        record: {
-          kty,
-          crv,
-          privateKey: privateDer.toString("base64"),
-          encoding: "pkcs8-der",
-        },
-        publicJwk,
-      };
     }
     throw new Error("Failed to generate a ledger-compatible P-256 public key");
   }
   if (kty === "EC" && crv === "Jubjub") {
-    const privateKey = generateKeyPairSync("ed25519").privateKey.export({
-      format: "jwk",
-    }) as LocalJsonWebKey;
-    const seed =
-      typeof privateKey.d === "string"
-        ? base64urlToBuffer(privateKey.d)
-        : Buffer.alloc(32, 1);
-    const pub = await deriveJubjubPublic(seed);
-    const publicJwk = {
-      kty,
-      crv,
-      x: bigintToBase64url(pub.x),
-      y: bigintToBase64url(pub.y),
-    };
-    assertPublicJwkLedgerCompatible(publicJwk, "Generated Jubjub public key");
-    return {
-      record: {
+    let seed: Buffer | undefined;
+    try {
+      const privateKey = generateKeyPairSync("ed25519").privateKey.export({
+        format: "jwk",
+      }) as LocalJsonWebKey;
+      seed =
+        typeof privateKey.d === "string"
+          ? base64urlToBuffer(privateKey.d)
+          : Buffer.alloc(32, 1);
+      const pub = await deriveJubjubPublic(seed);
+      const publicJwk = {
         kty,
         crv,
-        privateKey: seed.toString("base64"),
-        encoding: "raw32",
-      },
-      publicJwk,
-    };
+        x: bigintToBase64url(pub.x),
+        y: bigintToBase64url(pub.y),
+      };
+      assertPublicJwkLedgerCompatible(publicJwk, "Generated Jubjub public key");
+      return {
+        record: {
+          kty,
+          crv,
+          privateKey: seed.toString("base64"),
+          encoding: "raw32",
+        },
+        publicJwk,
+      };
+    } finally {
+      seed?.fill(0);
+    }
   }
   throw new UnsupportedCurveError(`${kty}/${crv}`);
 };
@@ -227,82 +260,109 @@ export const importCurveKey = async (
   params: Pick<ImportKeyInput, "kty" | "crv" | "privateKey">,
 ): Promise<{ record: StoredPrivateRecord; publicJwk: PublicJwk }> => {
   const keyBuf = Buffer.from(params.privateKey);
-  if (params.kty === "OKP" && params.crv === "Ed25519") {
-    const privateDer =
-      keyBuf.length === 32 ? createEd25519Pkcs8(keyBuf) : keyBuf;
-    const privateKey = createPrivateKey({
-      key: privateDer,
-      format: "der",
-      type: "pkcs8",
-    });
-    const publicJwk = curveFromJwk(
-      createPublicKey(privateKey).export({ format: "jwk" }) as LocalJsonWebKey,
-    );
-    const result: { record: StoredPrivateRecord; publicJwk: PublicJwk } = {
-      record: {
-        kty: params.kty,
-        crv: params.crv,
-        privateKey: privateDer.toString("base64"),
-        encoding: "pkcs8-der",
-      },
-      publicJwk,
-    };
-    assertPublicJwkLedgerCompatible(
-      result.publicJwk,
-      "Imported Ed25519 public key",
-    );
-    return result;
+  try {
+    if (params.kty === "OKP" && params.crv === "Ed25519") {
+      const privateDer =
+        keyBuf.length === 32 ? createEd25519Pkcs8(keyBuf) : keyBuf;
+      try {
+        const privateKey = createPrivateKey({
+          key: privateDer,
+          format: "der",
+          type: "pkcs8",
+        });
+        const publicJwk = curveFromJwk(
+          createPublicKey(privateKey).export({
+            format: "jwk",
+          }) as LocalJsonWebKey,
+        );
+        const result: { record: StoredPrivateRecord; publicJwk: PublicJwk } = {
+          record: {
+            kty: params.kty,
+            crv: params.crv,
+            privateKey: privateDer.toString("base64"),
+            encoding: "pkcs8-der",
+          },
+          publicJwk,
+        };
+        assertPublicJwkLedgerCompatible(
+          result.publicJwk,
+          "Imported Ed25519 public key",
+        );
+        return result;
+      } finally {
+        if (privateDer !== keyBuf) {
+          privateDer.fill(0);
+        }
+      }
+    }
+    if (params.kty === "EC" && params.crv === "P-256") {
+      const privateDer =
+        keyBuf.length === 32 ? createP256Pkcs8(keyBuf) : keyBuf;
+      try {
+        const privateKey = createPrivateKey({
+          key: privateDer,
+          format: "der",
+          type: "pkcs8",
+        });
+        const publicJwk = curveFromJwk(
+          createPublicKey(privateKey).export({
+            format: "jwk",
+          }) as LocalJsonWebKey,
+        );
+        const result: { record: StoredPrivateRecord; publicJwk: PublicJwk } = {
+          record: {
+            kty: params.kty,
+            crv: params.crv,
+            privateKey: privateDer.toString("base64"),
+            encoding: "pkcs8-der",
+          },
+          publicJwk,
+        };
+        assertPublicJwkLedgerCompatible(
+          result.publicJwk,
+          "Imported P-256 public key",
+        );
+        return result;
+      } finally {
+        if (privateDer !== keyBuf) {
+          privateDer.fill(0);
+        }
+      }
+    }
+    if (params.kty === "EC" && params.crv === "Jubjub") {
+      const raw = keyBuf.length > 32 ? keyBuf.subarray(0, 32) : keyBuf;
+      const normalized = ensure32Bytes(raw);
+      try {
+        const pub = await deriveJubjubPublic(normalized);
+        const result: { record: StoredPrivateRecord; publicJwk: PublicJwk } = {
+          record: {
+            kty: params.kty,
+            crv: params.crv,
+            privateKey: normalized.toString("base64"),
+            encoding: "raw32",
+          },
+          publicJwk: {
+            kty: params.kty,
+            crv: params.crv,
+            x: bigintToBase64url(pub.x),
+            y: bigintToBase64url(pub.y),
+          },
+        };
+        assertPublicJwkLedgerCompatible(
+          result.publicJwk,
+          "Imported Jubjub public key",
+        );
+        return result;
+      } finally {
+        if (isDistinctBuffer(normalized, keyBuf)) {
+          normalized.fill(0);
+        }
+      }
+    }
+    throw new UnsupportedCurveError(`${params.kty}/${params.crv}`);
+  } finally {
+    keyBuf.fill(0);
   }
-  if (params.kty === "EC" && params.crv === "P-256") {
-    const privateDer = keyBuf.length === 32 ? createP256Pkcs8(keyBuf) : keyBuf;
-    const privateKey = createPrivateKey({
-      key: privateDer,
-      format: "der",
-      type: "pkcs8",
-    });
-    const publicJwk = curveFromJwk(
-      createPublicKey(privateKey).export({ format: "jwk" }) as LocalJsonWebKey,
-    );
-    const result: { record: StoredPrivateRecord; publicJwk: PublicJwk } = {
-      record: {
-        kty: params.kty,
-        crv: params.crv,
-        privateKey: privateDer.toString("base64"),
-        encoding: "pkcs8-der",
-      },
-      publicJwk,
-    };
-    assertPublicJwkLedgerCompatible(
-      result.publicJwk,
-      "Imported P-256 public key",
-    );
-    return result;
-  }
-  if (params.kty === "EC" && params.crv === "Jubjub") {
-    const raw = keyBuf.length > 32 ? keyBuf.subarray(0, 32) : keyBuf;
-    const normalized = ensure32Bytes(raw);
-    const pub = await deriveJubjubPublic(normalized);
-    const result: { record: StoredPrivateRecord; publicJwk: PublicJwk } = {
-      record: {
-        kty: params.kty,
-        crv: params.crv,
-        privateKey: normalized.toString("base64"),
-        encoding: "raw32",
-      },
-      publicJwk: {
-        kty: params.kty,
-        crv: params.crv,
-        x: bigintToBase64url(pub.x),
-        y: bigintToBase64url(pub.y),
-      },
-    };
-    assertPublicJwkLedgerCompatible(
-      result.publicJwk,
-      "Imported Jubjub public key",
-    );
-    return result;
-  }
-  throw new UnsupportedCurveError(`${params.kty}/${params.crv}`);
 };
 
 export const signWithCurveKey = async (
@@ -316,12 +376,18 @@ export const signWithCurveKey = async (
     return sign("sha256", Buffer.from(payload), createDerPrivateKey(record));
   }
   if (record.kty === "EC" && record.crv === "Jubjub") {
-    const privateKeyBytes = ensure32Bytes(
-      Buffer.from(record.privateKey, "base64"),
-    );
-    return encodeJubjubSignature(
-      signJubjubPayloadFromSeed(privateKeyBytes, payload),
-    );
+    const encodedPrivate = Buffer.from(record.privateKey, "base64");
+    const privateKeyBytes = ensure32Bytes(encodedPrivate);
+    try {
+      return encodeJubjubSignature(
+        signJubjubPayloadFromSeed(privateKeyBytes, payload),
+      );
+    } finally {
+      if (isDistinctBuffer(privateKeyBytes, encodedPrivate)) {
+        privateKeyBytes.fill(0);
+      }
+      encodedPrivate.fill(0);
+    }
   }
   throw new UnsupportedCurveError(`${record.kty}/${record.crv}`);
 };

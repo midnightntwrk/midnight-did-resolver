@@ -65,11 +65,8 @@ const resolveDefaultSecretPassphrase = (
   const explicit = env.DID_MANAGER_SECRET_PASSPHRASE?.trim();
   if (explicit !== undefined && explicit.length > 0) return explicit;
   if (setupProfile === 'standalone') return devDefaultSecretPassphrase;
-  if (parseBoolean(env.DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE, false)) {
-    return devDefaultSecretPassphrase;
-  }
   throw new Error(
-    'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles. Set DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE=true only for local testing.',
+    'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles.',
   );
 };
 

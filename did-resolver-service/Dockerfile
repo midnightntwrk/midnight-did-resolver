@@ -45,5 +45,6 @@ COPY --from=builder /app/did-resolver-service/dist did-resolver-service/dist
 
 EXPOSE 3001
 
+USER node
 WORKDIR /app/did-resolver-service
 CMD ["node", "--experimental-specifier-resolution=node", "dist/index.js"]

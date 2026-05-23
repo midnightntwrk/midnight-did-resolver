@@ -28,23 +28,33 @@ const deriveMetadataKey = (
   account: number,
   index: number,
 ): Uint8Array => {
-  const hdWalletResult = HDWallet.fromSeed(seedToBuffer(seedHex));
+  const seed = seedToBuffer(seedHex);
+  let hdWalletResult: ReturnType<typeof HDWallet.fromSeed>;
+  try {
+    hdWalletResult = HDWallet.fromSeed(seed);
+  } finally {
+    seed.fill(0);
+  }
+
   if (hdWalletResult.type !== "seedOk") {
     throw new Error("Failed to initialize HD wallet from seed");
   }
 
-  const derivationResult = hdWalletResult.hdWallet
-    .selectAccount(account)
-    .selectRole(Roles.Metadata)
-    .deriveKeyAt(index);
+  const wallet = hdWalletResult.hdWallet;
+  try {
+    const derivationResult = wallet
+      .selectAccount(account)
+      .selectRole(Roles.Metadata)
+      .deriveKeyAt(index);
 
-  hdWalletResult.hdWallet.clear();
+    if (derivationResult.type !== "keyDerived") {
+      throw new Error("Failed to derive metadata key from seed");
+    }
 
-  if (derivationResult.type !== "keyDerived") {
-    throw new Error("Failed to derive metadata key from seed");
+    return derivationResult.key;
+  } finally {
+    wallet.clear();
   }
-
-  return derivationResult.key;
 };
 
 export const deriveCurvePrivateFromSeed = (
@@ -60,37 +70,50 @@ export const deriveCurvePrivateFromSeed = (
   }
 
   const metadataKey = deriveMetadataKey(params.seedHex, account, index);
+  const hkdfInput = Buffer.from(metadataKey);
   const info = Buffer.from(
     `midnight-did:key:v1:${params.kty}:${params.crv}:${account}:${index}:${candidate}`,
     "utf8",
   );
   const derived = Buffer.from(
-    hkdfSync("sha256", Buffer.from(metadataKey), HKDF_SALT, info, 32),
+    hkdfSync("sha256", hkdfInput, HKDF_SALT, info, 32),
   );
 
-  if (params.kty === "OKP" && params.crv === "Ed25519") {
-    return {
-      kty: params.kty,
-      crv: params.crv,
-      privateKey: new Uint8Array(derived),
-    };
-  }
+  try {
+    if (params.kty === "OKP" && params.crv === "Ed25519") {
+      return {
+        kty: params.kty,
+        crv: params.crv,
+        privateKey: Uint8Array.from(derived),
+      };
+    }
 
-  if (params.kty === "EC" && params.crv === "Jubjub") {
-    return {
-      kty: params.kty,
-      crv: params.crv,
-      privateKey: new Uint8Array(derived),
-    };
-  }
+    if (params.kty === "EC" && params.crv === "Jubjub") {
+      return {
+        kty: params.kty,
+        crv: params.crv,
+        privateKey: Uint8Array.from(derived),
+      };
+    }
 
-  if (params.kty === "EC" && params.crv === "P-256") {
-    return {
-      kty: params.kty,
-      crv: params.crv,
-      privateKey: new Uint8Array(normalizeP256Private(derived)),
-    };
-  }
+    if (params.kty === "EC" && params.crv === "P-256") {
+      const normalized = normalizeP256Private(derived);
+      try {
+        return {
+          kty: params.kty,
+          crv: params.crv,
+          privateKey: Uint8Array.from(normalized),
+        };
+      } finally {
+        normalized.fill(0);
+      }
+    }
 
-  throw new UnsupportedCurveError(`${params.kty}/${params.crv}`);
+    throw new UnsupportedCurveError(`${params.kty}/${params.crv}`);
+  } finally {
+    metadataKey.fill(0);
+    hkdfInput.fill(0);
+    info.fill(0);
+    derived.fill(0);
+  }
 };

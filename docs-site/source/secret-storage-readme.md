@@ -409,6 +409,9 @@ const equal = Buffer.from(c0.privateKey).equals(Buffer.from(c1.privateKey));
 - `scrypt` key derivation from passphrase
 - AES-256-GCM encryption
 - minimal metadata in plaintext; private key bytes encrypted
+- store file is created and rewritten with `0600` permissions
+- encrypted writes use a same-directory temporary file, `fsync`, and atomic rename
+- passphrase strings are not retained by `FileSecretStore`; temporary key buffers are wiped after use
 
 ## Build & Test
 

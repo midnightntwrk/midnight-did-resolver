@@ -56,13 +56,15 @@ describe('did-manager-service config', () => {
     expect(cfg.mainnet.indexer).toContain('mainnet.example');
   });
 
-  it('requires an explicit passphrase outside standalone unless dev fallback is opted in', () => {
+  it('requires an explicit passphrase outside standalone', () => {
     expect(() => loadConfig({ DID_MANAGER_SETUP: 'preprod' })).toThrow(
       'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles.',
     );
-    expect(loadConfig({
+    expect(() => loadConfig({
       DID_MANAGER_SETUP: 'preprod',
       DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE: 'true',
-    }).defaultSecretPassphrase).toBe('midnight-dev-passphrase');
+    })).toThrow(
+      'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles.',
+    );
   });
 });

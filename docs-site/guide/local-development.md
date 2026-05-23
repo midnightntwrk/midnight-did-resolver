@@ -54,4 +54,4 @@ For `preprod` and `mainnet`, set an explicit manager secret passphrase before st
 export DID_MANAGER_SECRET_PASSPHRASE=replace-with-a-local-operator-secret
 ```
 
-Use `DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE=true` only for local testing when you intentionally want the development fallback outside standalone mode.
+The development fallback is standalone-only. `preprod` and `mainnet` manager profiles always require `DID_MANAGER_SECRET_PASSPHRASE`.

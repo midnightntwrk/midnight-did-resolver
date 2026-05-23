@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -20,6 +20,18 @@ const createTempPath = async (): Promise<string> => {
   const dir = await mkdtemp(path.join(os.tmpdir(), "midnight-secret-store-"));
   tempDirs.push(dir);
   return path.join(dir, "secrets.json");
+};
+
+const expectPrivateFileMode = async (location: string): Promise<void> => {
+  const mode = (await stat(location)).mode & 0o777;
+  expect(mode).toBe(0o600);
+};
+
+const expectNoTempWritesLeftBehind = async (
+  location: string,
+): Promise<void> => {
+  const entries = await readdir(path.dirname(location));
+  expect(entries.filter((entry) => entry.endsWith(".tmp"))).toEqual([]);
 };
 
 afterEach(async () => {
@@ -45,6 +57,8 @@ describe("FileSecretStore", () => {
     const store = new FileSecretStore();
     await store.initialize({ location, passphrase: "midnight-passphrase" });
 
+    await expectPrivateFileMode(location);
+    await expectNoTempWritesLeftBehind(location);
     expect(await store.listKeys()).toEqual([]);
 
     const generated = await store.generateKey({
@@ -54,6 +68,9 @@ describe("FileSecretStore", () => {
       did: "did:midnight:undeployed:abc",
       purpose: "authentication",
     });
+
+    await expectPrivateFileMode(location);
+    await expectNoTempWritesLeftBehind(location);
 
     const listed = await store.listKeys({ did: "did:midnight:undeployed:abc" });
     expect(listed).toHaveLength(1);
@@ -86,6 +103,8 @@ describe("FileSecretStore", () => {
     });
 
     await store.deleteKey(generated.keyRef);
+    await expectPrivateFileMode(location);
+    await expectNoTempWritesLeftBehind(location);
     await expect(store.getPublicKey(generated.keyRef)).rejects.toThrow(
       SecretNotFoundError,
     );
@@ -110,6 +129,9 @@ describe("FileSecretStore", () => {
       crv: "Jubjub",
     });
 
+    await expectPrivateFileMode(location);
+    await expectNoTempWritesLeftBehind(location);
+
     const rawFile = JSON.parse(await readFile(location, "utf8")) as {
       encrypted?: unknown;
       keys?: unknown;
@@ -119,6 +141,7 @@ describe("FileSecretStore", () => {
 
     const reopened = new FileSecretStore();
     await reopened.initialize({ location, passphrase: "midnight-passphrase" });
+    await expectPrivateFileMode(location);
     expect(await reopened.getPublicKey(derived.keyRef)).toEqual(
       derived.publicJwk,
     );

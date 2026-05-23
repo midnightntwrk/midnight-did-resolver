@@ -10,7 +10,7 @@ The resolver repository now owns deployable TypeScript services that sit above t
 - `did-resolver-service`
 - `secret-storage`
 
-A Claude PR review of the service migration identified issues that are easy to miss in local happy-path testing: concurrent manager operations, non-dev secret defaults, resolver endpoint override policy, timeout cleanup, DID binding during detached-signature verification, and DID-resolution error consistency.
+A Claude PR review of the service migration identified issues that are easy to miss in local happy-path testing: concurrent manager operations, non-dev secret defaults, resolver endpoint override policy, timeout cleanup, DID binding during detached-signature verification, DID-resolution error consistency, secret-store file persistence, and container runtime privilege.
 
 ## Decisions
 
@@ -34,11 +34,15 @@ Unlock startup uses an unlock generation guard. If a newer unlock or lock supers
 
 `DID_MANAGER_SECRET_PASSPHRASE` is required for `preprod` and `mainnet` manager profiles.
 
-`DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE=true` exists only as an explicit local-testing escape hatch. Standalone mode may still use the dev fallback because it is intended for local-only development.
+There is no dev fallback for non-standalone profiles. Standalone mode may still use the development fallback because it is intended for local-only development.
 
 ### Detached verification binds the method to the DID
 
 When `verificationMethodId` is used as the verification source, the request DID must match the resolved DID and the resolver must return the same absolute method id. A resolver returning a key from another DID is rejected before signature verification.
+
+### Secret-store persistence is private and atomic
+
+The file-backed secret store creates and rewrites the encrypted store with mode `0600`. Writes go through a same-directory temporary file, `fsync`, and atomic rename so process crashes do not leave partial JSON in place. The store keeps derived encryption key material instead of retaining the passphrase string, and wipes temporary key buffers after derivation, import, signing, and encryption/decryption helper use.
 
 ### Resolver endpoint overrides are public-network only
 
@@ -49,6 +53,10 @@ This protects the public resolver API from being used as a simple SSRF primitive
 ### DID-resolution errors use one payload helper
 
 Resolver app and service code share the DID-resolution error payload helper. `notFound` remains `notFound` with HTTP 404 rather than being coerced to `internalError`.
+
+### Resolver container runs without root privileges
+
+The resolver-service runtime Docker stage switches to the bundled `node` user after dependency install and artifact copy. Build-time package installation still runs in the build/runtime setup layer, but the deployed service process does not run as root.
 
 ### Resolver timeout cleanup is explicit
 
@@ -61,6 +69,7 @@ Focused validation for these decisions:
 ```bash
 npm --ignore-scripts run test -w @midnight-ntwrk/midnight-did-manager-service -- src/test/config.test.ts src/test/signature-service.test.ts src/test/app.test.ts
 npm run test -w @midnight-ntwrk/midnight-did-resolver-service -- src/test/indexer-endpoint-policy.test.ts src/test/resolution-errors.test.ts src/test/service.test.ts src/test/app.test.ts
+npm run lint -w @midnight-ntwrk/midnight-did-secret-storage
 npm run lint -w @midnight-ntwrk/midnight-did-manager-service
 npm run lint -w @midnight-ntwrk/midnight-did-resolver-service
 npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service

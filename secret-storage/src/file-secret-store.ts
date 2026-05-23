@@ -1,8 +1,14 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { chmod, mkdir, open, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
-import { decryptJson, type EncryptedPayload, encryptJson } from "./crypto.js";
+import {
+  decryptJsonWithKey,
+  deriveKey,
+  type EncryptedPayload,
+  encryptJsonWithKey,
+  generateEncryptionSalt,
+} from "./crypto.js";
 import {
   generateCurveKey,
   importCurveKey,
@@ -43,22 +49,55 @@ type FileEnvelope = {
   encrypted: EncryptedPayload;
 };
 
+const STORE_FILE_MODE = 0o600;
+
 const nowIso = (): string => new Date().toISOString();
+
+const chmodPrivate = async (location: string): Promise<void> => {
+  await chmod(location, STORE_FILE_MODE);
+};
+
+const writePrivateAtomic = async (
+  location: string,
+  contents: string,
+): Promise<void> => {
+  const tempLocation = `${location}.${process.pid}.${Date.now()}.${Math.random()
+    .toString(16)
+    .slice(2)}.tmp`;
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+
+  try {
+    handle = await open(tempLocation, "wx", STORE_FILE_MODE);
+    await handle.writeFile(contents, "utf8");
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rename(tempLocation, location);
+    await chmodPrivate(location);
+  } catch (error) {
+    if (handle) {
+      await handle.close().catch(() => undefined);
+    }
+    await rm(tempLocation, { force: true }).catch(() => undefined);
+    throw error;
+  }
+};
 
 export class FileSecretStore implements SecretStorage {
   private location = "";
-  private passphrase = "";
+  private encryptionKey?: Buffer;
+  private encryptionSalt?: Buffer;
   private store: StoreFile = { version: 1, keys: {} };
 
   async initialize(params: {
     location: string;
     passphrase?: string;
   }): Promise<void> {
+    this.clearEncryptionMaterial();
     this.location = params.location;
     if (!params.passphrase) {
       throw new SecretStoreLockedError();
     }
-    this.passphrase = params.passphrase;
 
     const dir = path.dirname(this.location);
     await mkdir(dir, { recursive: true });
@@ -66,19 +105,38 @@ export class FileSecretStore implements SecretStorage {
     try {
       const raw = await readFile(this.location, "utf8");
       const envelope = JSON.parse(raw) as FileEnvelope;
-      const decrypted = await decryptJson(envelope.encrypted, this.passphrase);
+      const salt = Buffer.from(envelope.encrypted.salt, "base64");
+      await this.unlockWithPassphrase(params.passphrase, salt);
+      salt.fill(0);
+      const decrypted = decryptJsonWithKey(
+        envelope.encrypted,
+        this.requireEncryptionKey(),
+      );
       this.store = JSON.parse(decrypted) as StoreFile;
+      await chmodPrivate(this.location);
     } catch (error) {
       const maybeErr = error as { code?: string };
       if (maybeErr.code === "ENOENT") {
         this.store = { version: 1, keys: {} };
+        const salt = generateEncryptionSalt();
+        try {
+          await this.unlockWithPassphrase(params.passphrase, salt);
+        } finally {
+          salt.fill(0);
+        }
         await this.persist();
         return;
       }
+      this.clearEncryptionMaterial();
       throw new SecretStoreInitError(
         `Failed to initialize file secret store: ${String(error)}`,
       );
     }
+  }
+
+  lock(): void {
+    this.clearEncryptionMaterial();
+    this.store = { version: 1, keys: {} };
   }
 
   async listKeys(filter?: { did?: string }): Promise<StoredKeyMeta[]> {
@@ -145,14 +203,18 @@ export class FileSecretStore implements SecretStorage {
     for (let candidate = 0; candidate < 512; candidate += 1) {
       try {
         const derived = deriveCurvePrivateFromSeed(params, candidate);
-        return await this.importKey({
-          id: params.id,
-          privateKey: derived.privateKey,
-          kty: derived.kty,
-          crv: derived.crv,
-          did: params.did,
-          purpose: params.purpose,
-        });
+        try {
+          return await this.importKey({
+            id: params.id,
+            privateKey: derived.privateKey,
+            kty: derived.kty,
+            crv: derived.crv,
+            did: params.did,
+            purpose: params.purpose,
+          });
+        } finally {
+          derived.privateKey.fill(0);
+        }
       } catch (error) {
         if (
           error instanceof Error &&
@@ -210,16 +272,43 @@ export class FileSecretStore implements SecretStorage {
     return normalizePublicForLedger(publicJwk);
   }
 
+  private async unlockWithPassphrase(
+    passphrase: string,
+    salt: Buffer,
+  ): Promise<void> {
+    const key = await deriveKey(passphrase, salt);
+    this.clearEncryptionMaterial();
+    this.encryptionKey = key;
+    this.encryptionSalt = Buffer.from(salt);
+  }
+
+  private requireEncryptionKey(): Buffer {
+    if (!this.encryptionKey) throw new SecretStoreLockedError();
+    return this.encryptionKey;
+  }
+
+  private requireEncryptionSalt(): Buffer {
+    if (!this.encryptionSalt) throw new SecretStoreLockedError();
+    return this.encryptionSalt;
+  }
+
+  private clearEncryptionMaterial(): void {
+    this.encryptionKey?.fill(0);
+    this.encryptionSalt?.fill(0);
+    this.encryptionKey = undefined;
+    this.encryptionSalt = undefined;
+  }
+
   private async persist(): Promise<void> {
-    if (!this.passphrase) throw new SecretStoreLockedError();
-    const encrypted = await encryptJson(
+    const encrypted = encryptJsonWithKey(
       JSON.stringify(this.store),
-      this.passphrase,
+      this.requireEncryptionKey(),
+      this.requireEncryptionSalt(),
     );
     const envelope: FileEnvelope = {
       version: 1,
       encrypted,
     };
-    await writeFile(this.location, JSON.stringify(envelope, null, 2), "utf8");
+    await writePrivateAtomic(this.location, JSON.stringify(envelope, null, 2));
   }
 }
