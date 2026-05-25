@@ -15,6 +15,7 @@
     "docs-site"
   ],
   "scripts": {
+    "preinstall": "npm run check:did-libs",
     "clean": "turbo run clean --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "lint": "turbo run lint --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "lint:fix": "turbo run lint:fix --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",

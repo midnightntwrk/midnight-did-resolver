@@ -1,16 +1,14 @@
 #!/usr/bin/env node
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const requiredTarballs = [
-  "midnight-ntwrk-midnight-did-api-0.1.0.tgz",
-  "midnight-ntwrk-midnight-did-contract-0.1.0.tgz",
-  "midnight-ntwrk-midnight-did-domain-0.1.0.tgz",
-  "midnight-ntwrk-midnight-did-jubjub-schnorr-0.1.0.tgz",
-  "midnight-ntwrk-midnight-did-0.1.0.tgz",
-];
+const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
+const requiredTarballs = Object.values(packageJson.overrides ?? {})
+  .filter((value) => typeof value === "string" && value.startsWith("file:libs/midnight-did/"))
+  .map((value) => value.slice("file:libs/midnight-did/".length))
+  .sort();
 
 const missing = requiredTarballs.filter((name) => !existsSync(path.join(root, "libs", "midnight-did", name)));
 
