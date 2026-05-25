@@ -1,0 +1,9 @@
+# Build context hygiene for workspace-rooted Docker builds
+node_modules
+dist
+coverage
+.turbo
+.vscode
+.git
+.gitignore
+.DS_Store
