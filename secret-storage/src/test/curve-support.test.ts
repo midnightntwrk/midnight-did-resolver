@@ -51,7 +51,6 @@ describe("curve-support", () => {
               "base64",
             );
       const imported = await importCurveKey({
-        id: `${kty}-${crv}`,
         privateKey,
         kty,
         crv,
@@ -90,7 +89,6 @@ describe("curve-support", () => {
     );
     await expect(
       importCurveKey({
-        id: "bad",
         privateKey: new Uint8Array(32),
         kty: "OKP",
         crv: "P-256" as never,

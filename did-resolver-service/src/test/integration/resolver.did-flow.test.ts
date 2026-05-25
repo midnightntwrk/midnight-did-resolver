@@ -250,11 +250,11 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
         } catch (error) {
           startupError = error;
           dumpComposeDiagnostics(projectName);
-          try {
-            await dockerEnv.down({ removeVolumes: true, timeout: 30 });
-          } catch {
-            // ignore cleanup errors in retry path
-          }
+          cleanupComposeProject({
+            cwd: resolverDir,
+            composeFile: "compose.e2e.yml",
+            projectName,
+          });
         }
       }
       if (env === undefined) {

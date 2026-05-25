@@ -186,6 +186,16 @@
 
 ***
 
+### lock()
+
+> **lock**(): `void`
+
+#### Returns
+
+`void`
+
+***
+
 ### sign()
 
 > **sign**(`input`): `Promise`\<\{ `format`: `"raw"`; `signature`: `Uint8Array`; \}\>

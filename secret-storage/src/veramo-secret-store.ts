@@ -40,7 +40,10 @@ export class VeramoSecretStore implements SecretStorage {
     this.agent = agent;
   }
 
-  async initialize(): Promise<void> {
+  async initialize(_params: {
+    location: string;
+    passphrase?: string;
+  }): Promise<void> {
     this.initialized = true;
   }
 

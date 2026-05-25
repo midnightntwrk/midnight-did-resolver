@@ -29,8 +29,6 @@ Generated API reference.
 - [DeriveKeyFromSeedInput](type-aliases/DeriveKeyFromSeedInput.md)
 - [GenerateKeyInput](type-aliases/GenerateKeyInput.md)
 - [ImportKeyInput](type-aliases/ImportKeyInput.md)
-- [JubjubDigest](type-aliases/JubjubDigest.md)
-- [JubjubSchnorrSignature](type-aliases/JubjubSchnorrSignature.md)
 - [MidnightCurve](type-aliases/MidnightCurve.md)
 - [MidnightKeyType](type-aliases/MidnightKeyType.md)
 - [PublicJwk](type-aliases/PublicJwk.md)
@@ -44,21 +42,9 @@ Generated API reference.
 
 ## Variables
 
-- [computeJubjubDigestChallenge](variables/computeJubjubDigestChallenge.md)
-- [decodeJubjubSignature](variables/decodeJubjubSignature.md)
-- [deriveJubjubPublicKey](variables/deriveJubjubPublicKey.md)
-- [deriveJubjubPublicKeyFromSeed](variables/deriveJubjubPublicKeyFromSeed.md)
-- [encodeJubjubSignature](variables/encodeJubjubSignature.md)
-- [JUBJUB\_SIGNATURE\_LENGTH\_BYTES](variables/JUBJUB_SIGNATURE_LENGTH_BYTES.md)
-- [payloadToJubjubDigest](variables/payloadToJubjubDigest.md)
 - [SEED\_HEX\_BYTES](variables/SEED_HEX_BYTES.md)
 - [SEED\_HEX\_LENGTH](variables/SEED_HEX_LENGTH.md)
 - [SeedSchema](variables/SeedSchema.md)
-- [signJubjubDigest](variables/signJubjubDigest.md)
-- [signJubjubDigestFromSeed](variables/signJubjubDigestFromSeed.md)
-- [signJubjubPayloadFromSeed](variables/signJubjubPayloadFromSeed.md)
-- [verifyJubjubDigest](variables/verifyJubjubDigest.md)
-- [verifyJubjubPayload](variables/verifyJubjubPayload.md)
 
 ## Functions
 
@@ -71,9 +57,3 @@ Generated API reference.
 - [seedToBuffer](functions/seedToBuffer.md)
 - [signWithCurveKey](functions/signWithCurveKey.md)
 - [verifyWithPublicJwk](functions/verifyWithPublicJwk.md)
-
-## References
-
-### JubjubPayloadDigest
-
-Renames and re-exports [JubjubDigest](type-aliases/JubjubDigest.md)

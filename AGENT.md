@@ -7,9 +7,6 @@ This repository owns resolver runtime services and related reusable packages:
 - `did-resolver-service`
 - `did-manager-service`
 - `secret-storage`
-- `midnight-did-resolver`
-- `midnight-did-serde`
-- Rust resolver helpers
 
 Keep product code for DID method primitives (`midnight-did`) and verifiable-credential semantics (`midnight-verifiable-credentials`) in their respective repositories.
 
@@ -54,6 +51,7 @@ If any command fails, do not open the PR.
 ## Scope Boundaries
 
 - Do not reintroduce DID method, contract, or resolver-domain artifacts into this repository.
+- Consume DID dependencies through package tarballs under `libs/midnight-did/`; refresh them only from the root `midnight-identity-workspace` sync script.
 - Do not move VC issuance protocol logic here; keep it in `midnight-verifiable-credentials`.
 - Keep security hardening and service-runtime changes in this repository unless the change is strictly
   about DID package internals.

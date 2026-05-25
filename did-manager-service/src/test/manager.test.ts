@@ -332,7 +332,7 @@ describe('DidManagerService', () => {
     const secretStore = {
       getPublicKey: vi.fn(),
       sign: vi.fn(),
-    } as never;
+    };
 
     (manager as any).runtime.attachReadySession({
       walletCtx: {
