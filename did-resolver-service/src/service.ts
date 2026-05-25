@@ -4,6 +4,10 @@ import {
 } from "@midnight-ntwrk/midnight-did";
 import { DIDContract } from "@midnight-ntwrk/midnight-did-contract";
 import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-public-data-provider";
+import {
+  ChargedState,
+  ContractState,
+} from "@midnight-ntwrk/onchain-runtime-v3";
 
 import { didResolutionErrorPayload } from "./did-resolution-response.js";
 import { IndexerEndpointPolicy } from "./indexer-endpoint-policy.js";
@@ -64,6 +68,40 @@ const defaultLogger: ResolverLogger = {
     }
     console.error(message, context);
   },
+};
+
+type ContractStateData = {
+  readonly serialize: () => Uint8Array;
+  readonly data?: unknown;
+};
+
+const isChargedState = (value: unknown): value is ChargedState =>
+  value != null &&
+  typeof value === "object" &&
+  "state" in value &&
+  (value as ChargedState).state !== undefined;
+
+const coerceToChargedState = (contractState: unknown): ChargedState => {
+  if (isChargedState(contractState)) {
+    return contractState;
+  }
+  const asContractState = contractState as ContractStateData;
+  if (typeof asContractState.serialize !== "function") {
+    throw new Error("Unable to deserialize contract state payload");
+  }
+  return ContractState.deserialize(asContractState.serialize()).data;
+};
+
+const normalizeContractState = (
+  contractState: ContractStateData,
+): ChargedState => {
+  if (isChargedState(contractState)) {
+    return contractState;
+  }
+  if (isChargedState(contractState?.data)) {
+    return contractState.data;
+  }
+  return coerceToChargedState(contractState);
 };
 
 export class ResolverService {
@@ -139,7 +177,7 @@ export class ResolverService {
           await publicDataProvider.queryContractState(contractAddress);
         return contractState === null
           ? null
-          : DIDContract.ledger(contractState.data);
+          : DIDContract.ledger(normalizeContractState(contractState));
       },
     });
     this.touchCache(cacheKey, resolver);

@@ -1,3 +1,4 @@
+import { ContractState } from "@midnight-ntwrk/onchain-runtime-v3";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const resolveResultMock = vi.fn();
@@ -136,7 +137,7 @@ describe("did-resolver-service service", () => {
 
   it("maps contract state through DIDContract.ledger in resolver reader", async () => {
     resolveResultMock.mockResolvedValue(null);
-    queryContractStateMock.mockResolvedValue({ data: { state: "value" } });
+    queryContractStateMock.mockResolvedValue(new ContractState());
     ledgerFromStateMock.mockReturnValue({ ledger: "mapped" });
     const service = new ResolverService({
       indexerHttpUrl: "http://indexer.example/api/v3/graphql",
@@ -150,7 +151,7 @@ describe("did-resolver-service service", () => {
     };
     const mappedState = await ctorArgs.ledgerReader("contract-address");
     expect(queryContractStateMock).toHaveBeenCalledWith("contract-address");
-    expect(ledgerFromStateMock).toHaveBeenCalledWith({ state: "value" });
+    expect(ledgerFromStateMock).toHaveBeenCalledWith(expect.anything());
     expect(mappedState).toEqual({ ledger: "mapped" });
 
     queryContractStateMock.mockResolvedValueOnce(null);

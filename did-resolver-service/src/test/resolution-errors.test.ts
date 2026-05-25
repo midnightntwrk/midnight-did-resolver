@@ -11,6 +11,14 @@ describe("did-resolver-service resolution errors", () => {
       classifyResolutionError(new Error("Invalid Midnight DID format")),
     ).toBe("invalidDid");
     expect(
+      classifyResolutionError(
+        new Error("Invalid method-specific identifier in Midnight DID"),
+      ),
+    ).toBe("invalidDid");
+    expect(classifyResolutionError(new Error("Invalid input"))).toBe(
+      "invalidDid",
+    );
+    expect(
       classifyResolutionError(new Error("indexerWsUrl must use ws or wss")),
     ).toBe("invalidDid");
     expect(

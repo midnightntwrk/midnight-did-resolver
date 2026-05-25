@@ -1,4 +1,5 @@
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   DockerComposeEnvironment,
@@ -13,8 +14,8 @@ import {
 } from "./docker-compose-utils.js";
 
 const resolverDir = path.resolve(
-  new URL(import.meta.url).pathname,
-  "../../../..",
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../../",
 );
 
 let containerRuntimeAvailable = true;

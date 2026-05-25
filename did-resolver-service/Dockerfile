@@ -1,50 +1,41 @@
 FROM node:24-bookworm-slim AS builder
 
-WORKDIR /app
+WORKDIR /workspace
 
-COPY package.json package-lock.json ./
-COPY jubjub-schnorr/package.json jubjub-schnorr/package.json
-COPY contract/package.json contract/package.json
-COPY domain/package.json domain/package.json
-COPY did/package.json did/package.json
-COPY did-resolver-service/package.json did-resolver-service/package.json
+COPY midnight-did-resolver/package.json midnight-did-resolver/package-lock.json /workspace/midnight-did-resolver/
+COPY midnight-did-resolver/did-resolver-service/package.json /workspace/midnight-did-resolver/did-resolver-service/
+COPY midnight-did/package.json /workspace/midnight-did/
+COPY midnight-did/package-lock.json /workspace/midnight-did/
+COPY midnight-did/packages/jubjub-schnorr/package.json /workspace/midnight-did/packages/jubjub-schnorr/
+COPY midnight-did/packages/contract/package.json /workspace/midnight-did/packages/contract/
+COPY midnight-did/packages/domain/package.json /workspace/midnight-did/packages/domain/
+COPY midnight-did/packages/did/package.json /workspace/midnight-did/packages/did/
+COPY midnight-did/packages/api/package.json /workspace/midnight-did/packages/api/
 
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --prefix /workspace/midnight-did-resolver
+RUN npm ci --ignore-scripts --prefix /workspace/midnight-did
+RUN npm install --ignore-scripts --no-save --prefix /workspace/midnight-did-resolver @midnight-ntwrk/wallet-sdk-address-format@3.1.0
+RUN rm -rf /workspace/midnight-did-resolver/node_modules/@midnight-ntwrk/onchain-runtime-v3 \
+  && mkdir -p /workspace/midnight-did-resolver/node_modules/@midnight-ntwrk \
+  && ln -s /workspace/midnight-did/node_modules/@midnight-ntwrk/onchain-runtime-v3 \
+    /workspace/midnight-did-resolver/node_modules/@midnight-ntwrk/onchain-runtime-v3
 
-COPY jubjub-schnorr jubjub-schnorr
-COPY contract contract
-COPY domain domain
-COPY did did
-COPY did-resolver-service did-resolver-service
+COPY midnight-did /workspace/midnight-did
+COPY midnight-did-resolver/did-resolver-service /workspace/midnight-did-resolver/did-resolver-service
 
-RUN npm --ignore-scripts run build -w contract \
-  && npm run build -w domain \
-  && npm run build -w did \
-  && npm run build -w @midnight-ntwrk/midnight-did-resolver-service
+RUN npm run build -w @midnight-ntwrk/midnight-did-resolver-service --prefix /workspace/midnight-did-resolver
 
 
 FROM node:24-bookworm-slim AS runtime
 
-WORKDIR /app
+WORKDIR /workspace
 ENV NODE_ENV=production
 
-COPY package.json package-lock.json ./
-COPY jubjub-schnorr/package.json jubjub-schnorr/package.json
-COPY contract/package.json contract/package.json
-COPY domain/package.json domain/package.json
-COPY did/package.json did/package.json
-COPY did-resolver-service/package.json did-resolver-service/package.json
-
-RUN npm ci --ignore-scripts --omit=dev
-
-COPY --from=builder /app/jubjub-schnorr/dist jubjub-schnorr/dist
-COPY --from=builder /app/contract/dist contract/dist
-COPY --from=builder /app/domain/dist domain/dist
-COPY --from=builder /app/did/dist did/dist
-COPY --from=builder /app/did-resolver-service/dist did-resolver-service/dist
+COPY --from=builder /workspace/midnight-did-resolver /workspace/midnight-did-resolver
+COPY --from=builder /workspace/midnight-did /workspace/midnight-did
 
 EXPOSE 3001
 
 USER node
-WORKDIR /app/did-resolver-service
+WORKDIR /workspace/midnight-did-resolver/did-resolver-service
 CMD ["node", "--experimental-specifier-resolution=node", "dist/index.js"]

@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   createMidnightDIDString,
@@ -30,8 +31,8 @@ const GENESIS_MINT_WALLET_SEED =
   "0000000000000000000000000000000000000000000000000000000000000001";
 
 const resolverDir = path.resolve(
-  new URL(import.meta.url).pathname,
-  "../../../..",
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../../..",
 );
 
 let containerRuntimeAvailable = true;
@@ -77,6 +78,24 @@ const createDidWithDustRetry = async (
     }
   }
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
+};
+
+const waitForHttp200 = async (
+  url: string,
+  timeoutMs = 180_000,
+  intervalMs = 2_500,
+) => {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+      if (response.status === 200) return;
+    } catch {
+      // service is still starting
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  throw new Error(`Timeout waiting for HTTP 200 from ${url}`);
 };
 
 describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
@@ -167,15 +186,40 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
   const waitForResolve = async (
     didValue: string,
     predicate: (payload: Awaited<ReturnType<typeof resolveDid>>) => boolean,
-    timeoutMs = 60_000,
-    intervalMs = 2_000,
+    timeoutMs = 180_000,
+    intervalMs = 2_500,
   ) => {
     const startedAt = Date.now();
+    let attempts = 0;
+    let lastPayload: unknown;
     while (Date.now() - startedAt < timeoutMs) {
-      const resolved = await resolveDid(didValue);
-      if (predicate(resolved)) return resolved;
+      attempts += 1;
+      try {
+        const resolved = await resolveDid(didValue);
+        lastPayload = resolved;
+        if (predicate(resolved)) return resolved;
+        if (attempts % 10 === 0) {
+          console.info(
+            `[resolver-e2e] waitForResolve attempt ${attempts} saw non-matching state: ${JSON.stringify(resolved)}`,
+          );
+        }
+      } catch (error) {
+        if (attempts % 10 === 0) {
+          console.info(
+            `[resolver-e2e] waitForResolve attempt ${attempts} failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+        }
+      }
       await new Promise((resolve) => setTimeout(resolve, intervalMs));
     }
+    if (lastPayload !== undefined) {
+      console.info(
+        `[resolver-e2e] last resolve payload: ${JSON.stringify(lastPayload)}`,
+      );
+    }
+    dumpComposeDiagnostics(projectName);
     throw new Error(
       "Timed out waiting for DID state to be visible via resolver",
     );
@@ -193,16 +237,13 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
         )
           .withProjectName(projectName)
           .withWaitStrategy(
-            "proof-server",
-            // Proof server startup time varies by host/image cache state.
-            // Wait on compose healthcheck with an explicit long timeout.
-            Wait.forHealthCheck().withStartupTimeout(180000),
-          )
-          .withWaitStrategy(
             "indexer",
             Wait.forHealthCheck().withStartupTimeout(180000),
           )
-          .withWaitStrategy("did-resolver", Wait.forHttp("/health", 3001));
+          .withWaitStrategy(
+            "did-resolver",
+            Wait.forHttp("/health", 3001).withStartupTimeout(180_000),
+          );
         try {
           env = await dockerEnv.up();
           break;
@@ -252,7 +293,11 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
           projectName,
           serviceName: "proof-server",
           internalPort: 6300,
+          timeoutMs: 180_000,
         });
+
+        const proofServerUrl = `http://127.0.0.1:${proofServerPort}`;
+        await waitForHttp200(`${proofServerUrl}/version`, 180_000);
       } catch (error) {
         dumpComposeDiagnostics(projectName);
         throw error;
