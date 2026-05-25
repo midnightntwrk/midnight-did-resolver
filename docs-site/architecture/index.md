@@ -8,7 +8,6 @@ graph TD
   Secret[secret-storage]
   Resolver[did-resolver-service]
   Manager[did-manager-service]
-  Rust[Rust resolver]
   Indexer[(Midnight indexer)]
   Node[(Midnight node)]
   Proof[(Proof server)]
@@ -19,7 +18,6 @@ graph TD
   Manager --> Secret
   Manager --> Node
   Manager --> Proof
-  Rust --> Indexer
 ```
 
 Use these architecture pages when changing boundaries between resolver, manager, and local key custody.

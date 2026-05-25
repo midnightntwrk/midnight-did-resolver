@@ -65,6 +65,12 @@ Reusable encrypted secret storage for Midnight DID key lifecycle operations.
 - Sign and verify payloads
 - Keep private key material encrypted at rest
 
+## File Backend Security Properties
+
+- Creates private store files with owner-only `0600` permissions.
+- Persists updates with an `fsync` + atomic rename flow to avoid partial writes.
+- Uses passphrases only to derive the in-memory encryption key; the passphrase itself is not retained.
+
 ## Architecture
 
 ```mermaid

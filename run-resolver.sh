@@ -5,7 +5,7 @@ source ./scripts/run-common.sh
 run_common_ensure_node
 run_common_auto_proof_server_image "resolver"
 
-echo "[resolver] Build DID package prerequisites"
+echo "[resolver] Check DID package tarballs"
 npm run build:did-prereqs
 
 echo "[resolver] Build secret-storage dependency"

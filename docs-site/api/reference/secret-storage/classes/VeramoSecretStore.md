@@ -130,7 +130,19 @@
 
 ### initialize()
 
-> **initialize**(): `Promise`\<`void`\>
+> **initialize**(`_params`): `Promise`\<`void`\>
+
+#### Parameters
+
+##### \_params
+
+###### location
+
+`string`
+
+###### passphrase?
+
+`string`
 
 #### Returns
 

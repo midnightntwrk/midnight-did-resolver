@@ -68,6 +68,12 @@ Reusable encrypted secret storage for Midnight DID key lifecycle operations.
 - Sign and verify payloads
 - Keep private key material encrypted at rest
 
+## File Backend Security Properties
+
+- Creates private store files with owner-only `0600` permissions.
+- Persists updates with an `fsync` + atomic rename flow to avoid partial writes.
+- Uses passphrases only to derive the in-memory encryption key; the passphrase itself is not retained.
+
 ## Architecture
 
 ```mermaid
@@ -409,9 +415,6 @@ const equal = Buffer.from(c0.privateKey).equals(Buffer.from(c1.privateKey));
 - `scrypt` key derivation from passphrase
 - AES-256-GCM encryption
 - minimal metadata in plaintext; private key bytes encrypted
-- store file is created and rewritten with `0600` permissions
-- encrypted writes use a same-directory temporary file, `fsync`, and atomic rename
-- passphrase strings are not retained by `FileSecretStore`; temporary key buffers are wiped after use
 
 ## Build & Test
 

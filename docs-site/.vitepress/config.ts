@@ -31,7 +31,6 @@ export default defineConfig({
       { text: "Services", link: "/services/" },
       { text: "Architecture", link: "/architecture/" },
       { text: "API Reference", link: "/api/" },
-      { text: "Rust Resolver", link: "/rust/" },
       { text: "Source", link: "/source/" },
       { text: "GitHub", link: "https://github.com/midnightntwrk/midnight-did-resolver" },
     ],
@@ -93,18 +92,6 @@ export default defineConfig({
           items: [
             { text: "Overview", link: "/api/" },
             { text: "Secret Storage", link: "/api/reference/secret-storage/" },
-          ],
-        },
-      ],
-      "/rust/": [
-        {
-          text: "Rust Resolver",
-          items: [
-            { text: "Overview", link: "/rust/" },
-            { text: "Development Guide", link: "/rust/development-guide" },
-            { text: "Design", link: "/rust/design" },
-            { text: "Contract Deserialization", link: "/rust/contract-deserialization" },
-            { text: "Integration Tests", link: "/rust/integration-tests" },
           ],
         },
       ],

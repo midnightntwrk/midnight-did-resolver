@@ -211,7 +211,7 @@ export class ManagerRuntimeState {
     this.clearWalletSubscription();
     if (this.walletCtx === null) return;
     this.walletSubscription = this.walletCtx.wallet.state().subscribe({
-      next: (state) => {
+      next: (state: api.MidnightWalletFacadeState) => {
         void this.runExclusive(async () => {
           if (generation !== this.unlockGeneration) return;
           this.setWalletBalances(api.getWalletBalances(state));
@@ -228,7 +228,7 @@ export class ManagerRuntimeState {
           }
         });
       },
-      error: (error) => {
+      error: (error: unknown) => {
         if (generation !== this.unlockGeneration) return;
         this.logger.warn({ err: error }, 'Wallet state stream failed');
       },
@@ -251,7 +251,7 @@ export class ManagerRuntimeState {
         } catch (error) {
           this.logger.warn({ err: error }, 'Failed to persist wallet state during session stop');
         }
-        await walletCtx.wallet.stop().catch((error) => {
+        await walletCtx.wallet.stop().catch((error: unknown) => {
           this.logger.warn({ err: error }, 'Failed to stop wallet facade cleanly');
         });
       }

@@ -17,14 +17,3 @@ This runs the secret-storage, TypeScript resolver, and manager unit lanes while 
 ```
 
 The full lane includes resolver integration tests and manager browser tests. It expects Docker to be available and may start proof-server backed infrastructure.
-
-## Rust Resolver Loop
-
-```bash
-nix develop
-just build
-just test
-just e2e-up && just e2e-run && just e2e-down
-```
-
-Use the Rust loop when changing `midnight-did-resolver/`, `midnight-did-indexer-client/`, `midnight-did-serde/`, or Nix packaging.

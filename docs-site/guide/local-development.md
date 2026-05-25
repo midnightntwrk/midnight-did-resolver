@@ -4,18 +4,17 @@
 
 | Path | Responsibility |
 | --- | --- |
-| `midnight-did-resolver/` | Rust resolver, indexer client, serde layer, Nix and Docker package. |
 | `did-resolver-service/` | TypeScript resolver service with REST, Swagger, and browser UI. |
 | `did-manager-service/` | TypeScript DID manager backend and single-user UI. |
 | `secret-storage/` | Local encrypted key storage, signing, verification, and HD derivation. |
 | `docs-site/` | VitePress documentation site for GitHub Pages. |
+| `libs/midnight-did/` | DID package tarballs copied by the workspace-root sync script. |
 
 ## Prerequisites
 
 - Node.js 24 and npm 10.
-- Nix with flakes enabled for Rust resolver development.
 - Docker for standalone integration and browser flows.
-- A sibling `../midnight-did` checkout on `develop` when building TypeScript services from the identity workspace.
+- DID package tarballs in `libs/midnight-did/`.
 
 ## Setup
 
@@ -24,7 +23,11 @@ npm ci
 npm run build:did-prereqs
 ```
 
-The TypeScript workspace uses local `file:` dependencies pointing at `../midnight-did` until DID packages are published. If you clone this repository independently, place `midnight-did` beside it or adjust the dependency paths.
+The TypeScript workspace uses local tarball dependencies until DID packages are published. In the identity workspace, refresh them from the workspace root:
+
+```bash
+./scripts/sync-package-tarballs.sh --source did --destination midnight-did-resolver
+```
 
 ## Validation
 
@@ -36,15 +39,6 @@ The TypeScript workspace uses local `file:` dependencies pointing at `../midnigh
 ./run.sh manager --light --strict
 ./run.sh docs
 ```
-
-Rust resolver validation remains Just/Nix based:
-
-```bash
-nix develop
-just build
-just test
-```
-
 
 ## Non-Standalone Manager Secret Policy
 

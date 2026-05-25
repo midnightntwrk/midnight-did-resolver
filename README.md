@@ -4,33 +4,30 @@ This repository owns the resolver-facing runtime around the `did:midnight` metho
 
 It contains:
 
-- Rust resolver binary, indexer client, serde layer, Nix build, and Docker package.
 - TypeScript resolver service with REST, Swagger, and a browser UI.
 - DID manager service for wallet-backed DID lifecycle operations.
 - Secret-storage package for local key custody, signing, verification, and HD derivation.
 - VitePress documentation that can be published to GitHub Pages.
 
-The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). In the identity workspace this repository consumes a sibling `../midnight-did` checkout through local `file:` dependencies until DID packages are published.
+The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). Until those packages are published, this repository consumes checked-in DID tarballs under `libs/midnight-did/`. Refresh those tarballs from the root `midnight-identity-workspace` repository with `./scripts/sync-package-tarballs.sh`.
 
 ## Repository Layout
 
 | Path | Responsibility |
 | --- | --- |
-| `midnight-did-resolver/` | Rust HTTP resolver binary. |
-| `midnight-did-indexer-client/` | Rust GraphQL indexer client. |
-| `midnight-did-serde/` | Rust deserialization from ledger/indexer state. |
 | `secret-storage/` | TypeScript key custody, signing, verification, and HD derivation package. |
 | `did-resolver-service/` | TypeScript resolver REST/Swagger/UI service. |
 | `did-manager-service/` | TypeScript wallet-backed DID manager service and UI. |
 | `docs-site/` | VitePress documentation site. |
 | `infrastructure/` | Local standalone and proof-server compose files used by service scripts. |
+| `libs/midnight-did/` | Local DID package tarballs copied by the workspace-root sync script. |
 
 ## TypeScript Quick Start
 
 Prerequisites:
 
 - Node.js 24 and npm 10.
-- A sibling `../midnight-did` checkout on `develop`.
+- DID package tarballs in `libs/midnight-did/`.
 - Docker for standalone integration and browser tests.
 
 ```bash
@@ -63,34 +60,6 @@ docker compose -f infrastructure/standalone.yml up -d
 ./start-manager.sh --standalone
 ```
 
-## Rust Resolver Quick Start
-
-Prerequisites:
-
-- Nix with flakes enabled.
-- Midnight Indexer URL for live resolution.
-
-```bash
-nix develop
-just build
-just test
-just run <INDEXER_URL>
-```
-
-Build binary:
-
-```bash
-nix build .#midnight-did-resolver-bin
-./result/bin/midnight-did-resolver serve --indexer-url <INDEXER_URL>
-```
-
-Build Docker image:
-
-```bash
-nix build .#midnight-did-resolver-docker
-docker load < ./result
-```
-
 ## Docs
 
 ```bash
@@ -98,20 +67,11 @@ npm run docs:dev
 npm run docs:build
 ```
 
-The docs site uses `docs-site/` and includes TypeScript service docs plus Rust resolver design/development material.
+The docs site uses `docs-site/` and covers the TypeScript service and package surface.
 
 ## Configuration
 
-Rust resolver variables and CLI options:
-
-| Variable | Description | Default | Required |
-| --- | --- | --- | --- |
-| `MIDNIGHT_INDEXER_URL` | Midnight Indexer GraphQL API URL. | - | Yes |
-| `SERVER_ADDRESS` | HTTP server binding address. | `0.0.0.0` | No |
-| `SERVER_PORT` | HTTP server listening port. | `8080` | No |
-| `SERVER_CORS_ENABLED` | Enable permissive CORS. | `false` | No |
-| `SERVER_EXTERNAL_URL` | Public URL used by Swagger docs. | - | No |
-| `RUST_LOG` | Logging level. | `info` | No |
+Resolver service variables are documented in the service README and docs site.
 
 TypeScript service defaults are documented in the service READMEs and docs site.
 
