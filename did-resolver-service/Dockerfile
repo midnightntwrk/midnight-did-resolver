@@ -4,15 +4,8 @@ WORKDIR /workspace
 
 # This Dockerfile expects to be built from the midnight-identity-workspace root,
 # where midnight-did and midnight-did-resolver are siblings.
-COPY midnight-did-resolver/package.json midnight-did-resolver/package-lock.json /workspace/midnight-did-resolver/
-COPY midnight-did-resolver/did-resolver-service/package.json /workspace/midnight-did-resolver/did-resolver-service/
-COPY midnight-did/package.json /workspace/midnight-did/
-COPY midnight-did/package-lock.json /workspace/midnight-did/
-COPY midnight-did/packages/jubjub-schnorr/package.json /workspace/midnight-did/packages/jubjub-schnorr/
-COPY midnight-did/packages/contract/package.json /workspace/midnight-did/packages/contract/
-COPY midnight-did/packages/domain/package.json /workspace/midnight-did/packages/domain/
-COPY midnight-did/packages/did/package.json /workspace/midnight-did/packages/did/
-COPY midnight-did/packages/api/package.json /workspace/midnight-did/packages/api/
+COPY midnight-did-resolver /workspace/midnight-did-resolver
+COPY midnight-did /workspace/midnight-did
 
 RUN npm ci --ignore-scripts --prefix /workspace/midnight-did-resolver
 RUN npm ci --ignore-scripts --prefix /workspace/midnight-did
@@ -23,9 +16,6 @@ RUN rm -rf /workspace/midnight-did-resolver/node_modules/@midnight-ntwrk/onchain
   && mkdir -p /workspace/midnight-did-resolver/node_modules/@midnight-ntwrk \
   && ln -s /workspace/midnight-did/node_modules/@midnight-ntwrk/onchain-runtime-v3 \
     /workspace/midnight-did-resolver/node_modules/@midnight-ntwrk/onchain-runtime-v3
-
-COPY midnight-did /workspace/midnight-did
-COPY midnight-did-resolver/did-resolver-service /workspace/midnight-did-resolver/did-resolver-service
 
 RUN npm run build -w @midnight-ntwrk/midnight-did-resolver-service --prefix /workspace/midnight-did-resolver
 
