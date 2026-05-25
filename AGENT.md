@@ -12,6 +12,12 @@ Keep product code for DID method primitives (`midnight-did`) and verifiable-cred
 
 ## Quick Start
 
+Prerequisites:
+
+- Node.js 24
+- Docker
+- Nix (preferred) for shared workspace dev shell
+
 Install dependencies and run targeted validation from this repository:
 
 ```bash
@@ -26,6 +32,12 @@ For lightweight day-to-day validation:
 ./run.sh --light secret-storage
 ./run.sh --light resolver --strict
 ./run.sh --light manager --strict
+```
+
+Nix setup:
+
+```bash
+nix develop
 ```
 
 ## Validation and PR Gate
