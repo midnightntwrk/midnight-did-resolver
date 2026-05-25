@@ -6,17 +6,11 @@ updates:
     schedule:
       interval: "weekly"
       
-#  - package-ecosystem: "cargo"
-#    directory: "/"
-#    registries: "*"
-#    schedule:
-#      interval: "daily"
-#
-#  - package-ecosystem: "npm"
-#    directory: "/"
-#    schedule:
-#      interval: "daily"
-#
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
 #  - package-ecosystem: "docker"
 #    directory: "/"
 #    schedule:

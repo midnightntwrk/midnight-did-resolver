@@ -4,25 +4,20 @@ Engineering guide for agents and engineers working in `midnight-did-resolver`.
 
 This repository owns resolver runtime services and related reusable packages:
 
-- `did-resolver-service`
-- `did-manager-service`
-- `secret-storage`
+- `apps/did-resolver-service`
+- `apps/did-manager-service`
+- `packages/secret-storage`
+- `apps/docs-site`
 
 Keep product code for DID method primitives (`midnight-did`) and verifiable-credential semantics (`midnight-verifiable-credentials`) in their respective repositories.
 
 ## Quick Start
 
-Prerequisites:
-
-- Node.js 24
-- Docker
-- Nix (preferred) for shared workspace dev shell
-
 Install dependencies and run targeted validation from this repository:
 
 ```bash
-npm ci
-npm run test:all
+pnpm install
+pnpm run test:all
 ```
 
 For lightweight day-to-day validation:
@@ -32,12 +27,6 @@ For lightweight day-to-day validation:
 ./run.sh --light secret-storage
 ./run.sh --light resolver --strict
 ./run.sh --light manager --strict
-```
-
-Nix setup:
-
-```bash
-nix develop
 ```
 
 ## Validation and PR Gate
@@ -63,7 +52,6 @@ If any command fails, do not open the PR.
 ## Scope Boundaries
 
 - Do not reintroduce DID method, contract, or resolver-domain artifacts into this repository.
-- Consume DID dependencies through package tarballs under `libs/midnight-did/`; refresh them only from the root `midnight-identity-workspace` sync script.
 - Do not move VC issuance protocol logic here; keep it in `midnight-verifiable-credentials`.
 - Keep security hardening and service-runtime changes in this repository unless the change is strictly
   about DID package internals.
@@ -72,6 +60,7 @@ If any command fails, do not open the PR.
 
 - `run.sh`: local orchestration for service, manager, and secret-storage checks.
 - `scripts/run-target-catalog.mjs`: command mapping for CI target names.
-- `docs-site`: generated/runtime docs source.
-- `did-manager-service`, `did-resolver-service`, `secret-storage`: runnable service/work packages.
+- `apps/docs-site`: generated/runtime docs source.
+- `apps/did-manager-service` and `apps/did-resolver-service`: runnable service apps.
+- `packages/secret-storage`: reusable TypeScript key custody package.
 - `review/`: local review notes and investigation artifacts.
