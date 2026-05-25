@@ -137,7 +137,11 @@ describe("did-resolver-service service", () => {
 
   it("maps contract state through DIDContract.ledger in resolver reader", async () => {
     resolveResultMock.mockResolvedValue(null);
-    queryContractStateMock.mockResolvedValue(new ContractState());
+    const contractState = new ContractState();
+    queryContractStateMock
+      .mockResolvedValueOnce(contractState)
+      .mockResolvedValueOnce({ data: contractState.data })
+      .mockResolvedValueOnce({ serialize: () => contractState.serialize() });
     ledgerFromStateMock.mockReturnValue({ ledger: "mapped" });
     const service = new ResolverService({
       indexerHttpUrl: "http://indexer.example/api/v3/graphql",
@@ -149,14 +153,41 @@ describe("did-resolver-service service", () => {
     const ctorArgs = resolverCtorMock.mock.calls[0]?.[0] as {
       ledgerReader: (address: string) => Promise<unknown>;
     };
-    const mappedState = await ctorArgs.ledgerReader("contract-address");
+    const firstMappedState = await ctorArgs.ledgerReader("contract-address");
+    const nestedMappedState = await ctorArgs.ledgerReader("contract-address");
+    const serializedMappedState =
+      await ctorArgs.ledgerReader("contract-address");
     expect(queryContractStateMock).toHaveBeenCalledWith("contract-address");
-    expect(ledgerFromStateMock).toHaveBeenCalledWith(expect.anything());
-    expect(mappedState).toEqual({ ledger: "mapped" });
+    expect(ledgerFromStateMock).toHaveBeenCalledTimes(3);
+    expect(ledgerFromStateMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ state: expect.any(Object) }),
+    );
+    expect(firstMappedState).toEqual({ ledger: "mapped" });
+    expect(nestedMappedState).toEqual({ ledger: "mapped" });
+    expect(serializedMappedState).toEqual({ ledger: "mapped" });
 
     queryContractStateMock.mockResolvedValueOnce(null);
     const missingState = await ctorArgs.ledgerReader("missing-address");
     expect(missingState).toBeNull();
+  });
+
+  it("returns internalError when contract state payload cannot be normalized", async () => {
+    resolveResultMock.mockResolvedValue(null);
+    const service = new ResolverService({
+      indexerHttpUrl: "http://indexer.example/api/v3/graphql",
+      indexerWsUrl: "ws://indexer.example/api/v3/graphql/ws",
+    });
+
+    await service.resolve("did:midnight:devnet:abc");
+
+    const ctorArgs = resolverCtorMock.mock.calls[0]?.[0] as {
+      ledgerReader: (address: string) => Promise<unknown>;
+    };
+    queryContractStateMock.mockResolvedValue({});
+    await expect(ctorArgs.ledgerReader("contract-address")).rejects.toThrow(
+      "Unable to deserialize contract state payload",
+    );
   });
 
   it("maps validation/network/internal errors to expected DID errors", async () => {

@@ -7,6 +7,7 @@ import { indexerPublicDataProvider } from "@midnight-ntwrk/midnight-js-indexer-p
 import {
   ChargedState,
   ContractState,
+  StateValue,
 } from "@midnight-ntwrk/onchain-runtime-v3";
 
 import { didResolutionErrorPayload } from "./did-resolution-response.js";
@@ -79,13 +80,25 @@ const isChargedState = (value: unknown): value is ChargedState =>
   value != null &&
   typeof value === "object" &&
   "state" in value &&
-  (value as ChargedState).state !== undefined;
+  isStateValue((value as { state: unknown }).state);
+
+const isStateValue = (value: unknown): value is StateValue => {
+  return (
+    value != null &&
+    typeof value === "object" &&
+    "type" in value &&
+    typeof (value as { type: unknown }).type === "function"
+  );
+};
 
 const coerceToChargedState = (contractState: unknown): ChargedState => {
   if (isChargedState(contractState)) {
     return contractState;
   }
   const asContractState = contractState as ContractStateData;
+  if (asContractState === null || asContractState === undefined) {
+    throw new Error("Unable to deserialize contract state payload");
+  }
   if (typeof asContractState.serialize !== "function") {
     throw new Error("Unable to deserialize contract state payload");
   }
