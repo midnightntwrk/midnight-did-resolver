@@ -75,6 +75,7 @@ type ContractStateData = {
   readonly serialize: () => Uint8Array;
   readonly data?: unknown;
 };
+type HasData = { readonly data?: unknown };
 
 const isChargedState = (value: unknown): value is ChargedState =>
   value != null &&
@@ -87,7 +88,9 @@ const isStateValue = (value: unknown): value is StateValue => {
     value != null &&
     typeof value === "object" &&
     "type" in value &&
-    typeof (value as { type: unknown }).type === "function"
+    typeof (value as { type: unknown }).type === "function" &&
+    "encode" in value &&
+    typeof (value as { encode: unknown }).encode === "function"
   );
 };
 
@@ -105,14 +108,15 @@ const coerceToChargedState = (contractState: unknown): ChargedState => {
   return ContractState.deserialize(asContractState.serialize()).data;
 };
 
-const normalizeContractState = (
-  contractState: ContractStateData,
-): ChargedState => {
+const normalizeContractState = (contractState: unknown): ChargedState => {
   if (isChargedState(contractState)) {
     return contractState;
   }
-  if (isChargedState(contractState?.data)) {
-    return contractState.data;
+  if (contractState != null && typeof contractState === "object") {
+    const nestedState = (contractState as HasData).data;
+    if (isChargedState(nestedState)) {
+      return nestedState;
+    }
   }
   return coerceToChargedState(contractState);
 };
