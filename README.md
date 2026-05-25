@@ -9,7 +9,7 @@ It contains:
 - Secret-storage package for local key custody, signing, verification, and HD derivation.
 - VitePress documentation that can be published to GitHub Pages.
 
-The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). Until those packages are published, this repository consumes packed DID tarballs under `libs/midnight-did/`. Refresh those tarballs from the root `midnight-identity-workspace` repository with `./scripts/sync-package-tarballs.sh`.
+The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). Until those packages are published, this repository consumes checked-in DID tarballs under `libs/midnight-did/`. Refresh those tarballs from the root `midnight-identity-workspace` repository with `./scripts/sync-package-tarballs.sh`.
 
 ## Repository Layout
 
