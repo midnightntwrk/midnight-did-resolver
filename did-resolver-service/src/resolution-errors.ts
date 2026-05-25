@@ -8,6 +8,8 @@ const didInputErrorMessages = [
   "Invalid Midnight DID format",
   "Unknown network in Midnight DID",
   "Invalid contract address in Midnight DID",
+  "Invalid method-specific identifier in Midnight DID",
+  /^Invalid input$/,
   "indexerUrl must use http or https",
   "indexerWsUrl must use ws or wss",
   "Invalid URL",
@@ -23,7 +25,13 @@ export const classifyResolutionError = (
   const message =
     error instanceof Error ? error.message : "Unexpected resolve error";
 
-  if (didInputErrorMessages.some((needle) => message.includes(needle))) {
+  if (
+    didInputErrorMessages.some((needle) =>
+      typeof needle === "string"
+        ? message.includes(needle)
+        : needle.test(message),
+    )
+  ) {
     return "invalidDid";
   }
   if (message.includes("Network mismatch")) {

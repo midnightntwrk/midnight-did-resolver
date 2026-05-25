@@ -1,8 +1,8 @@
 services:
   did-resolver:
     build:
-      context: ..
-      dockerfile: did-resolver-service/Dockerfile
+      context: ../..
+      dockerfile: midnight-did-resolver/did-resolver-service/Dockerfile
     environment:
       RESOLVER_HOST: 0.0.0.0
       RESOLVER_PORT: 3001
