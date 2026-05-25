@@ -1,8 +1,9 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": [
-    "package-lock.json",
-    "tsconfig*.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json",
     ".eslintrc*",
     ".nvmrc"
   ],
@@ -18,10 +19,11 @@
       "outputs": []
     },
     "typecheck": {
-      "dependsOn": ["build"],
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "build": {
+      "dependsOn": ["^build"],
       "outputs": ["dist/**", "*.tsbuildinfo"]
     },
     "test": {

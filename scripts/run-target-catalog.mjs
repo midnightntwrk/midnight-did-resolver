@@ -7,7 +7,7 @@ export const laneTargets = [
   {
     name: "secret-storage",
     label: "Secret storage pipeline",
-    command: "./run-secret-storage.sh",
+    command: "./scripts/run-secret-storage.sh",
     description: "Secret-storage package lint, build, and unit-test lane.",
     supportsLight: true,
     supportsStrict: true,
@@ -16,7 +16,7 @@ export const laneTargets = [
   {
     name: "resolver",
     label: "TypeScript resolver service pipeline",
-    command: "./run-resolver.sh",
+    command: "./scripts/run-resolver.sh",
     description: "Node resolver service build, unit tests, and optional integration lane.",
     supportsLight: true,
     supportsStrict: true,
@@ -25,7 +25,7 @@ export const laneTargets = [
   {
     name: "manager",
     label: "DID manager service pipeline",
-    command: "./run-manager.sh",
+    command: "./scripts/run-manager.sh",
     description: "Manager service build, unit tests, and optional browser E2E lane.",
     supportsLight: true,
     supportsStrict: true,
@@ -34,7 +34,7 @@ export const laneTargets = [
   {
     name: "docs",
     label: "Docs pipeline",
-    command: "./run-docs.sh",
+    command: "./scripts/run-docs.sh",
     description: "Resolver documentation site build lane.",
     supportsLight: false,
     supportsStrict: false,
@@ -43,7 +43,7 @@ export const laneTargets = [
 ];
 
 export const laneTargetByName = new Map(laneTargets.map((target) => [target.name, target]));
-export const fullPipelineOrder = ["secret-storage", "resolver", "manager"];
+export const fullPipelineOrder = ["secret-storage", "resolver", "manager", "docs"];
 export const pipelineSteps = fullPipelineOrder.map((name) => {
   const laneTarget = laneTargetByName.get(name);
   if (!laneTarget) throw new Error(`Missing full pipeline lane target: ${name}`);
@@ -53,7 +53,7 @@ export const pipelineSteps = fullPipelineOrder.map((name) => {
 export const targets = [
   {
     name: "full",
-    description: "Run the full TypeScript resolver/manager validation pipeline. This is the default target.",
+    description: "Run the full TypeScript workspace validation pipeline. This is the default target.",
     supportsLight: true,
     supportsStrict: true,
     supportsMetrics: true,

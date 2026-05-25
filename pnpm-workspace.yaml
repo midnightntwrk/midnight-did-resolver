@@ -1,0 +1,5 @@
+packages:
+  - "apps/did-manager-service"
+  - "apps/did-resolver-service"
+  - "apps/docs-site"
+  - "packages/*"

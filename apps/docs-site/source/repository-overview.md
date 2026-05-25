@@ -1,3 +1,6 @@
+> [!NOTE]
+> This page is generated from `README.md` in the repository.
+> Edit the source file instead of this generated page.
 # Midnight DID Resolver
 
 This repository owns the TypeScript resolver-facing runtime around the `did:midnight` method.
@@ -83,3 +86,4 @@ TypeScript service defaults are documented in the service READMEs and docs site.
 ## License
 
 Apache-2.0
+

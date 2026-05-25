@@ -43,4 +43,4 @@ If any command fails, do not open the PR.
 ./run.sh docs
 ```
 
-Use `./run-resolver.sh` or `./run-manager.sh` for local process-level debugging when needed.
+Use `./scripts/run-resolver.sh` or `./scripts/run-manager.sh` for local process-level debugging when needed.

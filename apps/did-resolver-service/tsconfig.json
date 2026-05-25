@@ -1,0 +1,21 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "types": [
+      "node",
+      "vitest/globals"
+    ]
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalResolver": true
+  },
+  "include": [
+    "src/**/*.ts"
+  ]
+}

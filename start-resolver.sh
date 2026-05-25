@@ -100,4 +100,4 @@ echo "[start-resolver] Indexer HTTP: ${MIDNIGHT_INDEXER_HTTP_URL}"
 echo "[start-resolver] Indexer WS: ${MIDNIGHT_INDEXER_WS_URL}"
 echo "[start-resolver] Open http://${RESOLVER_HOST}:${RESOLVER_PORT}"
 
-npm run dev -w @midnight-ntwrk/midnight-did-resolver-service
+pnpm --filter @midnight-ntwrk/midnight-did-resolver-service dev

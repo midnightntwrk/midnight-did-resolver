@@ -149,4 +149,4 @@ else
   echo "[start-manager] Open http://${DID_MANAGER_HOST}:${DID_MANAGER_PORT}/wallet"
 fi
 
-npm run dev -w @midnight-ntwrk/midnight-did-manager-service
+pnpm --filter @midnight-ntwrk/midnight-did-manager-service dev

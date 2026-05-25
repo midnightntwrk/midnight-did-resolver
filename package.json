@@ -5,30 +5,27 @@
   "type": "module",
   "engines": {
     "node": ">=24",
-    "npm": ">=10"
+    "pnpm": ">=10"
   },
-  "packageManager": "npm@10.8.2",
-  "workspaces": [
-    "secret-storage",
-    "did-resolver-service",
-    "did-manager-service",
-    "docs-site"
-  ],
+  "packageManager": "pnpm@10.23.0",
   "scripts": {
-    "clean": "turbo run clean --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
-    "lint": "turbo run lint --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
-    "lint:fix": "turbo run lint:fix --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
-    "typecheck:all": "turbo run typecheck --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
+    "clean": "turbo run clean --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --filter=./apps/docs-site --continue",
+    "lint": "turbo run lint --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --continue",
+    "lint:fix": "turbo run lint:fix --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --continue",
+    "typecheck": "turbo run typecheck --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --continue",
+    "typecheck:all": "pnpm run typecheck",
+    "build": "pnpm run build:all",
+    "test": "pnpm run test:all",
     "build:did-jubjub-schnorr": "npm --prefix ../midnight-did run build -w ./packages/jubjub-schnorr",
     "build:did-prereqs": "npm --prefix ../midnight-did run build -w ./packages/jubjub-schnorr && npm --prefix ../midnight-did run build:prepared -w ./packages/contract && npm --prefix ../midnight-did run build -w ./packages/domain && npm --prefix ../midnight-did run build -w ./packages/did && npm --prefix ../midnight-did run build -w ./packages/api",
-    "build:all": "npm run build -w @midnight-ntwrk/midnight-did-secret-storage && npm run build:did-prereqs && npm run build -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service",
-    "test:all": "npm run test -w @midnight-ntwrk/midnight-did-secret-storage && npm run test -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run test -w @midnight-ntwrk/midnight-did-manager-service",
-    "ci:typescript": "npm run check:run-target-catalog && npm run lint && npm run build:all && npm run test:all",
-    "docs:sync-source": "npm run docs:sync-source -w docs-site",
-    "docs:api": "npm run docs:api -w docs-site",
-    "docs:dev": "npm run docs:dev -w docs-site",
-    "docs:build": "npm run docs:build -w docs-site",
-    "docs:preview": "npm run docs:preview -w docs-site",
+    "build:all": "pnpm --filter @midnight-ntwrk/midnight-did-secret-storage build && pnpm run build:did-prereqs && pnpm --filter @midnight-ntwrk/midnight-did-resolver-service build && pnpm --filter @midnight-ntwrk/midnight-did-manager-service build && pnpm run docs:build",
+    "test:all": "pnpm --filter @midnight-ntwrk/midnight-did-secret-storage test && pnpm --filter @midnight-ntwrk/midnight-did-resolver-service test && pnpm --filter @midnight-ntwrk/midnight-did-manager-service test",
+    "ci:typescript": "pnpm run check:run-target-catalog && pnpm run lint && pnpm run build:all && pnpm run test:all",
+    "docs:sync-source": "pnpm --filter docs-site docs:sync-source",
+    "docs:api": "pnpm --filter docs-site docs:api",
+    "docs:dev": "pnpm --filter docs-site docs:dev",
+    "docs:build": "pnpm --filter docs-site docs:build",
+    "docs:preview": "pnpm --filter docs-site docs:preview",
     "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs"
   },
   "dependencies": {
@@ -37,6 +34,16 @@
     "@midnight-ntwrk/midnight-did-contract": "file:../midnight-did/packages/contract",
     "@midnight-ntwrk/midnight-did-domain": "file:../midnight-did/packages/domain",
     "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../midnight-did/packages/jubjub-schnorr"
+  },
+  "pnpm": {
+    "overrides": {
+      "@midnight-ntwrk/compact-runtime": "0.15.0",
+      "@midnight-ntwrk/midnight-did": "file:../midnight-did/packages/did",
+      "@midnight-ntwrk/midnight-did-api": "file:../midnight-did/packages/api",
+      "@midnight-ntwrk/midnight-did-contract": "file:../midnight-did/packages/contract",
+      "@midnight-ntwrk/midnight-did-domain": "file:../midnight-did/packages/domain",
+      "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../midnight-did/packages/jubjub-schnorr"
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
@@ -54,6 +61,7 @@
     "globals": "^16.2.0",
     "testcontainers": "^11.0.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3",
     "vitest": "^3.2.0"

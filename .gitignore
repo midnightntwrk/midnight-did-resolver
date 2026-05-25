@@ -1,6 +1,4 @@
 node_modules/
-target/
-result
 
 # TypeScript workspace artifacts
 node_modules/
@@ -12,5 +10,5 @@ playwright-report/
 test-results/
 midnight-level-db/
 .midnight-test/
-docs-site/.vitepress/cache/
-docs-site/.vitepress/dist/
+apps/docs-site/.vitepress/cache/
+apps/docs-site/.vitepress/dist/
