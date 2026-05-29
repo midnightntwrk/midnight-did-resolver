@@ -26,13 +26,13 @@
   "dependencies": {
     "@fastify/swagger": "^9.6.1",
     "@fastify/swagger-ui": "^5.2.3",
-    "@midnight-ntwrk/midnight-did": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-0.2.0.tgz",
-    "@midnight-ntwrk/midnight-did-contract": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-contract-0.2.0.tgz",
-    "@midnight-ntwrk/midnight-did-domain": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-domain-0.2.0.tgz",
-    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "^4.0.0",
+    "@midnight-ntwrk/midnight-did": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-did-contract": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-contract-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-did-domain": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-domain-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.0.2",
     "fastify": "^5.6.1"
   },
   "devDependencies": {
-    "@midnight-ntwrk/midnight-did-api": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-api-0.2.0.tgz"
+    "@midnight-ntwrk/midnight-did-api": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-api-0.4.0.tgz"
   }
 }
