@@ -9,6 +9,7 @@
   },
   "packageManager": "pnpm@10.23.0",
   "scripts": {
+    "preinstall": "pnpm run check:did-libs",
     "clean": "turbo run clean --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --filter=./apps/docs-site --continue",
     "lint": "turbo run lint --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --continue",
     "lint:fix": "turbo run lint:fix --filter=./packages/secret-storage --filter=./apps/did-resolver-service --filter=./apps/did-manager-service --continue",
@@ -16,8 +17,9 @@
     "typecheck:all": "pnpm run typecheck",
     "build": "pnpm run build:all",
     "test": "pnpm run test:all",
-    "build:did-jubjub-schnorr": "npm --prefix ../midnight-did run build -w ./packages/jubjub-schnorr",
-    "build:did-prereqs": "npm --prefix ../midnight-did run build -w ./packages/jubjub-schnorr && npm --prefix ../midnight-did run build:prepared -w ./packages/contract && npm --prefix ../midnight-did run build -w ./packages/domain && npm --prefix ../midnight-did run build -w ./packages/did && npm --prefix ../midnight-did run build -w ./packages/api",
+    "check:did-libs": "node scripts/check-did-libs.mjs",
+    "build:did-jubjub-schnorr": "pnpm run check:did-libs",
+    "build:did-prereqs": "pnpm run check:did-libs",
     "build:all": "pnpm --filter @midnight-ntwrk/midnight-did-secret-storage build && pnpm run build:did-prereqs && pnpm --filter @midnight-ntwrk/midnight-did-resolver-service build && pnpm --filter @midnight-ntwrk/midnight-did-manager-service build && pnpm run docs:build",
     "test:all": "pnpm --filter @midnight-ntwrk/midnight-did-secret-storage test && pnpm --filter @midnight-ntwrk/midnight-did-resolver-service test && pnpm --filter @midnight-ntwrk/midnight-did-manager-service test",
     "ci:typescript": "pnpm run check:run-target-catalog && pnpm run lint && pnpm run build:all && pnpm run test:all",
@@ -29,20 +31,20 @@
     "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did": "file:../midnight-did/packages/did",
-    "@midnight-ntwrk/midnight-did-api": "file:../midnight-did/packages/api",
-    "@midnight-ntwrk/midnight-did-contract": "file:../midnight-did/packages/contract",
-    "@midnight-ntwrk/midnight-did-domain": "file:../midnight-did/packages/domain",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../midnight-did/packages/jubjub-schnorr"
+    "@midnight-ntwrk/midnight-did": "file:libs/midnight-did/midnight-ntwrk-midnight-did-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-did-api": "file:libs/midnight-did/midnight-ntwrk-midnight-did-api-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-did-contract": "file:libs/midnight-did/midnight-ntwrk-midnight-did-contract-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-did-domain": "file:libs/midnight-did/midnight-ntwrk-midnight-did-domain-0.4.0.tgz",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:libs/midnight-did/midnight-ntwrk-midnight-did-jubjub-schnorr-0.4.0.tgz"
   },
   "pnpm": {
     "overrides": {
       "@midnight-ntwrk/compact-runtime": "0.15.0",
-      "@midnight-ntwrk/midnight-did": "file:../midnight-did/packages/did",
-      "@midnight-ntwrk/midnight-did-api": "file:../midnight-did/packages/api",
-      "@midnight-ntwrk/midnight-did-contract": "file:../midnight-did/packages/contract",
-      "@midnight-ntwrk/midnight-did-domain": "file:../midnight-did/packages/domain",
-      "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../midnight-did/packages/jubjub-schnorr"
+      "@midnight-ntwrk/midnight-did": "file:libs/midnight-did/midnight-ntwrk-midnight-did-0.4.0.tgz",
+      "@midnight-ntwrk/midnight-did-api": "file:libs/midnight-did/midnight-ntwrk-midnight-did-api-0.4.0.tgz",
+      "@midnight-ntwrk/midnight-did-contract": "file:libs/midnight-did/midnight-ntwrk-midnight-did-contract-0.4.0.tgz",
+      "@midnight-ntwrk/midnight-did-domain": "file:libs/midnight-did/midnight-ntwrk-midnight-did-domain-0.4.0.tgz",
+      "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:libs/midnight-did/midnight-ntwrk-midnight-did-jubjub-schnorr-0.4.0.tgz"
     }
   },
   "devDependencies": {

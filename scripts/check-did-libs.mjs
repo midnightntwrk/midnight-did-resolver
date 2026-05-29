@@ -5,7 +5,16 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const packageJson = JSON.parse(readFileSync(path.join(root, "package.json"), "utf8"));
-const requiredTarballs = Object.values(packageJson.overrides ?? {})
+
+const didPackageSpecs = [
+  packageJson.dependencies,
+  packageJson.devDependencies,
+  packageJson.overrides,
+  packageJson.pnpm?.overrides,
+];
+
+const requiredTarballs = didPackageSpecs
+  .flatMap((section) => Object.values(section ?? {}))
   .filter((value) => typeof value === "string" && value.startsWith("file:libs/midnight-did/"))
   .map((value) => value.slice("file:libs/midnight-did/".length))
   .sort();
