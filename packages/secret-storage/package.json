@@ -34,7 +34,7 @@
     "prepack": "pnpm run build"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../../../midnight-did/packages/jubjub-schnorr",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:../../libs/midnight-did/midnight-ntwrk-midnight-did-jubjub-schnorr-0.2.0.tgz",
     "@midnight-ntwrk/wallet-sdk-hd": "^3.0.0",
     "circomlibjs": "^0.1.7",
     "zod": "^4.1.0"
