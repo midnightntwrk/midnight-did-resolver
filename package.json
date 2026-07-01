@@ -15,12 +15,11 @@
     "docs-site"
   ],
   "scripts": {
-    "preinstall": "npm run check:did-libs",
     "clean": "turbo run clean --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "lint": "turbo run lint --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "lint:fix": "turbo run lint:fix --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "typecheck:all": "turbo run typecheck --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
-    "check:did-libs": "node scripts/check-did-libs.mjs",
+    "check:did-libs": "node scripts/check-did-package-refs.mjs",
     "build:did-jubjub-schnorr": "npm run check:did-libs",
     "build:did-prereqs": "npm run check:did-libs",
     "build:all": "npm run build -w @midnight-ntwrk/midnight-did-secret-storage && npm run build:did-prereqs && npm run build -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service",
@@ -34,18 +33,18 @@
     "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did": "file:libs/midnight-did/midnight-ntwrk-midnight-did-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-api": "file:libs/midnight-did/midnight-ntwrk-midnight-did-api-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-contract": "file:libs/midnight-did/midnight-ntwrk-midnight-did-contract-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-domain": "file:libs/midnight-did/midnight-ntwrk-midnight-did-domain-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:libs/midnight-did/midnight-ntwrk-midnight-did-jubjub-schnorr-0.1.0.tgz"
+    "@midnight-ntwrk/midnight-did": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-v0.4.0",
+    "@midnight-ntwrk/midnight-did-api": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-api-v0.4.0",
+    "@midnight-ntwrk/midnight-did-contract": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-contract-v0.4.0",
+    "@midnight-ntwrk/midnight-did-domain": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-domain-v0.4.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0"
   },
   "overrides": {
-    "@midnight-ntwrk/midnight-did": "file:libs/midnight-did/midnight-ntwrk-midnight-did-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-api": "file:libs/midnight-did/midnight-ntwrk-midnight-did-api-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-contract": "file:libs/midnight-did/midnight-ntwrk-midnight-did-contract-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-domain": "file:libs/midnight-did/midnight-ntwrk-midnight-did-domain-0.1.0.tgz",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "file:libs/midnight-did/midnight-ntwrk-midnight-did-jubjub-schnorr-0.1.0.tgz"
+    "@midnight-ntwrk/midnight-did": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-v0.4.0",
+    "@midnight-ntwrk/midnight-did-api": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-api-v0.4.0",
+    "@midnight-ntwrk/midnight-did-contract": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-contract-v0.4.0",
+    "@midnight-ntwrk/midnight-did-domain": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-domain-v0.4.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

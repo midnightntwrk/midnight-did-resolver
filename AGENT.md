@@ -63,7 +63,7 @@ If any command fails, do not open the PR.
 ## Scope Boundaries
 
 - Do not reintroduce DID method, contract, or resolver-domain artifacts into this repository.
-- Consume DID dependencies through package tarballs under `libs/midnight-did/`; refresh them only from the root `midnight-identity-workspace` sync script.
+- Consume DID dependencies through the pinned package-root Git tags configured in the root `package.json` overrides; do not reintroduce copied DID tarballs under `libs/midnight-did/`.
 - Do not move VC issuance protocol logic here; keep it in `midnight-verifiable-credentials`.
 - Keep security hardening and service-runtime changes in this repository unless the change is strictly
   about DID package internals.

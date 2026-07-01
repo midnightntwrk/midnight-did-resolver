@@ -7,7 +7,7 @@ run_common_auto_proof_server_image "manager"
 
 export DID_MANAGER_SETUP="${DID_MANAGER_SETUP:-standalone}"
 
-echo "[manager] Check DID package tarballs"
+echo "[manager] Check DID package refs"
 npm run build:did-prereqs
 
 echo "[manager] Build secret-storage dependency"
