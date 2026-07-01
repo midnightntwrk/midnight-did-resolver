@@ -20,6 +20,7 @@
     "lint:fix": "turbo run lint:fix --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "typecheck:all": "turbo run typecheck --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "check:did-libs": "node scripts/check-did-package-refs.mjs",
+    "smoke:did-zk-release-artifacts": "node scripts/smoke-did-zk-release-artifacts.mjs",
     "build:did-jubjub-schnorr": "npm run check:did-libs",
     "build:did-prereqs": "npm run check:did-libs",
     "build:all": "npm run build -w @midnight-ntwrk/midnight-did-secret-storage && npm run build:did-prereqs && npm run build -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service",
@@ -48,6 +49,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "4.0.4",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "4.0.4",
     "@playwright/test": "^1.58.2",
     "@types/node": "^22.15.29",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
