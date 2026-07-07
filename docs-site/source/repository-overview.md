@@ -12,7 +12,7 @@ It contains:
 - Secret-storage package for local key custody, signing, verification, and HD derivation.
 - VitePress documentation that can be published to GitHub Pages.
 
-The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). Until those packages are published, this repository consumes checked-in DID tarballs under `libs/midnight-did/`. Refresh those tarballs from the root `midnight-identity-workspace` repository with `./scripts/sync-package-tarballs.sh`.
+The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). Until those packages are published to GitHub Packages with resolver access, this repository consumes the `0.4.0` release through package-root Git tags in the `midnight-did` repository.
 
 ## Repository Layout
 
@@ -23,14 +23,13 @@ The core DID contract, domain model, and TypeScript API packages remain in [`mid
 | `did-manager-service/` | TypeScript wallet-backed DID manager service and UI. |
 | `docs-site/` | VitePress documentation site. |
 | `infrastructure/` | Local standalone and proof-server compose files used by service scripts. |
-| `libs/midnight-did/` | Local DID package tarballs copied by the workspace-root sync script. |
 
 ## TypeScript Quick Start
 
 Prerequisites:
 
 - Node.js 24 and npm 10.
-- DID package tarballs in `libs/midnight-did/`.
+- GitHub read access to `midnightntwrk/midnight-did` for DID package tags.
 - Docker for standalone integration and browser tests.
 
 ```bash
@@ -88,4 +87,3 @@ TypeScript service defaults are documented in the service READMEs and docs site.
 ## License
 
 Apache-2.0
-

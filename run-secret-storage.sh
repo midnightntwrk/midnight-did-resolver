@@ -4,7 +4,7 @@ set -euo pipefail
 source ./scripts/run-common.sh
 run_common_ensure_node
 
-echo "[secret-storage] Check DID Schnorr package tarball"
+echo "[secret-storage] Check DID Schnorr package ref"
 npm run build:did-jubjub-schnorr
 
 if [[ "${SKIP_LINT_FIX:-0}" == "1" ]]; then

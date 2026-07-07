@@ -3,9 +3,12 @@ FROM node:24-bookworm-slim AS builder
 WORKDIR /workspace
 
 # This Dockerfile expects to be built from the midnight-identity-workspace root.
-# DID dependencies are consumed from tarballs already copied into
-# midnight-did-resolver/libs/midnight-did by the workspace sync script.
+# DID dependencies are consumed through package-root Git tags.
 COPY midnight-did-resolver /workspace/midnight-did-resolver
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates git openssh-client \
+  && rm -rf /var/lib/apt/lists/*
 
 RUN npm ci --ignore-scripts --prefix /workspace/midnight-did-resolver
 

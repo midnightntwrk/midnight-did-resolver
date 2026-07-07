@@ -8,13 +8,12 @@
 | `did-manager-service/` | TypeScript DID manager backend and single-user UI. |
 | `secret-storage/` | Local encrypted key storage, signing, verification, and HD derivation. |
 | `docs-site/` | VitePress documentation site for GitHub Pages. |
-| `libs/midnight-did/` | DID package tarballs copied by the workspace-root sync script. |
 
 ## Prerequisites
 
 - Node.js 24 and npm 10.
 - Docker for standalone integration and browser flows.
-- DID package tarballs in `libs/midnight-did/`.
+- GitHub read access to `midnightntwrk/midnight-did` for DID package tags.
 
 ## Setup
 
@@ -23,11 +22,7 @@ npm ci
 npm run build:did-prereqs
 ```
 
-The TypeScript workspace uses local tarball dependencies until DID packages are published. In the identity workspace, refresh them from the workspace root:
-
-```bash
-./scripts/sync-package-tarballs.sh --source did --destination midnight-did-resolver
-```
+The TypeScript workspace uses package-root Git tags from `midnight-did` until DID packages are published to GitHub Packages with resolver access. The root `package.json` overrides pin all DID packages to the `0.4.0` package tags.
 
 ## Validation
 
