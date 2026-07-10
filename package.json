@@ -45,7 +45,8 @@
     "@midnight-ntwrk/midnight-did-api": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-api-v0.4.0",
     "@midnight-ntwrk/midnight-did-contract": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-contract-v0.4.0",
     "@midnight-ntwrk/midnight-did-domain": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-domain-v0.4.0",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0"
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

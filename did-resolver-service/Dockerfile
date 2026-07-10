@@ -19,10 +19,16 @@ FROM node:24-bookworm-slim AS runtime
 
 WORKDIR /workspace
 ENV NODE_ENV=production
+# Containers must bind beyond loopback or the published port is unreachable
+# (config defaults RESOLVER_HOST to 127.0.0.1 for local dev).
+ENV RESOLVER_HOST=0.0.0.0
 
 COPY --from=builder /workspace/midnight-did-resolver /workspace/midnight-did-resolver
 
 EXPOSE 3001
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:3001/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
 
 USER node
 WORKDIR /workspace/midnight-did-resolver/did-resolver-service
