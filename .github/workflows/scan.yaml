@@ -10,7 +10,7 @@ on:
   schedule:
     - cron: '0 0 * * *'   # run daily at midnight UTC
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
