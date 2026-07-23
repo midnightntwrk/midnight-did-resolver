@@ -50,6 +50,7 @@
     "@midnight-ntwrk/midnight-did-contract": "0.5.0-rc1",
     "@midnight-ntwrk/midnight-did-domain": "0.5.0-rc1",
     "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0-rc1",
+    "brace-expansion": "^5.0.7",
     "ws": "^8.21.0"
   },
   "devDependencies": {
@@ -68,6 +69,7 @@
     "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-simple-import-sort": "^12.0.0",
     "globals": "^16.2.0",
+    "fast-uri": "3.1.4",
     "testcontainers": "^11.0.0",
     "ts-node": "^10.9.2",
     "turbo": "^2.5.4",
