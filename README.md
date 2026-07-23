@@ -9,7 +9,7 @@ It contains:
 - Secret-storage package for local key custody, signing, verification, and HD derivation.
 - VitePress documentation that can be published to GitHub Pages.
 
-The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). Until those packages are published to GitHub Packages with resolver access, this repository consumes the `0.4.0` release through package-root Git tags in the `midnight-did` repository.
+The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). This repository consumes the `0.5.0-rc1` release from the public npmjs registry.
 
 ## Repository Layout
 
@@ -26,7 +26,7 @@ The core DID contract, domain model, and TypeScript API packages remain in [`mid
 Prerequisites:
 
 - Node.js 24 and npm 10.
-- GitHub read access to `midnightntwrk/midnight-did` for DID package tags.
+- Access to the public npmjs registry.
 - Docker for standalone integration and browser tests.
 
 ```bash

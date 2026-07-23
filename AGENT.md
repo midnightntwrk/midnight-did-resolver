@@ -63,7 +63,7 @@ If any command fails, do not open the PR.
 ## Scope Boundaries
 
 - Do not reintroduce DID method, contract, or resolver-domain artifacts into this repository.
-- Consume DID dependencies through the pinned package-root Git tags configured in the root `package.json` overrides; do not reintroduce copied DID tarballs under `libs/midnight-did/`.
+- Consume DID dependencies from npmjs through the exact versions configured in the root `package.json` overrides; do not reintroduce Git dependencies or copied DID tarballs under `libs/midnight-did/`.
 - Do not move VC issuance protocol logic here; keep it in `midnight-verifiable-credentials`.
 - Keep security hardening and service-runtime changes in this repository unless the change is strictly
   about DID package internals.

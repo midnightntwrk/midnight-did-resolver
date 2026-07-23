@@ -368,7 +368,7 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
         publicKeyJwk: {
           kty: KeyType.OKP,
           crv: CurveType.Ed25519,
-          x: "Kg",
+          x: "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
         },
       });
       await api.addVerificationMethod(contract, method);
