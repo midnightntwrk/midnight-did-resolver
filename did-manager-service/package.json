@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "@fastify/swagger": "^9.6.1",
-    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/swagger-ui": "^6.1.1",
     "@midnight-ntwrk/midnight-did": "0.5.0",
     "@midnight-ntwrk/midnight-did-api": "0.5.0",
     "@midnight-ntwrk/midnight-did-secret-storage": "*",

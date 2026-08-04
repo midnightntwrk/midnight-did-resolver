@@ -50,7 +50,15 @@
     "@midnight-ntwrk/midnight-did-contract": "0.5.0",
     "@midnight-ntwrk/midnight-did-domain": "0.5.0",
     "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
-    "brace-expansion": "^5.0.7",
+    "brace-expansion": "^5.0.9",
+    "fast-uri": "3.1.5",
+    "find-my-way": "^9.7.0",
+    "@fastify/swagger-ui": "^6.1.1",
+    "@fastify/static": "^10.1.2",
+    "fastify-plugin": "^6.0.0",
+    "@ethersproject/providers@5.8.0": {
+      "ws": "8.21.0"
+    },
     "ws": "^8.21.0"
   },
   "devDependencies": {
@@ -69,7 +77,6 @@
     "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-simple-import-sort": "^12.0.0",
     "globals": "^16.2.0",
-    "fast-uri": "3.1.4",
     "testcontainers": "^11.0.0",
     "ts-node": "^10.9.2",
     "turbo": "^2.5.4",
