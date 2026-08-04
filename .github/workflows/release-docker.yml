@@ -17,7 +17,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 env:
   PLATFORMS: "linux/amd64,linux/arm64"
@@ -27,19 +26,24 @@ jobs:
     name: Build and push resolver + manager images
     runs-on: ubuntu-24.04
     timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.4.0
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
@@ -47,10 +51,14 @@ jobs:
 
       - name: Resolve release metadata
         id: meta
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PLATFORMS: ${{ inputs.platforms }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${INPUT_VERSION}"
 
-          if [[ "${{ github.event_name }}" == "push" ]]; then
+          if [[ "${EVENT_NAME}" == "push" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
           fi
 
@@ -63,14 +71,24 @@ jobs:
             exit 1
           fi
 
-          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          if [[ ! "${VERSION}" =~ ^[A-Za-z0-9][A-Za-z0-9._-]*$ ]]; then
+            echo "Invalid image version: ${VERSION}" >&2
+            exit 1
+          fi
 
-          echo "platforms=${{ github.event.inputs.platforms || env.PLATFORMS }}" >> "${GITHUB_OUTPUT}"
+          PLATFORMS="${INPUT_PLATFORMS:-${PLATFORMS}}"
+          if [[ ! "${PLATFORMS}" =~ ^linux/(amd64|arm64)(,linux/(amd64|arm64))*$ ]]; then
+            echo "Unsupported build platforms: ${PLATFORMS}" >&2
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "platforms=${PLATFORMS}" >> "${GITHUB_OUTPUT}"
           echo "resolver_image=ghcr.io/midnightntwrk/midnight-did-resolver-service:${VERSION}" >> "${GITHUB_OUTPUT}"
           echo "manager_image=ghcr.io/midnightntwrk/midnight-did-manager-service:${VERSION}" >> "${GITHUB_OUTPUT}"
 
       - name: Build and push resolver image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           file: did-resolver-service/Dockerfile
@@ -82,7 +100,7 @@ jobs:
           provenance: false
 
       - name: Build and push manager image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
           file: did-manager-service/Dockerfile
@@ -94,6 +112,9 @@ jobs:
           provenance: false
 
       - name: Print image refs
+        env:
+          MANAGER_IMAGE: ${{ steps.meta.outputs.manager_image }}
+          RESOLVER_IMAGE: ${{ steps.meta.outputs.resolver_image }}
         run: |
-          echo "resolver=${{ steps.meta.outputs.resolver_image }}"
-          echo "manager=${{ steps.meta.outputs.manager_image }}"
+          echo "resolver=${RESOLVER_IMAGE}"
+          echo "manager=${MANAGER_IMAGE}"
