@@ -22,9 +22,9 @@ npm ci
 npm run build:did-prereqs
 ```
 
-The TypeScript workspace consumes the public `midnight-did` packages from npmjs. The root `package.json` overrides keep the DID package graph pinned consistently to `0.5.0-rc1`, its ledger runtime at `8.0.3`, and its network-id singleton at `4.0.2`. These pins prevent duplicate WASM class instances and split network configuration across the DID API wallet and contract graph.
+The TypeScript workspace consumes the public `midnight-did` packages from npmjs. The root `package.json` overrides keep the DID package graph pinned consistently to `0.5.0`, its ledger runtime at `8.1.0`, and its network-id singleton at `4.0.2`. These pins prevent duplicate WASM class instances and split network configuration across the DID API wallet and contract graph.
 
-The temporary `@midnight-ntwrk/contract` npm alias exposes the published contract package at the default ZK artifact path expected by `midnight-did-api@0.5.0-rc1`. Remove the alias after a DID API release resolves artifacts from the published `@midnight-ntwrk/midnight-did-contract` package name directly.
+The `@midnight-ntwrk/contract` npm alias in `package.json` remains aligned with the release’s `@midnight-ntwrk/midnight-did-contract` package version to preserve the artifact path expected by the DID API runtime.
 
 ## Validation
 

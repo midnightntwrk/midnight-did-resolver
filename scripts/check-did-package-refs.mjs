@@ -12,11 +12,11 @@ const packageFiles = [
 ];
 
 const didPackageRefs = new Map([
-  ["@midnight-ntwrk/midnight-did", "0.5.0-rc1"],
-  ["@midnight-ntwrk/midnight-did-api", "0.5.0-rc1"],
-  ["@midnight-ntwrk/midnight-did-contract", "0.5.0-rc1"],
-  ["@midnight-ntwrk/midnight-did-domain", "0.5.0-rc1"],
-  ["@midnight-ntwrk/midnight-did-jubjub-schnorr", "0.5.0-rc1"],
+  ["@midnight-ntwrk/midnight-did", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-api", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-contract", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-domain", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-jubjub-schnorr", "0.5.0"],
 ]);
 
 const readJson = (relativePath) =>
@@ -27,16 +27,16 @@ const rootPackageJson = readJson("package.json");
 
 if (
   rootPackageJson.dependencies?.["@midnight-ntwrk/contract"] !==
-  "npm:@midnight-ntwrk/midnight-did-contract@0.5.0-rc1"
+  "npm:@midnight-ntwrk/midnight-did-contract@0.5.0"
 ) {
   failures.push(
-    "package.json dependencies.@midnight-ntwrk/contract must alias the 0.5.0-rc1 contract package for the DID API default ZK artifact path",
+    "package.json dependencies.@midnight-ntwrk/contract must alias the 0.5.0 contract package for the DID API default ZK artifact path",
   );
 }
 
-if (rootPackageJson.overrides?.["@midnight-ntwrk/ledger-v8"] !== "8.0.3") {
+if (rootPackageJson.overrides?.["@midnight-ntwrk/ledger-v8"] !== "8.1.0") {
   failures.push(
-    "package.json overrides.@midnight-ntwrk/ledger-v8 must be 8.0.3 to keep DID API wallet WASM classes on one ledger instance",
+    "package.json overrides.@midnight-ntwrk/ledger-v8 must be 8.1.0 to keep DID API wallet WASM classes on one ledger instance",
   );
 }
 
