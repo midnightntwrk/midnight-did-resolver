@@ -1,8 +1,5 @@
 export type ResolutionErrorCode =
-  | "notFound"
-  | "invalidDid"
-  | "networkMismatch"
-  | "internalError";
+  "notFound" | "invalidDid" | "networkMismatch" | "internalError";
 
 const didInputErrorMessages = [
   "Invalid Midnight DID format",
