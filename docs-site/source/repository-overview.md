@@ -71,6 +71,38 @@ npm run docs:build
 
 The docs site uses `docs-site/` and covers the TypeScript service and package surface.
 
+## Pi development shell
+
+This repository supports the optional Pi shell for structured `dev-loops` workflows.
+
+- Install and use Pi:
+
+  ```bash
+  pi
+  ```
+
+- For command examples and session setup, see ``docs/pi-development.md``.
+
+## Docker image publishing
+
+GitHub Container Registry images are published via
+`.github/workflows/release-docker.yml`.
+
+- `ghcr.io/midnightntwrk/midnight-did-resolver-service:<version>`
+- `ghcr.io/midnightntwrk/midnight-did-manager-service:<version>`
+
+The workflow is configured for:
+
+- Push to tags matching `v*` (for example `v0.1.0`).
+- Manual trigger with an optional `version` input.
+- Multi-platform publish (`linux/amd64`, `linux/arm64`).
+
+For the current branch, package version defaults to workspace `0.1.0`, so the manual release command is:
+
+```bash
+gh workflow run "Release application Docker images" --ref develop -f version=0.1.0
+```
+
 ## Configuration
 
 Resolver service variables are documented in the service README and docs site.
@@ -87,3 +119,4 @@ TypeScript service defaults are documented in the service READMEs and docs site.
 ## License
 
 Apache-2.0
+
