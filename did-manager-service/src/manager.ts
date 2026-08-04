@@ -708,7 +708,7 @@ export class DidManagerService {
   }
 
   async addVerificationMethod(input: { methodId: string; keyRef: string }): Promise<{ updated: true }> {
-    const { didContract, secretStore } = this.requireUnlocked();
+    const { didContract, providers, secretStore } = this.requireUnlocked();
     const { method } = await buildNormalizedVerificationMethod(
       didContract,
       secretStore,
@@ -716,11 +716,16 @@ export class DidManagerService {
       input.methodId,
       (methodId, publicJwk) => this.buildVerificationMethod(methodId, publicJwk),
     );
-    return await addDidVerificationMethod(didContract, method, async () => await this.persistRuntimeSession());
+    return await addDidVerificationMethod(
+      didContract,
+      providers,
+      method,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async updateVerificationMethod(input: { methodId: string; keyRef: string }): Promise<{ updated: true }> {
-    const { didContract, secretStore } = this.requireUnlocked();
+    const { didContract, providers, secretStore } = this.requireUnlocked();
     const { method } = await buildNormalizedVerificationMethod(
       didContract,
       secretStore,
@@ -728,7 +733,12 @@ export class DidManagerService {
       input.methodId,
       (methodId, publicJwk) => this.buildVerificationMethod(methodId, publicJwk),
     );
-    return await updateDidVerificationMethod(didContract, method, async () => await this.persistRuntimeSession());
+    return await updateDidVerificationMethod(
+      didContract,
+      providers,
+      method,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async removeVerificationMethod(input: { methodId: string }): Promise<{ removed: true }> {
@@ -764,32 +774,61 @@ export class DidManagerService {
   }
 
   async addService(input: { id: string; type: string; serviceEndpoint: ServiceEndpoint }): Promise<{ updated: true }> {
-    const { didContract } = this.requireUnlocked();
-    return await addDidService(didContract, input, async () => await this.persistRuntimeSession());
+    const { didContract, providers } = this.requireUnlocked();
+    return await addDidService(
+      didContract,
+      providers,
+      input,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async updateService(input: { id: string; type: string; serviceEndpoint: ServiceEndpoint }): Promise<{ updated: true }> {
-    const { didContract } = this.requireUnlocked();
-    return await updateDidService(didContract, input, async () => await this.persistRuntimeSession());
+    const { didContract, providers } = this.requireUnlocked();
+    return await updateDidService(
+      didContract,
+      providers,
+      input,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async removeService(input: { id: string }): Promise<{ removed: true }> {
-    const { didContract } = this.requireUnlocked();
-    return await removeDidService(didContract, input.id, async () => await this.persistRuntimeSession());
+    const { didContract, providers } = this.requireUnlocked();
+    return await removeDidService(
+      didContract,
+      providers,
+      input.id,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async addAlsoKnownAs(input: { value: string }): Promise<{ updated: true }> {
-    const { didContract } = this.requireUnlocked();
-    return await addDidAlsoKnownAs(didContract, input.value, async () => await this.persistRuntimeSession());
+    const { didContract, providers } = this.requireUnlocked();
+    return await addDidAlsoKnownAs(
+      didContract,
+      providers,
+      input.value,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async removeAlsoKnownAs(input: { value: string }): Promise<{ removed: true }> {
-    const { didContract } = this.requireUnlocked();
-    return await removeDidAlsoKnownAs(didContract, input.value, async () => await this.persistRuntimeSession());
+    const { didContract, providers } = this.requireUnlocked();
+    return await removeDidAlsoKnownAs(
+      didContract,
+      providers,
+      input.value,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 
   async deactivateDid(): Promise<{ deactivated: true }> {
-    const { didContract } = this.requireUnlocked();
-    return await deactivateDidContract(didContract, async () => await this.persistRuntimeSession());
+    const { didContract, providers } = this.requireUnlocked();
+    return await deactivateDidContract(
+      didContract,
+      providers,
+      async () => await this.persistRuntimeSession(),
+    );
   }
 }

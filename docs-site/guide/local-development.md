@@ -13,7 +13,7 @@
 
 - Node.js 24 and npm 10.
 - Docker for standalone integration and browser flows.
-- GitHub read access to `midnightntwrk/midnight-did` for DID package tags.
+- Access to the public npmjs registry.
 
 ## Setup
 
@@ -22,7 +22,9 @@ npm ci
 npm run build:did-prereqs
 ```
 
-The TypeScript workspace uses package-root Git tags from `midnight-did` until DID packages are published to GitHub Packages with resolver access. The root `package.json` overrides pin all DID packages to the `0.4.0` package tags.
+The TypeScript workspace consumes the public `midnight-did` packages from npmjs. The root `package.json` overrides keep the DID package graph pinned consistently to `0.5.0`, its ledger runtime at `8.1.0`, and its network-id singleton at `4.0.2`. These pins prevent duplicate WASM class instances and split network configuration across the DID API wallet and contract graph.
+
+The `@midnight-ntwrk/contract` npm alias in `package.json` remains aligned with the release’s `@midnight-ntwrk/midnight-did-contract` package version to preserve the artifact path expected by the DID API runtime.
 
 ## Validation
 

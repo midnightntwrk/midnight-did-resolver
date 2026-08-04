@@ -34,19 +34,34 @@
     "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs"
   },
   "dependencies": {
-    "@midnight-ntwrk/midnight-did": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-v0.4.0",
-    "@midnight-ntwrk/midnight-did-api": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-api-v0.4.0",
-    "@midnight-ntwrk/midnight-did-contract": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-contract-v0.4.0",
-    "@midnight-ntwrk/midnight-did-domain": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-domain-v0.4.0",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0"
+    "@midnight-ntwrk/contract": "npm:@midnight-ntwrk/midnight-did-contract@0.5.0",
+    "@midnight-ntwrk/midnight-did": "0.5.0",
+    "@midnight-ntwrk/midnight-did-api": "0.5.0",
+    "@midnight-ntwrk/midnight-did-contract": "0.5.0",
+    "@midnight-ntwrk/midnight-did-domain": "0.5.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
+    "@midnight-ntwrk/midnight-js-network-id": "4.0.2"
   },
   "overrides": {
-    "@midnight-ntwrk/midnight-did": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-v0.4.0",
-    "@midnight-ntwrk/midnight-did-api": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-api-v0.4.0",
-    "@midnight-ntwrk/midnight-did-contract": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-contract-v0.4.0",
-    "@midnight-ntwrk/midnight-did-domain": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-domain-v0.4.0",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0",
-    "ws": "^8.21.0"
+    "@midnight-ntwrk/ledger-v8": "8.1.0",
+    "@midnight-ntwrk/midnight-js-network-id": "4.0.2",
+    "@midnight-ntwrk/midnight-did": "0.5.0",
+    "@midnight-ntwrk/midnight-did-api": "0.5.0",
+    "@midnight-ntwrk/midnight-did-contract": "0.5.0",
+    "@midnight-ntwrk/midnight-did-domain": "0.5.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
+    "brace-expansion": "^5.0.9",
+    "fast-uri": "3.1.5",
+    "find-my-way": "^9.7.0",
+    "@fastify/swagger-ui": "^6.1.1",
+    "@fastify/static": "^10.1.2",
+    "fastify-plugin": "^6.0.0",
+    "ethers@5.8.0": {
+      "@ethersproject/providers": {
+        "ws": "8.21.2"
+      }
+    },
+    "ws": "^8.21.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.28.0",

@@ -12,26 +12,11 @@ const packageFiles = [
 ];
 
 const didPackageRefs = new Map([
-  [
-    "@midnight-ntwrk/midnight-did",
-    "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-v0.4.0",
-  ],
-  [
-    "@midnight-ntwrk/midnight-did-api",
-    "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-api-v0.4.0",
-  ],
-  [
-    "@midnight-ntwrk/midnight-did-contract",
-    "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-contract-v0.4.0",
-  ],
-  [
-    "@midnight-ntwrk/midnight-did-domain",
-    "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-domain-v0.4.0",
-  ],
-  [
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr",
-    "git+https://github.com/midnightntwrk/midnight-did.git#npm-midnight-did-jubjub-schnorr-v0.4.0",
-  ],
+  ["@midnight-ntwrk/midnight-did", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-api", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-contract", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-domain", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did-jubjub-schnorr", "0.5.0"],
 ]);
 
 const readJson = (relativePath) =>
@@ -39,6 +24,30 @@ const readJson = (relativePath) =>
 
 const failures = [];
 const rootPackageJson = readJson("package.json");
+
+if (
+  rootPackageJson.dependencies?.["@midnight-ntwrk/contract"] !==
+  "npm:@midnight-ntwrk/midnight-did-contract@0.5.0"
+) {
+  failures.push(
+    "package.json dependencies.@midnight-ntwrk/contract must alias the 0.5.0 contract package for the DID API default ZK artifact path",
+  );
+}
+
+if (rootPackageJson.overrides?.["@midnight-ntwrk/ledger-v8"] !== "8.1.0") {
+  failures.push(
+    "package.json overrides.@midnight-ntwrk/ledger-v8 must be 8.1.0 to keep DID API wallet WASM classes on one ledger instance",
+  );
+}
+
+if (
+  rootPackageJson.overrides?.["@midnight-ntwrk/midnight-js-network-id"] !==
+  "4.0.2"
+) {
+  failures.push(
+    "package.json overrides.@midnight-ntwrk/midnight-js-network-id must be 4.0.2 to share DID API network configuration across the contract graph",
+  );
+}
 
 for (const [packageName, expectedRef] of didPackageRefs) {
   const dependencyRef = rootPackageJson.dependencies?.[packageName];
@@ -73,9 +82,10 @@ for (const packageFile of packageFiles) {
         continue;
       }
 
-      if (spec !== "0.4.0") {
+      const expectedRef = didPackageRefs.get(packageName);
+      if (spec !== expectedRef) {
         failures.push(
-          `${packageFile} ${field}.${packageName} must use 0.4.0 and rely on root overrides`,
+          `${packageFile} ${field}.${packageName} must use ${expectedRef} and rely on root overrides`,
         );
       }
     }

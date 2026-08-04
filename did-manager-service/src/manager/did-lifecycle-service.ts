@@ -141,20 +141,22 @@ export const buildNormalizedVerificationMethod = async (
 
 export const addVerificationMethod = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   method: VerificationMethod,
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.addVerificationMethod(didContract, method);
+  await api.addVerificationMethod(didContract, providers, method);
   await persist();
   return { updated: true };
 };
 
 export const updateVerificationMethod = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   method: VerificationMethod,
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.updateVerificationMethod(didContract, method);
+  await api.updateVerificationMethod(didContract, providers, method);
   await persist();
   return { updated: true };
 };
@@ -196,59 +198,65 @@ export const removeRelation = async (
 
 export const addService = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   input: { id: string; type: string; serviceEndpoint: ServiceEndpoint },
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.addService(didContract, createService(input));
+  await api.addService(didContract, providers, createService(input));
   await persist();
   return { updated: true };
 };
 
 export const updateService = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   input: { id: string; type: string; serviceEndpoint: ServiceEndpoint },
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.updateService(didContract, createService(input));
+  await api.updateService(didContract, providers, createService(input));
   await persist();
   return { updated: true };
 };
 
 export const removeService = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   id: string,
   persist: () => Promise<void>,
 ): Promise<{ removed: true }> => {
-  await api.removeService(didContract, id);
+  await api.removeService(didContract, providers, id);
   await persist();
   return { removed: true };
 };
 
 export const addAlsoKnownAs = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   value: string,
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.addAlsoKnownAs(didContract, value);
+  await api.addAlsoKnownAs(didContract, providers, value);
   await persist();
   return { updated: true };
 };
 
 export const removeAlsoKnownAs = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   value: string,
   persist: () => Promise<void>,
 ): Promise<{ removed: true }> => {
-  await api.removeAlsoKnownAs(didContract, value);
+  await api.removeAlsoKnownAs(didContract, providers, value);
   await persist();
   return { removed: true };
 };
 
 export const deactivateDid = async (
   didContract: api.DeployedMidnightDIDContract,
+  providers: api.MidnightDIDProviders,
   persist: () => Promise<void>,
 ): Promise<{ deactivated: true }> => {
-  await api.deactivate(didContract);
+  await api.deactivate(didContract, providers);
   await persist();
   return { deactivated: true };
 };
