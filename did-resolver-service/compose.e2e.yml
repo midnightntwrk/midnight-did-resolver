@@ -49,7 +49,8 @@ services:
       RESOLVER_DEBUG: "true"
       MIDNIGHT_INDEXER_HTTP_URL: "http://indexer:8088/api/v3/graphql"
       # Local-only container network; TLS terminates outside this isolated E2E stack.
-      MIDNIGHT_INDEXER_WS_URL: "ws://indexer:8088/api/v3/graphql/ws" # nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket
+      # nosemgrep: javascript.lang.security.detect-insecure-websocket.detect-insecure-websocket
+      MIDNIGHT_INDEXER_WS_URL: "ws://indexer:8088/api/v3/graphql/ws"
     ports:
       - "0:3001"
     depends_on:
