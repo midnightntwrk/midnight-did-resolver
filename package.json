@@ -1,0 +1,88 @@
+{
+  "name": "midnight-did-resolver-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24",
+    "npm": ">=10"
+  },
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "secret-storage",
+    "did-resolver-service",
+    "did-manager-service",
+    "docs-site"
+  ],
+  "scripts": {
+    "clean": "turbo run clean --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
+    "lint": "turbo run lint --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
+    "lint:fix": "turbo run lint:fix --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
+    "typecheck:all": "turbo run typecheck --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
+    "check:did-libs": "node scripts/check-did-package-refs.mjs",
+    "smoke:did-zk-release-artifacts": "node scripts/smoke-did-zk-release-artifacts.mjs",
+    "build:did-jubjub-schnorr": "npm run check:did-libs",
+    "build:did-prereqs": "npm run check:did-libs",
+    "build:all": "npm run build -w @midnight-ntwrk/midnight-did-secret-storage && npm run build:did-prereqs && npm run build -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service",
+    "test:all": "npm run test -w @midnight-ntwrk/midnight-did-secret-storage && npm run test -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run test -w @midnight-ntwrk/midnight-did-manager-service",
+    "ci:typescript": "npm run check:run-target-catalog && npm run lint && npm run build:all && npm run test:all",
+    "docs:sync-source": "npm run docs:sync-source -w docs-site",
+    "docs:api": "npm run docs:api -w docs-site",
+    "docs:dev": "npm run docs:dev -w docs-site",
+    "docs:build": "npm run docs:build -w docs-site",
+    "docs:preview": "npm run docs:preview -w docs-site",
+    "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/contract": "npm:@midnight-ntwrk/midnight-did-contract@0.5.0",
+    "@midnight-ntwrk/midnight-did": "0.5.0",
+    "@midnight-ntwrk/midnight-did-api": "0.5.0",
+    "@midnight-ntwrk/midnight-did-contract": "0.5.0",
+    "@midnight-ntwrk/midnight-did-domain": "0.5.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
+    "@midnight-ntwrk/midnight-js-network-id": "4.0.2"
+  },
+  "overrides": {
+    "@midnight-ntwrk/ledger-v8": "8.1.0",
+    "@midnight-ntwrk/midnight-js-network-id": "4.0.2",
+    "@midnight-ntwrk/midnight-did": "0.5.0",
+    "@midnight-ntwrk/midnight-did-api": "0.5.0",
+    "@midnight-ntwrk/midnight-did-contract": "0.5.0",
+    "@midnight-ntwrk/midnight-did-domain": "0.5.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
+    "brace-expansion": "^5.0.9",
+    "fast-uri": "3.1.5",
+    "find-my-way": "^9.7.0",
+    "@fastify/swagger-ui": "^6.1.1",
+    "@fastify/static": "^10.1.2",
+    "fastify-plugin": "^6.0.0",
+    "ethers@5.8.0": {
+      "@ethersproject/providers": {
+        "ws": "8.21.2"
+      }
+    },
+    "ws": "^8.21.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@midnight-ntwrk/midnight-js-fetch-zk-config-provider": "4.0.4",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "4.0.4",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.15.29",
+    "@typescript-eslint/eslint-plugin": "^8.33.1",
+    "@typescript-eslint/parser": "^8.33.1",
+    "@vitest/coverage-v8": "^3.2.0",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^3.6.3",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^5.4.1",
+    "eslint-plugin-simple-import-sort": "^12.0.0",
+    "globals": "^16.2.0",
+    "testcontainers": "^11.0.0",
+    "ts-node": "^10.9.2",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.0"
+  }
+}

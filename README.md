@@ -1,72 +1,122 @@
-# Midnight Template Repository
+# Midnight DID Resolver
 
-This GitHub repository should be used as a template when creating a new Midnight GitHub repository.
-The template is configured with default repository settings and a set of default files that are expected to exist in all Midnight GitHub repositories.
+This repository owns the resolver-facing runtime around the `did:midnight` method.
 
-### LICENSE
+It contains:
 
-Apache 2.0.
+- TypeScript resolver service with REST, Swagger, and a browser UI.
+- DID manager service for wallet-backed DID lifecycle operations.
+- Secret-storage package for local key custody, signing, verification, and HD derivation.
+- VitePress documentation that can be published to GitHub Pages.
 
-### README.md
+The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). This repository consumes the `0.5.0` release from the public npmjs registry.
 
-Provides a brief description for users and developers who want to understand the purpose, setup, and usage of the repository.
+## Repository Layout
 
-### SECURITY.md
+| Path                    | Responsibility                                                            |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `secret-storage/`       | TypeScript key custody, signing, verification, and HD derivation package. |
+| `did-resolver-service/` | TypeScript resolver REST/Swagger/UI service.                              |
+| `did-manager-service/`  | TypeScript wallet-backed DID manager service and UI.                      |
+| `docs-site/`            | VitePress documentation site.                                             |
+| `infrastructure/`       | Local standalone and proof-server compose files used by service scripts.  |
 
-Provides a brief description of the Midnight Foundation's security policy and how to properly disclose security issues.
+## TypeScript Quick Start
 
-### CONTRIBUTING.md
+Prerequisites:
 
-Provides guidelines for how people can contribute to the Midnight project.
+- Node.js 24 and npm 10.
+- Access to the public npmjs registry.
+- Docker for standalone integration and browser tests.
 
-### CODEOWNERS
+```bash
+npm ci
+./run.sh --light --strict
+```
 
-Defines repository ownership rules.
+Useful targets:
 
-### ISSUE_TEMPLATE
+```bash
+./run.sh targets
+./run.sh secret-storage --strict
+./run.sh resolver --light --strict
+./run.sh manager --light --strict
+./run.sh docs
+```
 
-Provides templates for reporting various types of issues, such as: bug report, documentation improvement and feature request.
+Start service UIs:
 
-### PULL_REQUEST_TEMPLATE
+```bash
+./start-resolver.sh --preprod
+./start-manager.sh --preprod
+```
 
-Provides a template for a pull request.
+Standalone mode expects local Docker infrastructure:
 
-### CLA Assistant
+```bash
+docker compose -f infrastructure/standalone.yml up -d
+./start-resolver.sh --standalone
+./start-manager.sh --standalone
+```
 
-The Midnight Foundation appreciates contributions, and like many other open source projects asks contributors to sign a contributor
-License Agreement before accepting contributions. We use CLA assistant (https://github.com/cla-assistant/cla-assistant) to streamline the CLA
-signing process, enabling contributors to sign our CLAs directly within a GitHub pull request.
+## Docs
 
-### Dependabot
+```bash
+npm run docs:dev
+npm run docs:build
+```
 
-The Midnight Foundation uses GitHub Dependabot feature to keep our projects dependencies up-to-date and address potential security vulnerabilities. 
+The docs site uses `docs-site/` and covers the TypeScript service and package surface.
 
-### Checkmarx
+## Pi development shell
 
-The Midnight Foundation uses Checkmarx for application security (AppSec) to identify and fix security vulnerabilities.
-All repositories are scanned with Checkmarx's suite of tools including: Static Application Security Testing (SAST), Infrastructure as Code (IaC), Software Composition Analysis (SCA), API Security, Container Security and Supply Chain Scans (SCS).
+This repository supports the optional Pi shell for structured `dev-loops` workflows.
 
-### Unito
+- Install and use Pi:
 
-Facilitates two-way data synchronization, automated workflows and streamline processes between: Jira, GitHub issues and Github project Kanban board. 
+  ```bash
+  pi
+  ```
 
-# TODO - New Repo Owner
+- For command examples and session setup, see [`docs/pi-development.md`](docs/pi-development.md).
 
-### Software Package Data Exchange (SPDX)
-Include the following Software Package Data Exchange (SPDX) short-form identifier in a comment at the top headers of each source code file.
+## Docker image publishing
 
+GitHub Container Registry images are published via
+`.github/workflows/release-docker.yml`.
 
- <I>// This file is part of <B>REPLACE WITH REPO-NAME</B>.<BR>
- // Copyright (C) 2025 Midnight Foundation<BR>
- // SPDX-License-Identifier: Apache-2.0<BR>
- // Licensed under the Apache License, Version 2.0 (the "License");<BR>
- // You may not use this file except in compliance with the License.<BR>
- // You may obtain a copy of the License at<BR>
- //<BR>
- //	http://www.apache.org/licenses/LICENSE-2.0<BR>
- //<BR>
- // Unless required by applicable law or agreed to in writing, software<BR>
- // distributed under the License is distributed on an "AS IS" BASIS,<BR>
- // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.<BR>
- // See the License for the specific language governing permissions and<BR>
- // limitations under the License.</I>
+- `ghcr.io/midnightntwrk/midnight-did-resolver-service:<version>`
+- `ghcr.io/midnightntwrk/midnight-did-manager-service:<version>`
+
+The workflow is configured for:
+
+- Push to semantic tags matching `v*` from commits on `main` (for example
+  `v0.1.0-rc.1` or `v0.1.0`).
+- Manual publication from `main` with an optional `version` input.
+- Multi-platform publish (`linux/amd64`, `linux/arm64`).
+- Exact-version tags for release candidates; only stable versions update
+  `latest`.
+- Registry provenance and SBOM attestations for both images.
+
+For the first release candidate, the manual release command is:
+
+```bash
+gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.1
+```
+
+## Configuration
+
+Resolver service variables are documented in the service README and docs site.
+
+TypeScript service defaults are documented in the service READMEs and docs site.
+
+## References
+
+- [W3C DID Core](https://www.w3.org/TR/did-core/)
+- [W3C DID Resolution](https://www.w3.org/TR/did-resolution/)
+- [Midnight DID](https://github.com/midnightntwrk/midnight-did)
+- [Midnight Indexer](https://github.com/midnightntwrk/midnight-indexer)
+
+## License
+
+Apache-2.0

@@ -6,9 +6,10 @@ on:
     branches: [develop, main]
   pull_request:
     branches: [develop, main]
-  workflow_dispatch: {}   # so you can still run it manually
+  workflow_dispatch: {}
   schedule:
-    - cron: '0 0 * * *'   # run daily at midnight UTC
+    - cron: "0 0 * * *"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
@@ -23,10 +24,12 @@ jobs:
       statuses: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  #v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Scan code
-        uses: midnightntwrk/upload-sarif-github-action@4bbe849e9707b46342832d4b7f94fec585823ca4  # main 2026-07-10, includes #113 scan-context fix
+        uses: midnightntwrk/upload-sarif-github-action@4bbe849e9707b46342832d4b7f94fec585823ca4 # main 2026-07-10, includes #113 scan-context fix
         with:
           fail_severity: "high"
           scorecard_checks: "Binary-Artifacts,Dangerous-Workflow,Security-Policy,License,Pinned-Dependencies,Token-Permissions"

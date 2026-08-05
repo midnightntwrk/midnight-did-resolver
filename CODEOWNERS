@@ -1,10 +1,42 @@
-* @midnightntwrk/mn-codeowners-mnf-se
-/.github/ISSUE_TEMPLATE/ @midnightntwrk/mn-security @midnightntwrk/mn-sre
-/.github/PULL_REQUEST_TEMPLATE/ @midnightntwrk/mn-security @midnightntwrk/mn-sre
-/.github/workflows/scan.yaml @midnightntwrk/mn-security @midnightntwrk/mn-sre
-/.github/workflows/dependabot.yml @midnightntwrk/mn-security @midnightntwrk/mn-sre
-CODE_OF_CONDUCT.md @midnightntwrk/mn-security @midnightntwrk/mn-sre
-CODEOWNERS @midnightntwrk/mn-security @midnightntwrk/mn-sre
-CONTRIBUTING.md @midnightntwrk/mn-security @midnightntwrk/mn-sre
-LICENSE @midnightntwrk/mn-security @midnightntwrk/mn-sre
-SECURITY.md @midnightntwrk/mn-security @midnightntwrk/mn-sre
+# Default ownership for resolver product code, documentation, and project metadata.
+* @midnightntwrk/ex-identus @midnightntwrk/mn-codeowners-mnf-se
+
+# Resolver applications and reusable packages.
+/did-manager-service/** @midnightntwrk/ex-identus @midnightntwrk/mn-codeowners-mnf-se
+/did-resolver-service/** @midnightntwrk/ex-identus @midnightntwrk/mn-codeowners-mnf-se
+/secret-storage/** @midnightntwrk/ex-identus @midnightntwrk/mn-codeowners-mnf-se
+
+# Documentation and developer tooling.
+/docs-site/** @midnightntwrk/ex-identus @midnightntwrk/mn-codeowners-mnf-se
+/docs/** @midnightntwrk/ex-identus @midnightntwrk/mn-codeowners-mnf-se
+/scripts/** @midnightntwrk/ex-identus
+/run.sh @midnightntwrk/ex-identus
+/run-*.sh @midnightntwrk/ex-identus
+/package.json @midnightntwrk/ex-identus
+/package-lock.json @midnightntwrk/ex-identus
+/turbo.json @midnightntwrk/ex-identus
+/tsconfig*.json @midnightntwrk/ex-identus
+
+# Release and container surfaces require product and SRE review coverage.
+/.github/workflows/** @midnightntwrk/ex-identus @midnightntwrk/mn-sre
+/.github/workflows/release-docker.yml @midnightntwrk/ex-identus @midnightntwrk/mn-sre
+/did-manager-service/Dockerfile @midnightntwrk/ex-identus @midnightntwrk/mn-sre
+/did-resolver-service/Dockerfile @midnightntwrk/ex-identus @midnightntwrk/mn-sre
+/.dockerignore @midnightntwrk/ex-identus @midnightntwrk/mn-sre
+
+# Dependency automation and security policy require security and SRE visibility.
+/.github/dependabot.yml @midnightntwrk/ex-identus @midnightntwrk/mn-security @midnightntwrk/mn-sre
+/renovate.json @midnightntwrk/ex-identus @midnightntwrk/mn-security @midnightntwrk/mn-sre
+/.github/workflows/scan.yaml @midnightntwrk/ex-identus @midnightntwrk/mn-security @midnightntwrk/mn-sre
+/SECURITY.md @midnightntwrk/ex-identus @midnightntwrk/mn-security @midnightntwrk/mn-sre
+/CODEOWNERS @midnightntwrk/ex-identus @midnightntwrk/mn-security @midnightntwrk/mn-sre
+
+# Community and contribution files.
+/.github/ISSUE_TEMPLATE/** @midnightntwrk/ex-identus
+/.github/PULL_REQUEST_TEMPLATE/** @midnightntwrk/ex-identus
+/.github/pull_request_template.md @midnightntwrk/ex-identus
+/CODE_OF_CONDUCT.md @midnightntwrk/ex-identus @midnightntwrk/mn-security
+/CONTRIBUTING.md @midnightntwrk/ex-identus
+/LICENSE @midnightntwrk/ex-identus
+/AGENT.md @midnightntwrk/ex-identus
+/.pi/settings.json @midnightntwrk/ex-identus

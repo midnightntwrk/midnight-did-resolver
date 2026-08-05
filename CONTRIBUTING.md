@@ -10,7 +10,7 @@ We welcome your contributions to the Midnight network! By contributing, you'll p
 
 ## Submitting Issues
 
-Use one of the [templates] to submit an issue to the Project Board. The Midnight team or a community member will address it if it's relevant.
+Use one of the templates in `.github/ISSUE_TEMPLATE/` to submit an issue. The Midnight team or a community member will address it if it's relevant.
 Ensure the title is a clear summary of the requirement and provides enough context.
 
 **Issue Types:**
@@ -18,18 +18,19 @@ Ensure the title is a clear summary of the requirement and provides enough conte
 * **Bug Report:** Provide detailed information about the issue, including steps to reproduce it, expected behavior, and actual behavior, screenshots, or any other relevant information.
 * **Documentation Improvement:** Clearly describe the improvement requested for existing content and/or raise missing areas of documentation and provide details for what should be included.  
 * **Feature Request:** Clearly describe your feature, its benefits, and most importantly, the expected outcome. This helps us analyze the proposed solution and develop alternatives.
-* **Enhancement:** (WIP)
+* **Enhancement:** Describe a proposed improvement to existing functionality, what it improves, and the expected outcome.
 
 ## Code Contribution Process
 
 * **Pull Requests:** Code contributions are submitted via Pull Requests.
-* **Fork the Repository:** Create your own fork of the Midnight repository.
+* **Fork the Repository:** Create your own fork of the `midnight-did-resolver` repository.
 * **Create a Branch:** Make your changes in a separate branch,
   prefixed with a short name moniker (e.g. `jill-my-feature`).
 * **Follow Coding Standards:** Adhere to the coding style guides specified in our documentation.
 * **Write Tests:** Include unit tests and integration tests to cover your changes.
-* **Commit Messages:** Write clear and concise commit messages.
-* **Submit Pull Request:** Submit your pull request to the appropriate branch in the main repository.
+* **Commit Messages:** Write clear Conventional Commit style messages, for example `fix(resolver): handle invalid DID input`.
+* **Sign-off and Signatures:** Include a DCO sign-off (`Signed-off-by: Name <email>`) and use GPG-signed commits where possible.
+* **Submit Pull Request:** Submit your pull request against `develop` unless a maintainer requests a release or hotfix branch.
 * **Please do not `--force` pushes** - doing so means that reviewers will have to re-review all
   commits in the PR rather than commits since last review.
 * **Code Review:** All pull requests undergo code review by project maintainers.
@@ -44,8 +45,8 @@ Ensure the title is a clear summary of the requirement and provides enough conte
   Where possible all files should have this license header:
 
 ```
-// This file is part of <REPLACE WITH REPOSITORY NAME>.
-// Copyright (C) 2025 Midnight Foundation
+// This file is part of midnightntwrk/midnight-did-resolver.
+// Copyright (C) Midnight Foundation
 // SPDX-License-Identifier: Apache-2.0
 // Licensed under the Apache License, Version 2.0 (the "License");
 // You may not use this file except in compliance with the License.
