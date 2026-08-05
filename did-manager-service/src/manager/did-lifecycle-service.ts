@@ -145,7 +145,20 @@ export const addVerificationMethod = async (
   method: VerificationMethod,
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.addVerificationMethod(didContract, providers, method);
+  if (method.publicKeyJwk.crv === 'Jubjub') {
+    const { x, y } = normalizePublicForLedger({
+      kty: 'EC',
+      crv: 'Jubjub',
+      x: method.publicKeyJwk.x,
+      y: method.publicKeyJwk.y,
+    });
+    await api.addSchnorrJubjubVerificationMethod(didContract, providers, {
+      id: method.id,
+      publicKey: { x, y },
+    });
+  } else {
+    await api.addVerificationMethod(didContract, providers, method);
+  }
   await persist();
   return { updated: true };
 };
@@ -156,7 +169,20 @@ export const updateVerificationMethod = async (
   method: VerificationMethod,
   persist: () => Promise<void>,
 ): Promise<{ updated: true }> => {
-  await api.updateVerificationMethod(didContract, providers, method);
+  if (method.publicKeyJwk.crv === 'Jubjub') {
+    const { x, y } = normalizePublicForLedger({
+      kty: 'EC',
+      crv: 'Jubjub',
+      x: method.publicKeyJwk.x,
+      y: method.publicKeyJwk.y,
+    });
+    await api.updateSchnorrJubjubVerificationMethod(didContract, providers, {
+      id: method.id,
+      publicKey: { x, y },
+    });
+  } else {
+    await api.updateVerificationMethod(didContract, providers, method);
+  }
   await persist();
   return { updated: true };
 };
@@ -167,7 +193,15 @@ export const removeVerificationMethod = async (
   methodId: string,
   persist: () => Promise<void>,
 ): Promise<{ removed: true }> => {
-  await api.removeVerificationMethod(didContract, providers, methodId);
+  const resolved = await api.resolve(providers, didContract);
+  const method = resolved?.didDocument.verificationMethod?.find(
+    (candidate) => candidate.id === methodId || candidate.id.endsWith(methodId),
+  );
+  if (method?.publicKeyJwk.crv === 'Jubjub') {
+    await api.removeSchnorrJubjubVerificationMethod(didContract, providers, methodId);
+  } else {
+    await api.removeVerificationMethod(didContract, providers, methodId);
+  }
   await persist();
   return { removed: true };
 };

@@ -6,12 +6,6 @@ services:
       - "0:6300"
     environment:
       RUST_BACKTRACE: "full"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6300/version"]
-      interval: 10s
-      timeout: 5s
-      retries: 20
-      start_period: 10s
 
   indexer:
     image: "midnightntwrk/indexer-standalone:4.0.0"
@@ -47,8 +41,8 @@ services:
 
   did-resolver:
     build:
-      context: ../..
-      dockerfile: midnight-did-resolver/did-resolver-service/Dockerfile
+      context: ..
+      dockerfile: did-resolver-service/Dockerfile
     environment:
       RESOLVER_HOST: "0.0.0.0"
       RESOLVER_PORT: "3001"

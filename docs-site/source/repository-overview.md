@@ -16,13 +16,13 @@ The core DID contract, domain model, and TypeScript API packages remain in [`mid
 
 ## Repository Layout
 
-| Path | Responsibility |
-| --- | --- |
-| `secret-storage/` | TypeScript key custody, signing, verification, and HD derivation package. |
-| `did-resolver-service/` | TypeScript resolver REST/Swagger/UI service. |
-| `did-manager-service/` | TypeScript wallet-backed DID manager service and UI. |
-| `docs-site/` | VitePress documentation site. |
-| `infrastructure/` | Local standalone and proof-server compose files used by service scripts. |
+| Path                    | Responsibility                                                            |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `secret-storage/`       | TypeScript key custody, signing, verification, and HD derivation package. |
+| `did-resolver-service/` | TypeScript resolver REST/Swagger/UI service.                              |
+| `did-manager-service/`  | TypeScript wallet-backed DID manager service and UI.                      |
+| `docs-site/`            | VitePress documentation site.                                             |
+| `infrastructure/`       | Local standalone and proof-server compose files used by service scripts.  |
 
 ## TypeScript Quick Start
 
@@ -93,14 +93,18 @@ GitHub Container Registry images are published via
 
 The workflow is configured for:
 
-- Push to tags matching `v*` (for example `v0.1.0`).
-- Manual trigger with an optional `version` input.
+- Push to semantic tags matching `v*` from commits on `main` (for example
+  `v0.1.0-rc.1` or `v0.1.0`).
+- Manual publication from `main` with an optional `version` input.
 - Multi-platform publish (`linux/amd64`, `linux/arm64`).
+- Exact-version tags for release candidates; only stable versions update
+  `latest`.
+- Registry provenance and SBOM attestations for both images.
 
-For the current branch, package version defaults to workspace `0.1.0`, so the manual release command is:
+For the first release candidate, the manual release command is:
 
 ```bash
-gh workflow run "Release application Docker images" --ref develop -f version=0.1.0
+gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.1
 ```
 
 ## Configuration
