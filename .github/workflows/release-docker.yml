@@ -1,0 +1,151 @@
+name: Release application Docker images
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image version (defaults to workspace package version)."
+        required: false
+        default: ""
+      platforms:
+        description: "Buildx target platforms"
+        required: false
+        default: "linux/amd64,linux/arm64"
+
+permissions:
+  contents: read
+
+env:
+  PLATFORMS: "linux/amd64,linux/arm64"
+
+jobs:
+  release:
+    name: Build and push resolver + manager images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve release metadata
+        id: meta
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_PLATFORMS: ${{ inputs.platforms }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${INPUT_VERSION}"
+
+          if [[ "${EVENT_NAME}" == "push" ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+
+          if [[ -z "${VERSION}" ]]; then
+            VERSION="$(node -p "require('./package.json').version")"
+          fi
+
+          if [[ -z "${VERSION}" ]]; then
+            echo "Unable to resolve image version" >&2
+            exit 1
+          fi
+
+          if [[ ! "${VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ ]]; then
+            echo "Invalid semantic image version: ${VERSION}" >&2
+            exit 1
+          fi
+
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          if [[ "${VERSION%%-*}" != "${PACKAGE_VERSION}" ]]; then
+            echo "Image version ${VERSION} does not match workspace base version ${PACKAGE_VERSION}" >&2
+            exit 1
+          fi
+
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" && "${GITHUB_REF_NAME}" != "main" ]]; then
+            echo "Manual publication must run from main, not ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+
+          if [[ "${EVENT_NAME}" == "push" ]] && ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "Release tag ${GITHUB_REF_NAME} does not point to a commit on main" >&2
+            exit 1
+          fi
+
+          PLATFORMS="${INPUT_PLATFORMS:-${PLATFORMS}}"
+          if [[ ! "${PLATFORMS}" =~ ^linux/(amd64|arm64)(,linux/(amd64|arm64))*$ ]]; then
+            echo "Unsupported build platforms: ${PLATFORMS}" >&2
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "platforms=${PLATFORMS}" >> "${GITHUB_OUTPUT}"
+          echo "resolver_image=ghcr.io/midnightntwrk/midnight-did-resolver-service:${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "manager_image=ghcr.io/midnightntwrk/midnight-did-manager-service:${VERSION}" >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "resolver_tags<<EOF"
+            echo "ghcr.io/midnightntwrk/midnight-did-resolver-service:${VERSION}"
+            if [[ "${VERSION}" != *-* ]]; then
+              echo "ghcr.io/midnightntwrk/midnight-did-resolver-service:latest"
+            fi
+            echo "EOF"
+            echo "manager_tags<<EOF"
+            echo "ghcr.io/midnightntwrk/midnight-did-manager-service:${VERSION}"
+            if [[ "${VERSION}" != *-* ]]; then
+              echo "ghcr.io/midnightntwrk/midnight-did-manager-service:latest"
+            fi
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Build and push resolver image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: did-resolver-service/Dockerfile
+          platforms: ${{ steps.meta.outputs.platforms }}
+          tags: ${{ steps.meta.outputs.resolver_tags }}
+          push: true
+          provenance: mode=max
+          sbom: true
+
+      - name: Build and push manager image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: did-manager-service/Dockerfile
+          platforms: ${{ steps.meta.outputs.platforms }}
+          tags: ${{ steps.meta.outputs.manager_tags }}
+          push: true
+          provenance: mode=max
+          sbom: true
+
+      - name: Print image refs
+        env:
+          MANAGER_IMAGE: ${{ steps.meta.outputs.manager_image }}
+          RESOLVER_IMAGE: ${{ steps.meta.outputs.resolver_image }}
+        run: |
+          echo "resolver=${RESOLVER_IMAGE}"
+          echo "manager=${MANAGER_IMAGE}"
