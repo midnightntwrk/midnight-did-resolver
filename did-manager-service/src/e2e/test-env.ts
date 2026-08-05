@@ -11,7 +11,7 @@ const execFileAsync = promisify(execFile);
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const managerDir = path.resolve(currentDir, '../..');
 const rootDir = path.resolve(managerDir, '..');
-const apiDir = path.resolve(rootDir, 'api');
+const infrastructureDir = path.resolve(rootDir, 'infrastructure');
 const managerEntry = path.resolve(managerDir, 'dist/index.js');
 const composeArgs = ['compose', '-f', 'standalone.yml'];
 
@@ -52,7 +52,7 @@ const getFreePort = async (): Promise<number> =>
 
 const dockerCompose = async (...args: string[]): Promise<string> => {
   const { stdout, stderr } = await execFileAsync('docker', [...composeArgs, ...args], {
-    cwd: apiDir,
+    cwd: infrastructureDir,
     env: process.env,
   });
   return `${stdout}${stderr}`.trim();

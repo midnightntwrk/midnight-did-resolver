@@ -80,24 +80,6 @@ const createDidWithDustRetry = async (
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 };
 
-const waitForHttp200 = async (
-  url: string,
-  timeoutMs = 180_000,
-  intervalMs = 2_500,
-) => {
-  const startedAt = Date.now();
-  while (Date.now() - startedAt < timeoutMs) {
-    try {
-      const response = await fetch(url);
-      if (response.status === 200) return;
-    } catch {
-      // service is still starting
-    }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs));
-  }
-  throw new Error(`Timeout waiting for HTTP 200 from ${url}`);
-};
-
 describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
   let env: StartedDockerComposeEnvironment;
   let projectName = "";
@@ -236,6 +218,7 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
           "compose.e2e.yml",
         )
           .withProjectName(projectName)
+          .withStartupTimeout(180_000)
           .withWaitStrategy(
             "indexer",
             Wait.forHealthCheck().withStartupTimeout(180000),
@@ -295,9 +278,6 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
           internalPort: 6300,
           timeoutMs: 180_000,
         });
-
-        const proofServerUrl = `http://127.0.0.1:${proofServerPort}`;
-        await waitForHttp200(`${proofServerUrl}/version`, 180_000);
       } catch (error) {
         dumpComposeDiagnostics(projectName);
         throw error;
@@ -371,7 +351,7 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
           x: "KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKio",
         },
       });
-      await api.addVerificationMethod(contract, method);
+      await api.addVerificationMethod(contract, providers, method);
 
       const firstResolved = await waitForResolve(did, (payload) => {
         if (payload.status !== 200) return false;
@@ -390,8 +370,12 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
         type: "LinkedDomains",
         serviceEndpoint: "https://example.com",
       });
-      await api.addService(contract, service);
-      await api.addAlsoKnownAs(contract, "https://example.org/alias");
+      await api.addService(contract, providers, service);
+      await api.addAlsoKnownAs(
+        contract,
+        providers,
+        "https://example.org/alias",
+      );
 
       const secondResolved = await waitForResolve(did, (payload) => {
         if (payload.status !== 200) return false;
@@ -409,7 +393,7 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
       );
       expect(secondVersion).toBeGreaterThan(firstVersion);
 
-      await api.deactivate(contract);
+      await api.deactivate(contract, providers);
 
       const deactivated = await waitForResolve(did, (payload) => {
         if (payload.status !== 200) return false;

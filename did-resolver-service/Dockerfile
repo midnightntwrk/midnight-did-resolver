@@ -10,6 +10,7 @@ RUN npm ci --ignore-scripts --prefix /workspace/midnight-did-resolver
 
 RUN npm run build -w @midnight-ntwrk/midnight-did-resolver-service --prefix /workspace/midnight-did-resolver
 
+RUN npm prune --omit=dev --ignore-scripts --prefix /workspace/midnight-did-resolver
 
 FROM node:24-bookworm-slim AS runtime
 
@@ -19,7 +20,7 @@ ENV NODE_ENV=production
 # (config defaults RESOLVER_HOST to 127.0.0.1 for local dev).
 ENV RESOLVER_HOST=0.0.0.0
 
-COPY --from=builder /workspace/midnight-did-resolver /workspace/midnight-did-resolver
+COPY --from=builder --chown=node:node /workspace/midnight-did-resolver /workspace/midnight-did-resolver
 
 EXPOSE 3001
 

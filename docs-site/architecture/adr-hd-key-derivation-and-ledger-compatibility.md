@@ -61,7 +61,7 @@ Derivation uses:
 
 ## Candidate retry behavior
 
-`FileSecretStore.deriveKeyFromSeed(...)` retries up to 512 candidates when a derived key is not representable in Midnight Compact fields.  
+`FileSecretStore.deriveKeyFromSeed(...)` retries up to 512 candidates when a derived key is not representable in Midnight Compact fields.
 This keeps derivation deterministic while still finding a valid ledger-compatible key.
 
 ## Examples

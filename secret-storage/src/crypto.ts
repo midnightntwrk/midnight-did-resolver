@@ -9,6 +9,7 @@ import { promisify } from "node:util";
 const scrypt = promisify(scryptCb);
 const KEY_SIZE = 32;
 const IV_SIZE = 12;
+const AUTH_TAG_SIZE = 16;
 
 export type EncryptedPayload = {
   salt: string;
@@ -33,7 +34,9 @@ export const encryptJsonWithKey = (
   salt: Buffer,
 ): EncryptedPayload => {
   const iv = randomBytes(IV_SIZE);
-  const cipher = createCipheriv("aes-256-gcm", key, iv);
+  const cipher = createCipheriv("aes-256-gcm", key, iv, {
+    authTagLength: AUTH_TAG_SIZE,
+  });
   const ciphertext = Buffer.concat([
     cipher.update(plaintext, "utf8"),
     cipher.final(),
@@ -61,7 +64,9 @@ export const decryptJsonWithKey = (
   const iv = Buffer.from(payload.iv, "base64");
   const tag = Buffer.from(payload.tag, "base64");
   const ciphertext = Buffer.from(payload.ciphertext, "base64");
-  const decipher = createDecipheriv("aes-256-gcm", key, iv);
+  const decipher = createDecipheriv("aes-256-gcm", key, iv, {
+    authTagLength: AUTH_TAG_SIZE,
+  });
   decipher.setAuthTag(tag);
   const plaintext = Buffer.concat([
     decipher.update(ciphertext),
