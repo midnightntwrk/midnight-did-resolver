@@ -161,4 +161,3 @@ Treat this directory as sensitive local state and do not commit it.
   - `/services/did-manager-service`
 - docs site architecture page:
   - `/architecture/did-manager-service`
-

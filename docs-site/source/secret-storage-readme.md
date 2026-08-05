@@ -423,4 +423,3 @@ const equal = Buffer.from(c0.privateKey).equals(Buffer.from(c1.privateKey));
 - Typecheck: `npm run typecheck -w @midnight-ntwrk/midnight-did-secret-storage`
 - Tests are currently exercised via manager and integration suites:
   - consume the package through the DID manager or direct package tests
-

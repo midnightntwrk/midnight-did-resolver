@@ -133,4 +133,3 @@ Integration tests use compose + Testcontainers and now enforce cleanup via:
 - fallback `docker compose down --volumes --remove-orphans`
 
 This reduces dangling containers/volumes after failures.
-

@@ -67,5 +67,5 @@ for (const doc of docs) {
     "",
   ].join("\n");
 
-  writeFileSync(join(outputRoot, `${doc.slug}.md`), `${note}${content}\n`, "utf8");
+  writeFileSync(join(outputRoot, `${doc.slug}.md`), `${note}${content.trimEnd()}\n`, "utf8");
 }

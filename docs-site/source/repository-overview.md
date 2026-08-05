@@ -123,4 +123,3 @@ TypeScript service defaults are documented in the service READMEs and docs site.
 ## License
 
 Apache-2.0
-
