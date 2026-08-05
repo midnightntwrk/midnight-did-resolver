@@ -41,4 +41,22 @@ describe("crypto helpers", () => {
 
     await expect(decryptJson(encrypted, "wrong-passphrase")).rejects.toThrow();
   });
+
+  it("rejects a truncated GCM authentication tag", async () => {
+    const encrypted = await encryptJson(
+      "sensitive payload",
+      "midnight-passphrase",
+    );
+    const truncatedTag = Buffer.from(encrypted.tag, "base64").subarray(0, 8);
+
+    await expect(
+      decryptJson(
+        {
+          ...encrypted,
+          tag: truncatedTag.toString("base64"),
+        },
+        "midnight-passphrase",
+      ),
+    ).rejects.toThrow();
+  });
 });
