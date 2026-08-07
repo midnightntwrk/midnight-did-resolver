@@ -425,6 +425,13 @@ test.describe.serial('did-manager-service UI', () => {
     await expect(page.locator('#profileSelect')).toBeEnabled();
     await expect(page.locator('#profileName')).toBeEnabled();
 
+    await env.restart();
+    const persistedProfiles = await page.request.get(`${env.baseUrl}/api/profiles`);
+    expect(persistedProfiles.ok()).toBe(true);
+    expect((await persistedProfiles.json()).data.availableProfileNames).toContain(standaloneProfileName);
+    await page.goto(`${env.baseUrl}/wallet`);
+    await expect(page.locator('#profileBadgeText')).toContainText(standaloneProfileName);
+
     await page.fill('#profileName', standaloneVerifyProfileName);
     await clickAndWaitForJsonResponse<any>(page, '#selectProfile', (url, method) => {
       return method === 'POST' && url.pathname === '/api/profiles/select';
