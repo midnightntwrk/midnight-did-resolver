@@ -12,8 +12,14 @@ export default defineConfig({
     root: ".",
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "json-summary", "html"],
       include: ["src/**/*.ts"],
+      thresholds: {
+        lines: 90,
+        statements: 90,
+        functions: 90,
+        branches: 80,
+      },
       exclude: [
         "dist/**",
         "**/*.d.ts",
