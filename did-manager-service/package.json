@@ -38,9 +38,9 @@
     "@midnight-ntwrk/midnight-did": "0.5.0",
     "@midnight-ntwrk/midnight-did-api": "0.5.0",
     "@midnight-ntwrk/midnight-did-secret-storage": "*",
-    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.0.2",
-    "@midnight-ntwrk/midnight-js-network-id": "4.0.2",
-    "@midnight-ntwrk/wallet-sdk-address-format": "^3.1.0",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.1.1",
+    "@midnight-ntwrk/midnight-js-network-id": "4.1.1",
+    "@midnight-ntwrk/wallet-sdk-address-format": "^3.1.2",
     "canonicalize": "^3.0.0",
     "fastify": "^5.6.1",
     "pino": "^9.7.0"

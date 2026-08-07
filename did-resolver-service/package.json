@@ -29,7 +29,7 @@
     "@midnight-ntwrk/midnight-did": "0.5.0",
     "@midnight-ntwrk/midnight-did-contract": "0.5.0",
     "@midnight-ntwrk/midnight-did-domain": "0.5.0",
-    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.0.2",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.1.1",
     "fastify": "^5.6.1"
   },
   "devDependencies": {
