@@ -83,6 +83,23 @@ This repository supports the optional Pi shell for structured `dev-loops` workfl
 
 - For command examples and session setup, see ``docs/pi-development.md``.
 
+## Docker demo
+
+The `demo/` directory provides a reproducible Docker Compose setup using the
+`0.1.0-rc.1` resolver and manager images together with local Midnight node,
+indexer, and proof-server dependencies:
+
+```bash
+just demo
+```
+
+This starts the stack, waits for both application health endpoints, and keeps
+manager state in `~/.midnight-did/manager` between runs. Copy
+`demo/.env.example` to `demo/.env` to override image references, host ports, or
+the manager data directory. Open the resolver at `http://127.0.0.1:3001` and the
+manager wallet at `http://127.0.0.1:3010/wallet`. See
+``demo/README.md`` for the complete command reference.
+
 ## Docker image publishing
 
 GitHub Container Registry images are published via
