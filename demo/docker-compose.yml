@@ -1,0 +1,91 @@
+services:
+  proof-server:
+    image: '${PROOF_SERVER_IMAGE:-midnightntwrk/proof-server:8.0.3}'
+    command: ['midnight-proof-server -v']
+    environment:
+      RUST_BACKTRACE: 'full'
+    # The proof-server image is distroless and has no shell/HTTP client for an
+    # in-container healthcheck. The manager waits for the container to start;
+    # the proof server may still download proving parameters on first launch.
+
+  node:
+    image: '${NODE_IMAGE:-midnightntwrk/midnight-node:0.22.3}'
+    environment:
+      CFG_PRESET: 'dev'
+      SIDECHAIN_BLOCK_BENEFICIARY: '04bcf7ad3be7a5c790460be82a713af570f22e0f801f6659ab8e84a52be6969e'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9944/health']
+      interval: 2s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+  indexer:
+    image: '${INDEXER_IMAGE:-midnightntwrk/indexer-standalone:4.0.0}'
+    env_file:
+      - ../infrastructure/standalone.env.example
+    environment:
+      APP__APPLICATION__NETWORK_ID: 'undeployed'
+      RUST_LOG: 'indexer=info,chain_indexer=info,indexer_api=info,wallet_indexer=info,indexer_common=info,fastrace_opentelemetry=off,info'
+    healthcheck:
+      test: ['CMD-SHELL', 'cat /var/run/indexer-standalone/running']
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    depends_on:
+      node:
+        condition: service_healthy
+
+  resolver:
+    image: '${RESOLVER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.1}'
+    ports:
+      - '${RESOLVER_PORT:-3001}:3001'
+    environment:
+      RESOLVER_HOST: '0.0.0.0'
+      RESOLVER_PORT: '3001'
+      RESOLVER_ENABLE_DOCS: '${RESOLVER_ENABLE_DOCS:-true}'
+      MIDNIGHT_NETWORK: '${MIDNIGHT_NETWORK:-undeployed}'
+      MIDNIGHT_INDEXER_HTTP_URL: 'http://indexer:8088/api/v3/graphql'
+      # Internal Docker-network WebSocket; TLS terminates at the external boundary.
+      MIDNIGHT_INDEXER_WS_URL: '${INDEXER_WS_SCHEME:-ws}://indexer:8088/api/v3/graphql/ws'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3001/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    depends_on:
+      indexer:
+        condition: service_healthy
+
+  manager:
+    image: '${MANAGER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.1}'
+    ports:
+      - '${MANAGER_PORT:-3010}:3010'
+    environment:
+      DID_MANAGER_HOST: '0.0.0.0'
+      DID_MANAGER_PORT: '3010'
+      DID_MANAGER_SETUP: 'standalone'
+      DID_MANAGER_DATA_DIR: '/home/node/.midnight-did/manager'
+      DID_MANAGER_STANDALONE_INDEXER: 'http://indexer:8088/api/v3/graphql'
+      # Internal Docker-network WebSocket; TLS terminates at the external boundary.
+      DID_MANAGER_STANDALONE_INDEXER_WS: '${INDEXER_WS_SCHEME:-ws}://indexer:8088/api/v3/graphql/ws'
+      DID_MANAGER_STANDALONE_NODE: 'http://node:9944'
+      DID_MANAGER_STANDALONE_PROOF_SERVER: 'http://proof-server:6300'
+    user: '${MANAGER_CONTAINER_UID:-1000}:${MANAGER_CONTAINER_GID:-1000}'
+    volumes:
+      - '${MANAGER_DATA_DIR:-${HOME}/.midnight-did/manager}:/home/node/.midnight-did/manager'
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3010/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    depends_on:
+      indexer:
+        condition: service_healthy
+      node:
+        condition: service_healthy
+      proof-server:
+        condition: service_started
