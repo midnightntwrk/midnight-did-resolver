@@ -1,8 +1,8 @@
 # Docker demo
 
-This demo runs the published `0.1.0-rc.1` resolver and manager images with a
-local Midnight node, indexer, and proof server. It is intended for evaluation
-and API/UI exploration, not production deployment.
+This demo runs the published `0.1.0` resolver and manager images with a local
+Midnight node, indexer, and proof server. It is intended for evaluation and
+API/UI exploration, not production deployment.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ and API/UI exploration, not production deployment.
 - `curl` for the health command
 - Network access to pull the GHCR and Midnight infrastructure images
 
-The application images are public release-candidate images. If GHCR access is
+The application images are public stable release images. If GHCR access is
 restricted in your environment, authenticate Docker before starting the demo.
 On its first launch, the proof server may download proving parameters; the
 manager UI can start before that warm-up is complete, but proof-backed
@@ -73,16 +73,16 @@ The file controls the application image references and host ports. Set
 without publishing them. The internal application endpoints use Compose service
 names and should not be changed to `127.0.0.1`.
 
-## Release candidate images
+## Stable images
 
 The defaults are:
 
 ```text
-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.1
-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.1
+ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0
+ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0
 ```
 
-The release workflow publishes exact RC tags and does not move `latest` for a
-pre-release. A release promotion to `main` followed by `v0.1.0-rc.1`, or the
-manual workflow dispatch documented in the repository README, publishes both
-images.
+The stable release workflow publishes both exact-version tags and the
+corresponding `latest` tags. Release candidates use exact version tags and do
+not move `latest`; override `RESOLVER_IMAGE` and `MANAGER_IMAGE` in `demo/.env`
+when testing an RC or a locally built image.

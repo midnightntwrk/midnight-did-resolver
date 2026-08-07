@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Add a runnable Docker Compose demo for the resolver and manager release-candidate images.
 
+## [0.1.0] - 2026-08-07
+
+### Added
+
+- Publish multi-platform resolver and manager Docker images to GHCR with
+  exact-version `0.1.0` tags and stable `latest` tags.
+- Add a runnable Docker Compose demo with persistent manager state and local
+  Midnight node, indexer, and proof-server dependencies.
+- Add release documentation for the stable Docker image handoff.
+
 ## [0.1.0-rc.1] - 2026-08-05
 
 ### Added
