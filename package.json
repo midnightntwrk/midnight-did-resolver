@@ -25,7 +25,7 @@
     "build:did-prereqs": "npm run check:did-libs",
     "build:all": "npm run build -w @midnight-ntwrk/midnight-did-secret-storage && npm run build:did-prereqs && npm run build -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run build -w @midnight-ntwrk/midnight-did-manager-service",
     "test:all": "npm run test -w @midnight-ntwrk/midnight-did-secret-storage && npm run test -w @midnight-ntwrk/midnight-did-resolver-service && npm --ignore-scripts run test -w @midnight-ntwrk/midnight-did-manager-service",
-    "coverage": "npm run coverage -w @midnight-ntwrk/midnight-did-secret-storage && npm run coverage -w @midnight-ntwrk/midnight-did-resolver-service && npm run coverage -w @midnight-ntwrk/midnight-did-manager-service",
+    "coverage": "turbo run coverage --filter=./secret-storage --filter=./did-resolver-service --filter=./did-manager-service --continue",
     "ci:typescript": "npm run check:run-target-catalog && npm run lint && npm run build:all && npm run test:all",
     "docs:sync-source": "npm run docs:sync-source -w docs-site",
     "docs:api": "npm run docs:api -w docs-site",
