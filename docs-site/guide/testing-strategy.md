@@ -26,7 +26,6 @@ aggregate cannot hide a regression in one package.
 Every pull request targeting `develop` or `main` runs the same command in the
 required **Coverage thresholds** CI job. Reports are retained as CI artifacts
 for 14 days, including when the threshold check fails.
-
 ## Full TypeScript Loop
 
 ```bash

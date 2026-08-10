@@ -14,6 +14,19 @@ const networkMock = vi.hoisted(() => ({
   getNetworkId: vi.fn(() => 'undeployed'),
   setNetworkId: vi.fn(),
 }));
+const domainMock = vi.hoisted(() => ({
+  createVerificationMethod: vi.fn((input) => input),
+}));
+const secretStorageMock = vi.hoisted(() => {
+  const initialize = vi.fn().mockResolvedValue(undefined);
+  return {
+    FileSecretStore: class {
+      initialize = initialize;
+    },
+    initialize,
+    parseSeed: vi.fn((seed) => `parsed:${seed}`),
+  };
+});
 
 vi.mock('@midnight-ntwrk/midnight-did-api', () => apiMock);
 vi.mock('@midnight-ntwrk/midnight-did', () => ({
@@ -27,14 +40,9 @@ vi.mock('@midnight-ntwrk/midnight-did', () => ({
 vi.mock('@midnight-ntwrk/midnight-did-domain', () => ({
   KeyType: { EC: 'EC', OKP: 'OKP' },
   VerificationMethodType: { JsonWebKey: 'JsonWebKey' },
-  createVerificationMethod: vi.fn((input) => input),
+  createVerificationMethod: domainMock.createVerificationMethod,
 }));
-vi.mock('@midnight-ntwrk/midnight-did-secret-storage', () => ({
-  FileSecretStore: class {
-    initialize = vi.fn().mockResolvedValue(undefined);
-  },
-  parseSeed: vi.fn((seed) => `parsed:${seed}`),
-}));
+vi.mock('@midnight-ntwrk/midnight-did-secret-storage', () => secretStorageMock);
 vi.mock('@midnight-ntwrk/midnight-js-network-id', () => networkMock);
 
 import {
@@ -74,26 +82,42 @@ describe('manager helper coverage', () => {
     expect(buildProfileConfig(config, 'standalone')).toMatchObject({ indexer: 'i1', node: 'n1' });
     expect(buildProfileConfig(config, 'preprod')).toMatchObject({ indexer: 'i2', node: 'n2' });
     expect(buildProfileConfig(config, 'mainnet')).toMatchObject({ indexer: 'i3', node: 'n3' });
-    expect(apiMock.StandaloneConfig).toHaveBeenCalled();
-    expect(apiMock.PreprodConfig).toHaveBeenCalled();
-    expect(apiMock.MainnetConfig).toHaveBeenCalled();
+    expect(apiMock.StandaloneConfig).toHaveBeenCalledWith();
+    expect(apiMock.PreprodConfig).toHaveBeenCalledWith();
+    expect(apiMock.MainnetConfig).toHaveBeenCalledWith({
+      indexer: 'i3', indexerWS: 'w3', node: 'n3', proofServer: 'p3',
+    });
+    expect(networkMock.setNetworkId).toHaveBeenCalledWith('undeployed');
+    expect(networkMock.setNetworkId).toHaveBeenCalledWith('preprod');
+    expect(networkMock.setNetworkId).toHaveBeenCalledWith('mainnet');
     const store = await createSecretStore('/tmp/secrets', undefined, 'default-passphrase');
     expect(store).toBeDefined();
+    expect(secretStorageMock.initialize).toHaveBeenCalledWith({
+      location: '/tmp/secrets', passphrase: 'default-passphrase',
+    });
   });
 
   it('joins an existing contract only when ledger state is present', async () => {
+    const providers = {} as never;
+    const address = 'a'.repeat(64);
     apiMock.getMidnightDIDLedgerState.mockResolvedValueOnce(null);
-    await expect(joinExistingContract({} as never, 'a'.repeat(64), 'standalone')).rejects.toThrow('was not found');
+    await expect(joinExistingContract(providers, address, 'standalone')).rejects.toThrow('was not found');
+    expect(apiMock.getMidnightDIDLedgerState).toHaveBeenCalledWith(providers, address);
     apiMock.getMidnightDIDLedgerState.mockResolvedValueOnce({ version: 1 });
     apiMock.joinContract.mockResolvedValue('joined');
-    await expect(joinExistingContract({} as never, 'a'.repeat(64), 'standalone')).resolves.toBe('joined');
+    await expect(joinExistingContract(providers, address, 'standalone')).resolves.toBe('joined');
+    expect(apiMock.joinContract).toHaveBeenCalledWith(providers, address);
   });
 
   it('builds a verification method and delegates address derivation', () => {
-    expect(buildVerificationMethod({ deployTxData: { public: { contractAddress: 'a'.repeat(64) } } } as never, 'key-1', {
-      kty: 'OKP', crv: 'Ed25519', x: 'x',
-    })).toMatchObject({ id: 'key-1', controller: expect.stringContaining('did:midnight') });
+    const publicJwk = { kty: 'OKP', crv: 'Ed25519', x: 'x' } as const;
+    expect(buildVerificationMethod({ deployTxData: { public: { contractAddress: 'a'.repeat(64) } } } as never, 'key-1', publicJwk))
+      .toMatchObject({ id: 'key-1', controller: expect.stringContaining('did:midnight:undeployed') });
+    expect(domainMock.createVerificationMethod).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'key-1', publicKeyJwk: publicJwk,
+    }));
     expect(deriveUnshieldedAddress('seed')).toBe('mn_addr_derived');
+    expect(apiMock.deriveUnshieldedAddressFromSeed).toHaveBeenCalledWith('seed');
   });
 
   it('builds setup and session status for each profile shape', () => {
@@ -103,7 +127,9 @@ describe('manager helper coverage', () => {
     expect(buildSessionStatus('standalone', 'default', true, undefined, null, { night: null, dust: null }, { phase: 'locked' } as never, { phase: 'none' } as never, false))
       .toMatchObject({ profileName: 'default', unlocked: false, seedAvailable: false });
     expect(resolveSeedInput('preprod', { seed: 'stored' } as never, { seedMode: 'reuse' })).toEqual({ seed: 'parsed:stored' });
+    expect(secretStorageMock.parseSeed).toHaveBeenCalledWith('stored');
     expect(resolveSeedInput('preprod', undefined, { seedMode: 'generated' }).generatedSeed).toMatch(/^[0-9a-f]{64}$/);
     expect(resolveSeedInput('preprod', undefined, { seedMode: 'provided', seed: 'provided' })).toEqual({ seed: 'parsed:provided' });
+    expect(secretStorageMock.parseSeed).toHaveBeenCalledWith('provided');
   });
 });

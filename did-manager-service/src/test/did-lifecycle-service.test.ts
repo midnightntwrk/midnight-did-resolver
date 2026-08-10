@@ -34,9 +34,11 @@ vi.mock('@midnight-ntwrk/midnight-did', () => ({
 vi.mock('@midnight-ntwrk/midnight-did-domain', () => ({
   createService: vi.fn((input) => input),
 }));
-vi.mock('@midnight-ntwrk/midnight-did-secret-storage', () => ({
+const secretStorageMock = vi.hoisted(() => ({
   normalizePublicForLedger: vi.fn((publicJwk) => ({ x: publicJwk.x, y: publicJwk.y })),
 }));
+
+vi.mock('@midnight-ntwrk/midnight-did-secret-storage', () => secretStorageMock);
 
 import {
   addAlsoKnownAs,
@@ -128,28 +130,48 @@ describe('DID lifecycle service', () => {
   });
 
   it('normalizes a key and delegates all verification-method operations', async () => {
-    const secretStore = { getPublicKey: vi.fn().mockResolvedValue({ kty: 'EC', crv: 'Jubjub', x: 'x', y: 'y' }) } as never;
-    await expect(buildNormalizedVerificationMethod(contract, secretStore, 'key', 'method', vi.fn((id) => ({ id })) as never))
-      .resolves.toMatchObject({ didContract: contract, method: { id: 'method' } });
+    const publicJwk = { kty: 'EC', crv: 'Jubjub', x: 'x', y: 'y' } as const;
+    const secretStore = { getPublicKey: vi.fn().mockResolvedValue(publicJwk) };
+    const buildMethod = vi.fn((id: string, jwk: typeof publicJwk) => ({ id, publicKeyJwk: jwk }));
+    await expect(buildNormalizedVerificationMethod(contract, secretStore as never, 'key', 'method', buildMethod as never))
+      .resolves.toEqual({ didContract: contract, method: { id: 'method', publicKeyJwk: publicJwk } });
+    expect(secretStore.getPublicKey).toHaveBeenCalledWith('key');
+    expect(secretStorageMock.normalizePublicForLedger).toHaveBeenCalledWith(publicJwk);
+    expect(buildMethod).toHaveBeenCalledWith('method', publicJwk);
 
-    await addVerificationMethod(contract, providers, method('Jubjub') as never, persist);
-    await addVerificationMethod(contract, providers, method('Ed25519') as never, persist);
-    await updateVerificationMethod(contract, providers, method('Jubjub') as never, persist);
-    await updateVerificationMethod(contract, providers, method('Ed25519') as never, persist);
-    expect(apiMock.addSchnorrJubjubVerificationMethod).toHaveBeenCalled();
-    expect(apiMock.addVerificationMethod).toHaveBeenCalled();
-    expect(apiMock.updateSchnorrJubjubVerificationMethod).toHaveBeenCalled();
-    expect(apiMock.updateVerificationMethod).toHaveBeenCalled();
+    const jubjubMethod = method('Jubjub');
+    const ed25519Method = method('Ed25519');
+    apiMock.addSchnorrJubjubVerificationMethod.mockClear();
+    apiMock.addVerificationMethod.mockClear();
+    apiMock.updateSchnorrJubjubVerificationMethod.mockClear();
+    apiMock.updateVerificationMethod.mockClear();
+    await addVerificationMethod(contract, providers, jubjubMethod as never, persist);
+    await addVerificationMethod(contract, providers, ed25519Method as never, persist);
+    await updateVerificationMethod(contract, providers, jubjubMethod as never, persist);
+    await updateVerificationMethod(contract, providers, ed25519Method as never, persist);
+    expect(apiMock.addSchnorrJubjubVerificationMethod).toHaveBeenCalledWith(contract, providers, {
+      id: jubjubMethod.id, publicKey: { x: 'x', y: 'y' },
+    });
+    expect(apiMock.addVerificationMethod).toHaveBeenCalledWith(contract, providers, ed25519Method);
+    expect(apiMock.updateSchnorrJubjubVerificationMethod).toHaveBeenCalledWith(contract, providers, {
+      id: jubjubMethod.id, publicKey: { x: 'x', y: 'y' },
+    });
+    expect(apiMock.updateVerificationMethod).toHaveBeenCalledWith(contract, providers, ed25519Method);
 
+    const resolvedJubjub = method('Jubjub');
+    const resolvedEd25519 = method('Ed25519');
+    apiMock.removeSchnorrJubjubVerificationMethod.mockClear();
+    apiMock.removeVerificationMethod.mockClear();
     apiMock.resolve
-      .mockResolvedValueOnce({ didDocument: { verificationMethod: [method('Jubjub')] } })
-      .mockResolvedValueOnce({ didDocument: { verificationMethod: [method('Ed25519')] } })
+      .mockResolvedValueOnce({ didDocument: { verificationMethod: [resolvedJubjub] } })
+      .mockResolvedValueOnce({ didDocument: { verificationMethod: [resolvedEd25519] } })
       .mockResolvedValueOnce({ didDocument: { verificationMethod: [] } });
     await removeVerificationMethod(contract, providers, 'Jubjub', persist);
     await removeVerificationMethod(contract, providers, 'Ed25519', persist);
     await removeVerificationMethod(contract, providers, 'missing', persist);
-    expect(apiMock.removeSchnorrJubjubVerificationMethod).toHaveBeenCalled();
-    expect(apiMock.removeVerificationMethod).toHaveBeenCalled();
+    expect(apiMock.removeSchnorrJubjubVerificationMethod).toHaveBeenCalledWith(contract, providers, 'Jubjub');
+    expect(apiMock.removeVerificationMethod).toHaveBeenCalledWith(contract, providers, 'Ed25519');
+    expect(apiMock.removeVerificationMethod).toHaveBeenCalledWith(contract, providers, 'missing');
   });
 
   it('delegates relations, services, aliases, and deactivation', async () => {
@@ -163,14 +185,15 @@ describe('DID lifecycle service', () => {
     await removeAlsoKnownAs(contract, providers, 'https://example.com', persist);
     await deactivateDid(contract, providers, persist);
 
-    expect(apiMock.addVerificationMethodRelation).toHaveBeenCalled();
-    expect(apiMock.removeVerificationMethodRelation).toHaveBeenCalled();
-    expect(apiMock.addService).toHaveBeenCalled();
-    expect(apiMock.updateService).toHaveBeenCalled();
-    expect(apiMock.removeService).toHaveBeenCalled();
-    expect(apiMock.addAlsoKnownAs).toHaveBeenCalled();
-    expect(apiMock.removeAlsoKnownAs).toHaveBeenCalled();
-    expect(apiMock.deactivate).toHaveBeenCalled();
+    expect(apiMock.addVerificationMethodRelation).toHaveBeenCalledWith(contract, providers, 'authentication', 'method');
+    expect(apiMock.removeVerificationMethodRelation).toHaveBeenCalledWith(contract, providers, 'authentication', 'method');
+    const service = { id: 'svc', type: 'LinkedDomains', serviceEndpoint: 'https://example.com' };
+    expect(apiMock.addService).toHaveBeenCalledWith(contract, providers, service);
+    expect(apiMock.updateService).toHaveBeenCalledWith(contract, providers, service);
+    expect(apiMock.removeService).toHaveBeenCalledWith(contract, providers, 'svc');
+    expect(apiMock.addAlsoKnownAs).toHaveBeenCalledWith(contract, providers, 'https://example.com');
+    expect(apiMock.removeAlsoKnownAs).toHaveBeenCalledWith(contract, providers, 'https://example.com');
+    expect(apiMock.deactivate).toHaveBeenCalledWith(contract, providers);
     expect(persist).toHaveBeenCalledTimes(8);
   });
 });
