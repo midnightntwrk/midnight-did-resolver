@@ -83,6 +83,23 @@ This repository supports the optional Pi shell for structured `dev-loops` workfl
 
 - For command examples and session setup, see ``docs/pi-development.md``.
 
+## Docker demo
+
+The `demo/` directory provides a reproducible Docker Compose setup using the
+`0.1.0` resolver and manager images together with local Midnight node,
+indexer, and proof-server dependencies:
+
+```bash
+just demo
+```
+
+This starts the stack, waits for both application health endpoints, and keeps
+manager state in `~/.midnight-did/manager` between runs. Copy
+`demo/.env.example` to `demo/.env` to override image references, host ports, or
+the manager data directory. Open the resolver at `http://127.0.0.1:3001` and the
+manager wallet at `http://127.0.0.1:3010/wallet`. See
+``demo/README.md`` for the complete command reference.
+
 ## Docker image publishing
 
 GitHub Container Registry images are published via
@@ -99,12 +116,24 @@ The workflow is configured for:
 - Multi-platform publish (`linux/amd64`, `linux/arm64`).
 - Exact-version tags for release candidates; only stable versions update
   `latest`.
+- Both resolver and manager images are published; this release does not ship
+  binary artifacts.
 - Registry provenance and SBOM attestations for both images.
 
-For the first release candidate, the manual release command is:
+For the stable `0.1.0` release, after the promotion PR is merged to `main`,
+create the tag to publish both images:
 
 ```bash
-gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.1
+git checkout main
+git pull --ff-only origin main
+git tag -a v0.1.0 -m "release: v0.1.0"
+git push origin v0.1.0
+```
+
+Alternatively, publish the stable images manually from `main`:
+
+```bash
+gh workflow run "Release application Docker images" --ref main -f version=0.1.0
 ```
 
 ## Configuration
