@@ -43,7 +43,7 @@ Commands:
 Configuration:
   Copy demo/.env.example to demo/.env to override image references or host
   ports. Manager state is persisted in ~/.midnight-did/manager by default.
-  The default images are the 0.1.0-rc.1 GHCR release candidates.
+  The default images are the 0.1.0-rc.2 GHCR release candidates.
 EOF
 }
 

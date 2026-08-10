@@ -2,15 +2,17 @@ services:
   proof-server:
     container_name: 'did-proof-server'
     image: '${PROOF_SERVER_IMAGE:-midnightntwrk/proof-server:8.0.3}'
-    command: ['midnight-proof-server -v']
+    command: ['midnight-proof-server', '-v']
     ports:
       - '6300'
     environment:
       RUST_BACKTRACE: 'full'
+    # This distroless image has no shell or HTTP client for an in-container
+    # healthcheck; consumers should wait for startup rather than probe it.
 
   indexer:
     container_name: 'did-indexer'
-    image: 'midnightntwrk/indexer-standalone:4.0.0'
+    image: '${INDEXER_IMAGE:-midnightntwrk/indexer-standalone:4.0.0}'
     env_file: standalone.env.example
     ports:
       - '0:8088'
@@ -28,7 +30,7 @@ services:
         condition: service_healthy
 
   node:
-    image: 'midnightntwrk/midnight-node:0.22.3'
+    image: '${NODE_IMAGE:-midnightntwrk/midnight-node:0.22.3}'
     container_name: 'did-node'
     ports:
       - '9944'

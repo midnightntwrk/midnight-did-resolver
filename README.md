@@ -83,7 +83,7 @@ This repository supports the optional Pi shell for structured `dev-loops` workfl
 ## Docker demo
 
 The `demo/` directory provides a reproducible Docker Compose setup using the
-`0.1.0-rc.1` resolver and manager images together with local Midnight node,
+`0.1.0-rc.2` resolver and manager images together with local Midnight node,
 indexer, and proof-server dependencies:
 
 ```bash
@@ -108,17 +108,17 @@ GitHub Container Registry images are published via
 The workflow is configured for:
 
 - Push to semantic tags matching `v*` from commits on `main` (for example
-  `v0.1.0-rc.1` or `v0.1.0`).
+  `v0.1.0-rc.2` or `v0.1.0`).
 - Manual publication from `main` with an optional `version` input.
 - Multi-platform publish (`linux/amd64`, `linux/arm64`).
 - Exact-version tags for release candidates; only stable versions update
   `latest`.
 - Registry provenance and SBOM attestations for both images.
 
-For the first release candidate, the manual release command is:
+For the second release candidate, the manual release command is:
 
 ```bash
-gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.1
+gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.2
 ```
 
 ## Configuration

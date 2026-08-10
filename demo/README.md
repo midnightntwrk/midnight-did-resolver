@@ -1,6 +1,6 @@
 # Docker demo
 
-This demo runs the published `0.1.0-rc.1` resolver and manager images with a
+This demo runs the published `0.1.0-rc.2` resolver and manager images with a
 local Midnight node, indexer, and proof server. It is intended for evaluation
 and API/UI exploration, not production deployment.
 
@@ -78,11 +78,11 @@ names and should not be changed to `127.0.0.1`.
 The defaults are:
 
 ```text
-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.1
-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.1
+ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.2
+ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.2
 ```
 
 The release workflow publishes exact RC tags and does not move `latest` for a
-pre-release. A release promotion to `main` followed by `v0.1.0-rc.1`, or the
+pre-release. A release promotion to `main` followed by `v0.1.0-rc.2`, or the
 manual workflow dispatch documented in the repository README, publishes both
 images.
