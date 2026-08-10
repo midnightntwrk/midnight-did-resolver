@@ -65,8 +65,10 @@ jobs:
       - name: Build service artifacts
         run: npm run build:all
 
-      - name: Install Playwright browser
-        run: npm run playwright:install -w @midnight-ntwrk/midnight-did-manager-service
+      - name: Install Playwright browser and dependencies
+        run: |
+          npx playwright install-deps chromium
+          npm run playwright:install -w @midnight-ntwrk/midnight-did-manager-service
 
       - name: Run resolver Docker integration tests
         run: npm run test:integration -w @midnight-ntwrk/midnight-did-resolver-service

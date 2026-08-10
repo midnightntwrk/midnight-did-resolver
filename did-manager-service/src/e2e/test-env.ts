@@ -109,6 +109,22 @@ const resolveStandalonePorts = async (): Promise<Record<PortName, number>> => ({
   'proof-server': await resolveDockerPort('did-proof-server', '6300/tcp'),
 });
 
+const waitForPortAvailable = async (port: number): Promise<void> => {
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    const available = await new Promise<boolean>((resolve) => {
+      const server = net.createServer();
+      server.once('error', () => resolve(false));
+      server.listen(port, '127.0.0.1', () => {
+        server.close(() => resolve(true));
+      });
+    });
+    if (available) return;
+    await delay(250);
+  }
+  throw new Error(`Port ${port} did not become available for manager restart.`);
+};
+
 const waitForManager = async (baseUrl: string, managerLogs: () => string): Promise<void> => {
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
@@ -217,7 +233,13 @@ const startManagerProcess = async ({ dataDir, env = {} }: ManagerProcessOptions)
     fundedSeed,
     restart: async () => {
       await stopProcess(child);
-      await startProcess();
+      await waitForPortAvailable(managerPort);
+      try {
+        await startProcess();
+      } catch (error) {
+        await stopProcess(child);
+        throw error;
+      }
     },
     stop: async () => {
       await stopProcess(child);
