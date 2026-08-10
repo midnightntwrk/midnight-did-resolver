@@ -86,7 +86,7 @@ This repository supports the optional Pi shell for structured `dev-loops` workfl
 ## Docker demo
 
 The `demo/` directory provides a reproducible Docker Compose setup using the
-the `0.1.0` resolver and manager images together with local Midnight node,
+`0.1.0` resolver and manager images together with local Midnight node,
 indexer, and proof-server dependencies:
 
 ```bash
