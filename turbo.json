@@ -27,6 +27,10 @@
     "test": {
       "dependsOn": ["build"],
       "outputs": []
+    },
+    "coverage": {
+      "cache": false,
+      "outputs": ["coverage/**"]
     }
   }
 }

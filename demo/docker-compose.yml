@@ -3,7 +3,7 @@ include:
 
 services:
   resolver:
-    image: '${RESOLVER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0}'
+    image: '${RESOLVER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.2}'
     ports:
       - '${RESOLVER_PORT:-3001}:3001'
     environment:
@@ -25,7 +25,7 @@ services:
         condition: service_healthy
 
   manager:
-    image: '${MANAGER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0}'
+    image: '${MANAGER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.2}'
     ports:
       - '${MANAGER_PORT:-3010}:3010'
     environment:

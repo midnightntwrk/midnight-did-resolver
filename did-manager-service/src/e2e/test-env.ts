@@ -23,6 +23,7 @@ export type ManagerE2EEnv = {
   baseUrl: string;
   dataDir: string;
   fundedSeed: string;
+  restart: () => Promise<void>;
   stop: () => Promise<void>;
 };
 
@@ -108,6 +109,22 @@ const resolveStandalonePorts = async (): Promise<Record<PortName, number>> => ({
   'proof-server': await resolveDockerPort('did-proof-server', '6300/tcp'),
 });
 
+const waitForPortAvailable = async (port: number): Promise<void> => {
+  const deadline = Date.now() + 10_000;
+  while (Date.now() < deadline) {
+    const available = await new Promise<boolean>((resolve) => {
+      const server = net.createServer();
+      server.once('error', () => resolve(false));
+      server.listen(port, '127.0.0.1', () => {
+        server.close(() => resolve(true));
+      });
+    });
+    if (available) return;
+    await delay(250);
+  }
+  throw new Error(`Port ${port} did not become available for manager restart.`);
+};
+
 const waitForManager = async (baseUrl: string, managerLogs: () => string): Promise<void> => {
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
@@ -174,35 +191,34 @@ const startManagerProcess = async ({ dataDir, env = {} }: ManagerProcessOptions)
 
   let stdoutLog = '';
   let stderrLog = '';
-  const child = spawn(
-    process.execPath,
-    ['--experimental-specifier-resolution=node', managerEntry],
-    {
-      cwd: managerDir,
-      env: {
-        ...process.env,
-        DID_MANAGER_HOST: '127.0.0.1',
-        DID_MANAGER_PORT: String(managerPort),
-        DID_MANAGER_DATA_DIR: resolvedDataDir,
-        DID_MANAGER_SETUP: 'standalone',
-        ...env,
-      },
-      stdio: ['ignore', 'pipe', 'pipe'],
-    },
-  );
-
-  child.stdout.on('data', (chunk: Uint8Array | string) => {
-    stdoutLog += chunk.toString();
-  });
-  child.stderr.on('data', (chunk: Uint8Array | string) => {
-    stderrLog += chunk.toString();
-  });
-
+  let child: ChildProcess | null = null;
+  const managerEnv = {
+    ...process.env,
+    DID_MANAGER_HOST: '127.0.0.1',
+    DID_MANAGER_PORT: String(managerPort),
+    DID_MANAGER_DATA_DIR: resolvedDataDir,
+    DID_MANAGER_SETUP: 'standalone',
+    ...env,
+  };
   const managerLogs = (): string => `STDOUT:\n${stdoutLog}\nSTDERR:\n${stderrLog}`;
   const baseUrl = `http://127.0.0.1:${managerPort}`;
+  const startProcess = async (): Promise<void> => {
+    child = spawn(
+      process.execPath,
+      ['--experimental-specifier-resolution=node', managerEntry],
+      { cwd: managerDir, env: managerEnv, stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+    child.stdout?.on('data', (chunk: Uint8Array | string) => {
+      stdoutLog += chunk.toString();
+    });
+    child.stderr?.on('data', (chunk: Uint8Array | string) => {
+      stderrLog += chunk.toString();
+    });
+    await waitForManager(baseUrl, managerLogs);
+  };
 
   try {
-    await waitForManager(baseUrl, managerLogs);
+    await startProcess();
   } catch (error) {
     await stopProcess(child);
     if (removeDataDirOnStop) {
@@ -215,6 +231,16 @@ const startManagerProcess = async ({ dataDir, env = {} }: ManagerProcessOptions)
     baseUrl,
     dataDir: resolvedDataDir,
     fundedSeed,
+    restart: async () => {
+      await stopProcess(child);
+      await waitForPortAvailable(managerPort);
+      try {
+        await startProcess();
+      } catch (error) {
+        await stopProcess(child);
+        throw error;
+      }
+    },
     stop: async () => {
       await stopProcess(child);
       if (removeDataDirOnStop) {

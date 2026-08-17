@@ -22,6 +22,7 @@
     "pretest:e2e": "npm run build",
     "pretest:e2e:standalone": "npm run build",
     "pretest:e2e:preprod": "npm run build",
+    "precoverage": "npm run prepare:deps",
     "test:e2e": "playwright test",
     "test:e2e:standalone": "playwright test src/e2e/manager.spec.ts",
     "test:e2e:preprod": "playwright test src/e2e/preprod-funding.spec.ts",
@@ -40,7 +41,7 @@
     "@midnight-ntwrk/midnight-did-secret-storage": "*",
     "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "4.0.2",
     "@midnight-ntwrk/midnight-js-network-id": "4.0.2",
-    "@midnight-ntwrk/wallet-sdk-address-format": "^3.1.0",
+    "@midnight-ntwrk/wallet-sdk-address-format": "^3.1.2",
     "canonicalize": "^3.0.0",
     "fastify": "^5.6.1",
     "pino": "^9.7.0"

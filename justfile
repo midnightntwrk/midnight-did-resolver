@@ -1,4 +1,4 @@
-# Run `just` (or `just demo`) to start the stable Docker demo and wait for both
+# Run `just` (or `just demo`) to start the RC Docker demo and wait for both
 # application health endpoints.
 
 demo:
