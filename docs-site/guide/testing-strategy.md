@@ -34,13 +34,15 @@ scenarios.
 | Resolver | Container smoke | `npm run test:integration -w @midnight-ntwrk/midnight-did-resolver-service` | Resolver image startup, health/readiness, Swagger availability, malformed DID handling |
 | Resolver | Stateful integration | Same command, `resolver.did-flow.test.ts` | Deploy, update, resolve, deactivate, and observe the DID lifecycle through the resolver API using Testcontainers |
 | Manager | Unit | `npm test -w @midnight-ntwrk/midnight-did-manager-service` | Configuration, lifecycle delegation, wallet/session state, errors, payload normalization, signatures, profiles, and persistence logic |
-| Manager | Browser E2E | `npm run test:e2e:standalone -w @midnight-ntwrk/midnight-did-manager-service` | Wallet setup, funding preparation, DID lifecycle, all supported key curves, relations/services/aliases, signatures, deactivation, restart, persistence, and profile isolation |
+| Manager | Browser E2E | `npm run test:e2e:standalone -w @midnight-ntwrk/midnight-did-manager-service` | Wallet setup, funding preparation, DID lifecycle, all supported key curves, relations/services/aliases, signatures, deactivation, restart, persistence, profile isolation, and structured negative API responses |
+| Manager | Container smoke | `docker-runtime` CI job | The actual manager image starts with demo dependencies, uses its persistent data directory, and serves health/readiness endpoints |
 | Manager | Preprod E2E | `npm run test:e2e:preprod -w @midnight-ntwrk/midnight-did-manager-service` | Real preprod funding and wallet behavior; manual/nightly only because it requires external services and funds |
 | Secret storage | Unit/coverage | `npm run coverage -w @midnight-ntwrk/midnight-did-secret-storage` | Encryption, persistence, seed handling, derivation, supported curves, Veramo adapter behavior, and failure cases |
 
 The required CI workflow runs the light unit lane, all package coverage
 thresholds, resolver Docker integration, manager standalone Playwright E2E,
-and Docker image builds. Failed runs retain coverage and E2E diagnostics.
+manager and resolver Docker runtime smoke, and Docker image builds. Failed runs
+retain coverage, E2E diagnostics, and container logs.
 
 ## Playwright scenarios
 
@@ -92,15 +94,13 @@ HTTP API, operation queue, persistence, and UI state agree end to end.
 
 ### P0 — before calling the next candidate production-ready
 
-- **Manager image runtime smoke**: CI builds the manager image, but the
-  standalone Playwright test starts the manager as a Node process. Add a
-  container smoke that runs the actual manager image with the demo dependencies
-  and checks `/health`, `/ready`, graceful shutdown, and a writable persistent
-  data directory. Repeat this check against the exact published RC tags before
-  stable release.
-- **Playwright negative paths**: add the focused error-path scenarios listed
-  above, especially invalid seed/profile input, closed sessions, unavailable
-  contracts, and failed long-running operations.
+- **Manager image runtime smoke**: the required `docker-runtime` CI job now runs
+  the actual manager and resolver images with the demo dependencies, verifies
+  health/readiness, and exercises the persistent data directory. Repeat the
+  same check against the exact published RC tags before stable release.
+- **Playwright negative paths**: the standalone scenario now checks malformed
+  profile/session requests and missing operations. Add focused coverage for
+  closed sessions, unavailable contracts, and failed long-running operations.
 - **Release-image demo check**: start the demo with the exact candidate image
   references, verify both application health endpoints, and confirm manager
   state survives `demo-down`/restart without deleting the data directory.

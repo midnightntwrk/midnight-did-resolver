@@ -459,4 +459,31 @@ test.describe.serial('did-manager-service UI', () => {
       },
     });
   });
+
+  test('rejects malformed browser requests with structured errors', async ({ page }) => {
+    const invalidProfile = await page.request.post(`${env.baseUrl}/api/profiles/select`, {
+      data: { unexpected: true },
+    });
+    expect(invalidProfile.status()).toBe(400);
+    expect(await invalidProfile.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
+    const invalidSession = await page.request.post(`${env.baseUrl}/api/session/start`, {
+      data: { seedMode: 'unsupported' },
+    });
+    expect(invalidSession.status()).toBe(400);
+    expect(await invalidSession.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
+    const missingOperation = await page.request.get(`${env.baseUrl}/api/operations/not-found`);
+    expect(missingOperation.status()).toBe(404);
+    expect(await missingOperation.json()).toMatchObject({
+      ok: false,
+      errorCode: 'operationNotFound',
+    });
+  });
 });
