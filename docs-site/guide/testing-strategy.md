@@ -80,8 +80,11 @@ large test:
 5. `error-paths.spec.ts`: malformed input, missing keys, unavailable contracts,
    rejected operations, and attempts to use a closed/deactivated session.
 
-The first four are partly covered by the existing scenario and unit/API tests;
-`error-paths.spec.ts` and the split fixtures are the next Playwright additions.
+The first four are partly covered by the existing scenario and unit/API tests.
+The standalone scenario now also checks malformed requests, closed-session
+operation guards, and failed funding operations; manager API tests cover
+unavailable contracts. `error-paths.spec.ts` and the split fixtures remain the
+next structural Playwright improvements.
 Chromium is sufficient for release-signoff of the current server-rendered UI.
 Firefox/WebKit should be added only if browser-specific support becomes a
 product requirement.
@@ -98,9 +101,10 @@ HTTP API, operation queue, persistence, and UI state agree end to end.
   the actual manager and resolver images with the demo dependencies, verifies
   health/readiness, and exercises the persistent data directory. Repeat the
   same check against the exact published RC tags before stable release.
-- **Playwright negative paths**: the standalone scenario now checks malformed
-  profile/session requests and missing operations. Add focused coverage for
-  closed sessions, unavailable contracts, and failed long-running operations.
+- **Playwright/API negative paths**: malformed requests, missing operations,
+  closed-session guards, failed funding operations, and unavailable-contract
+  error preservation are now covered deterministically. Keep the exact
+  published-image demo check as the remaining candidate-specific gate.
 - **Release-image demo check**: start the demo with the exact candidate image
   references, verify both application health endpoints, and confirm manager
   state survives `demo-down`/restart without deleting the data directory.
@@ -109,8 +113,8 @@ HTTP API, operation queue, persistence, and UI state agree end to end.
 
 - Split the monolithic manager scenario into focused specs and shared fixtures
   so failures identify one capability and retries do not hide unrelated bugs.
-- Add an HTTP contract test matrix generated from the manager and resolver
-  OpenAPI schemas, including required fields, status codes, and error payloads.
+- Expand the focused HTTP contract matrix for manager and resolver OpenAPI
+  routes, including required fields, status codes, headers, and error payloads.
 - Run preprod funding E2E on a scheduled/manual workflow with isolated test
   profiles and explicit funding limits. Do not run it as a required PR check.
 - Add a small compatibility matrix for Node 24 and supported Docker/Compose

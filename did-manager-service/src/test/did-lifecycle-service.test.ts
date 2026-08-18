@@ -101,7 +101,7 @@ describe('DID lifecycle service', () => {
   });
 
   it('deploys a DID after registering dust and persists the contract', async () => {
-    const walletCtx = { wallet: { id: 'wallet' }, unshieldedKeystore: { id: 'keystore' } } as never;
+    const walletCtx = { wallet: { id: 'wallet' }, unshieldedKeystore: { id: 'keystore' } } as any;
     const privateState = { id: 'private-state' } as never;
     apiMock.initPrivateState.mockResolvedValue(privateState);
     apiMock.createDID.mockResolvedValue(contract);

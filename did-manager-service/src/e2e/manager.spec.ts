@@ -48,6 +48,30 @@ const waitForOperation = async <T>(
   throw new Error(`Timed out waiting for operation ${operationId}.\nLast payload:\n${JSON.stringify(lastPayload, null, 2)}`);
 };
 
+const waitForFailedOperation = async (
+  page: Page,
+  operationId: string,
+): Promise<{ status: string; error?: { errorCode?: string; statusCode?: number; message?: string } }> => {
+  const deadline = Date.now() + 30_000;
+  let lastPayload: unknown;
+
+  while (Date.now() < deadline) {
+    const response = await page.request.get(`${env.baseUrl}/api/operations/${operationId}`);
+    expect(response.ok()).toBe(true);
+    lastPayload = await response.json();
+    const operation = (lastPayload as { data?: { status?: string; error?: { errorCode?: string; statusCode?: number; message?: string } } }).data;
+    if (operation?.status === 'failed') {
+      return operation as { status: string; error?: { errorCode?: string; statusCode?: number; message?: string } };
+    }
+    if (operation?.status === 'succeeded') {
+      throw new Error(`Operation ${operationId} unexpectedly succeeded`);
+    }
+    await delay(250);
+  }
+
+  throw new Error(`Timed out waiting for failed operation ${operationId}.\nLast payload:\n${JSON.stringify(lastPayload, null, 2)}`);
+};
+
 const clickAndWaitForOperationResult = async <T>(
   page: Page,
   triggerSelector: string,
@@ -484,6 +508,34 @@ test.describe.serial('did-manager-service UI', () => {
     expect(await missingOperation.json()).toMatchObject({
       ok: false,
       errorCode: 'operationNotFound',
+    });
+  });
+
+  test('reports closed-session and failed-operation guards', async ({ page }) => {
+    const closedDeploy = await page.request.post(`${env.baseUrl}/api/did/deploy`);
+    expect(closedDeploy.status()).toBe(202);
+    const closedDeployOperation = (await closedDeploy.json()).data.id as string;
+    const closedDeployFailure = await waitForFailedOperation(page, closedDeployOperation);
+    expect(closedDeployFailure).toMatchObject({
+      status: 'failed',
+      error: {
+        errorCode: 'sessionLocked',
+        statusCode: 409,
+      },
+    });
+
+    const invalidFunding = await page.request.post(`${env.baseUrl}/api/session/prepare-funding`, {
+      data: { seedMode: 'provided', seed: 'zz' },
+    });
+    expect(invalidFunding.status()).toBe(202);
+    const invalidFundingOperation = (await invalidFunding.json()).data.id as string;
+    const invalidFundingFailure = await waitForFailedOperation(page, invalidFundingOperation);
+    expect(invalidFundingFailure).toMatchObject({
+      status: 'failed',
+      error: {
+        errorCode: 'invalidSeed',
+        statusCode: 400,
+      },
     });
   });
 });
