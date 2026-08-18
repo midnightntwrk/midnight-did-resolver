@@ -40,7 +40,7 @@ services:
   resolver:
     image: '${RESOLVER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.1}'
     ports:
-      - '${RESOLVER_PORT:-3001}:3001'
+      - '127.0.0.1:${RESOLVER_PORT:-3001}:3001'
     environment:
       RESOLVER_HOST: '0.0.0.0'
       RESOLVER_PORT: '3001'
@@ -62,7 +62,7 @@ services:
   manager:
     image: '${MANAGER_IMAGE:-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.1}'
     ports:
-      - '${MANAGER_PORT:-3010}:3010'
+      - '127.0.0.1:${MANAGER_PORT:-3010}:3010'
     environment:
       DID_MANAGER_HOST: '0.0.0.0'
       DID_MANAGER_PORT: '3010'

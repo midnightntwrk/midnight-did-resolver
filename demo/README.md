@@ -2,7 +2,15 @@
 
 This demo runs the published `0.1.0-rc.1` resolver and manager images with a
 local Midnight node, indexer, and proof server. It is intended for evaluation
-and API/UI exploration, not production deployment.
+and API/UI exploration, not production deployment. Midnight DID Manager is a
+browser-only demo application; its DID CRUD flows are illustrative and should
+be implemented as issuer/verifier bootstrap or business logic in a real
+application.
+
+The demo binds both application ports to `127.0.0.1` by default. Do not change
+these mappings to `0.0.0.0` or expose the manager port on a shared network.
+Manager recovery is not implemented in this release, and the secret-store
+passphrase must be entered again after a manager restart.
 
 ## Prerequisites
 

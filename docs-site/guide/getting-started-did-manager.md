@@ -2,6 +2,13 @@
 
 This guide walks through the complete DID Manager flow and links each step to the detailed workspace documentation.
 
+> **Demo boundary:** Midnight DID Manager is a browser-only demo application,
+> not a production wallet or public DID control plane. It is intended to run
+> on localhost. Its DID CRUD operations demonstrate flows that a real
+> issuer/verifier should own in its bootstrap or business logic. The secret
+> store requires its passphrase again after every restart; recovery is not
+> implemented in this release.
+
 ## Before you start
 
 1. Start the manager:
