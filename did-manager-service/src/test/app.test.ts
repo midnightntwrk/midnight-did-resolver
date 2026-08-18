@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createApp } from '../app.js';
+import { ManagerNotFoundError } from '../errors.js';
 
 describe('did-manager-service app', () => {
   it('serves health and session status', async () => {
@@ -254,6 +255,11 @@ describe('did-manager-service app', () => {
 
     const health = await app.inject({ method: 'GET', url: '/health' });
     expect(health.statusCode).toBe(200);
+    expect(health.json()).toEqual({ status: 'ok' });
+
+    const ready = await app.inject({ method: 'GET', url: '/ready' });
+    expect(ready.statusCode).toBe(200);
+    expect(ready.json()).toEqual({ status: 'ready' });
 
     const setup = await app.inject({ method: 'GET', url: '/api/setup' });
     expect(setup.statusCode).toBe(200);
@@ -374,6 +380,42 @@ describe('did-manager-service app', () => {
       },
     });
 
+    await app.close();
+  });
+
+  it('preserves unavailable contract errors from long-running join operations', async () => {
+    const app = await createApp({
+      joinDid: vi.fn().mockRejectedValue(new ManagerNotFoundError('contractNotFound', 'DID contract was not found')),
+    } as any);
+
+    const accepted = await app.inject({
+      method: 'POST',
+      url: '/api/did/join',
+      payload: { contractAddress: 'a'.repeat(64) },
+    });
+    expect(accepted.statusCode).toBe(202);
+    const operationId = accepted.json().data.id as string;
+
+    let operation: any;
+    for (let attempt = 0; attempt < 20; attempt += 1) {
+      const status = await app.inject({
+        method: 'GET',
+        url: `/api/operations/${operationId}`,
+      });
+      expect(status.statusCode).toBe(200);
+      operation = status.json().data;
+      if (operation.status === 'failed') break;
+      await new Promise((resolve) => globalThis.setTimeout(resolve, 20));
+    }
+
+    expect(operation).toMatchObject({
+      status: 'failed',
+      error: {
+        errorCode: 'contractNotFound',
+        statusCode: 404,
+        message: 'DID contract was not found',
+      },
+    });
     await app.close();
   });
 
