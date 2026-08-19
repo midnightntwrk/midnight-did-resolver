@@ -180,7 +180,8 @@ describe('DidManagerService', () => {
 
     const defaultStatus = await manager.getSessionStatus();
     expect(defaultStatus.profileName).toBe('default');
-    expect(defaultStatus.seedAvailable).toBe(true);
+    expect(defaultStatus.seedAvailable).toBe(false);
+    expect(defaultStatus.fundingPrepared).toBe(true);
 
     const isolatedStatus = await manager.selectProfile({ name: 'isolated' });
     expect(isolatedStatus.profileName).toBe('isolated');
@@ -193,7 +194,7 @@ describe('DidManagerService', () => {
         'utf8',
       ),
     );
-    expect(defaultProfileSession.profiles.preprod.seed).toBe('a'.repeat(64));
+    expect(defaultProfileSession.profiles.preprod.seed).toBeUndefined();
   });
 
   it('keeps the wallet unlocked and leaves stored DID selection for an explicit join', async () => {
@@ -250,7 +251,7 @@ describe('DidManagerService', () => {
     vi.mocked(api.waitForWalletSync).mockResolvedValue({ isSynced: true } as never);
     vi.mocked(api.waitForWalletFunds).mockResolvedValue(1n);
     vi.mocked(api.configureProviders).mockResolvedValue({ id: 'providers' } as never);
-    const accepted = await manager.unlock({ seedMode: 'reuse' });
+    const accepted = await manager.unlock({ seedMode: 'provided', seed: 'a'.repeat(64) });
     expect(accepted.status.connection.phase).toBe('starting');
 
     for (let attempt = 0; attempt < 100; attempt += 1) {
@@ -312,7 +313,7 @@ describe('DidManagerService', () => {
       path.join(dataDir, 'profiles', 'preprod', 'default', 'manager-session.json'),
       'utf8',
     ));
-    expect(stored.profiles.preprod.seed).toBe(prepared.generatedSeed);
+    expect(stored.profiles.preprod.seed).toBeUndefined();
     expect(stored.profiles.preprod.unshieldedAddress).toBe('mn_addr_preprod1derived');
     await expect(manager.unlock({ seedMode: 'generated' })).rejects.toThrow(
       'Seed mode generated is not allowed for Start session. Click Prepare funding first.',
@@ -439,7 +440,7 @@ describe('DidManagerService', () => {
     vi.mocked(api.waitForWalletFunds).mockResolvedValue(1n);
     vi.mocked(api.configureProviders).mockResolvedValue({ id: 'providers' } as never);
 
-    await manager.unlock({ seedMode: 'reuse' });
+    await manager.unlock({ seedMode: 'provided', seed: 'a'.repeat(64) });
     for (let attempt = 0; attempt < 100; attempt += 1) {
       const status = await manager.getSessionStatus();
       if (status.connection.phase === 'ready') {

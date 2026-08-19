@@ -597,7 +597,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
       setValue('fundingAddress', data?.unshieldedAddress || '');
       setValue('faucetUrl', data?.faucetUrl || '');
       setFundingUiForProfile(data?.profile);
-      setChecked('remember', data?.rememberUnlockedSession ?? true);
+      setChecked('remember', data?.rememberUnlockedSession ?? false);
       const connectionPhase = data?.connection?.phase || 'locked';
       setText('setupProfileName', data?.profileName || '-');
       setText('setupFundingAddress', data?.unshieldedAddress || '-');

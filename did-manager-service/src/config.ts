@@ -84,7 +84,7 @@ export const loadConfig = (env: Record<string, string | undefined> = process.env
     secretStorePath,
     sessionIdleMs: parsePositiveMs(env.DID_MANAGER_SESSION_IDLE_MS, 5 * 60 * 1000),
     defaultSecretPassphrase: resolveDefaultSecretPassphrase(env, setupProfile),
-    rememberUnlockedSessionDefault: parseBoolean(env.DID_MANAGER_REMEMBER_UNLOCKED, true),
+    rememberUnlockedSessionDefault: parseBoolean(env.DID_MANAGER_REMEMBER_UNLOCKED, false),
     standalone: {
       indexer: env.DID_MANAGER_STANDALONE_INDEXER ?? 'http://127.0.0.1:8088/api/v3/graphql',
       indexerWS: env.DID_MANAGER_STANDALONE_INDEXER_WS ?? 'ws://127.0.0.1:8088/api/v3/graphql/ws',

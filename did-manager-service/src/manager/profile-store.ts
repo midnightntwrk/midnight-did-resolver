@@ -76,6 +76,9 @@ export class ManagerProfileStore {
 
     await this.ensureLegacyProfileMigrated();
     this.session = await readSessionStore(sessionPath, this.cfg.rememberUnlockedSessionDefault);
+    // Rewrite legacy files immediately so a plaintext seed is removed even if
+    // the manager is only started to inspect profiles.
+    await writeSessionStore(sessionPath, this.session);
     this.loadedSessionPath = sessionPath;
     this.sessionLoaded = true;
   }

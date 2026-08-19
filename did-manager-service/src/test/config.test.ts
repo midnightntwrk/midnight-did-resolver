@@ -8,7 +8,7 @@ describe('did-manager-service config', () => {
     expect(cfg.host).toBe('127.0.0.1');
     expect(cfg.port).toBe(3010);
     expect(cfg.setupProfile).toBe('standalone');
-    expect(cfg.rememberUnlockedSessionDefault).toBe(true);
+    expect(cfg.rememberUnlockedSessionDefault).toBe(false);
     expect(cfg.standalone.indexer).toContain('127.0.0.1');
     expect(cfg.preprod.indexer).toContain('/api/v4/graphql');
     expect(cfg.mainnet.indexer).toContain('/api/v4/graphql');
