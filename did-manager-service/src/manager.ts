@@ -334,11 +334,7 @@ export class DidManagerService {
     if (passphrase === undefined || passphrase.trim().length === 0) {
       throw new Error('Secret-store passphrase is required to start a session.');
     }
-    return await createSecretStore(
-      this.profileSecretStorePath(),
-      passphrase,
-      passphrase,
-    );
+    return await createSecretStore(this.profileSecretStorePath(), passphrase);
   }
 
   private async restorePersistedWalletState(seedHash: string) {
