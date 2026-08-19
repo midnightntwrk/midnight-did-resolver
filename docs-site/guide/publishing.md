@@ -78,3 +78,25 @@ Reason:
   - deploy only when the selected ref is `main`
 
 This keeps manual docs verification available on branches without accidentally publishing preview content as the production Pages site.
+
+## Container image verification
+
+The Docker release workflow publishes provenance and SBOM attestations and signs
+both image digests with keyless Cosign. Verify the exact digest before
+deployment:
+
+```bash
+cosign verify \
+  ghcr.io/midnightntwrk/midnight-did-resolver-service@sha256:<resolver-digest> \
+  --certificate-identity-regexp 'https://github.com/midnightntwrk/midnight-did-resolver/.github/workflows/.*@refs/(heads/main|tags/v.*)' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
+
+cosign verify \
+  ghcr.io/midnightntwrk/midnight-did-manager-service@sha256:<manager-digest> \
+  --certificate-identity-regexp 'https://github.com/midnightntwrk/midnight-did-resolver/.github/workflows/.*@refs/(heads/main|tags/v.*)' \
+  --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
+```
+
+The workflow signs digests rather than mutable tags. Existing exact RC and
+stable tag behavior is unchanged; `latest` is still updated only for stable
+versions.
