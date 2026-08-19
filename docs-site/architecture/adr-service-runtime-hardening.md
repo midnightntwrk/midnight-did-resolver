@@ -44,11 +44,14 @@ When `verificationMethodId` is used as the verification source, the request DID 
 
 The file-backed secret store creates and rewrites the encrypted store with mode `0600`. Writes go through a same-directory temporary file, `fsync`, and atomic rename so process crashes do not leave partial JSON in place. The store keeps derived encryption key material instead of retaining the passphrase string, and wipes temporary key buffers after derivation, import, signing, and encryption/decryption helper use.
 
-### Resolver endpoint overrides are public-network only
+### Resolver endpoints are immutable startup configuration
 
-User-provided `indexerUrl` and `indexerWsUrl` overrides reject credentials and localhost/private/link-local/non-public IP literals. Default configured endpoints are still allowed to be local for standalone development.
+The resolver accepts indexer HTTP and WebSocket endpoints only from startup
+configuration. Request-level `indexerUrl` and `indexerWsUrl` fields are rejected.
+Configured endpoints may still be local for standalone development.
 
-This protects the public resolver API from being used as a simple SSRF primitive while preserving local standalone defaults.
+This keeps the resolver's outbound network boundary operator-controlled and
+prevents callers from turning the public API into an SSRF primitive.
 
 ### DID-resolution errors use one payload helper
 
