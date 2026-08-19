@@ -331,10 +331,13 @@ export class DidManagerService {
   }
 
   private async createSecretStore(passphrase?: string): Promise<FileSecretStore> {
+    if (passphrase === undefined || passphrase.trim().length === 0) {
+      throw new Error('Secret-store passphrase is required to start a session.');
+    }
     return await createSecretStore(
       this.profileSecretStorePath(),
       passphrase,
-      this.cfg.defaultSecretPassphrase,
+      passphrase,
     );
   }
 
