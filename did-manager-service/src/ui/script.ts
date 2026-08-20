@@ -443,6 +443,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
       if (!seedModeEl) return;
       const session = lastSessionPayload?.data?.status || lastSessionPayload?.data || lastSessionPayload;
       const canReuse = Boolean(session?.seedAvailable);
+      const fundingPrepared = Boolean(session?.fundingPrepared);
       const reuseOption = seedModeEl.querySelector('option[value="reuse"]');
       if (reuseOption) {
         reuseOption.disabled = !canReuse;
@@ -451,13 +452,15 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
           : 'Available after this profile has a prepared seed.';
       }
       if (!canReuse && seedModeEl.value === 'reuse') {
-        seedModeEl.value = 'generated';
+        seedModeEl.value = fundingPrepared ? 'provided' : 'generated';
       }
       const seedModeHintEl = document.getElementById('seedModeHint');
       if (seedModeHintEl) {
         seedModeHintEl.textContent = canReuse
           ? 'Reuse is available for this profile because a shared seed is stored.'
-          : 'This profile is new. Choose generated or provided, then click Prepare funding.';
+          : fundingPrepared
+            ? 'This profile has prepared funding, but its seed is not retained after restart. Re-enter it in provided mode to start a session.'
+            : 'This profile is new. Choose generated or provided, then click Prepare funding.';
       }
     };
 
@@ -468,11 +471,16 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
       const unlocked = Boolean(session?.unlocked);
       const seedMode = seedModeEl?.value || 'reuse';
       const seedValue = readTrimmed('seed');
+      const passphraseValue = readTrimmed('passphrase');
       const hasFundingAddress = Boolean((fundingAddressEl?.value || '').trim());
       const fundingPrepared = Boolean(session?.fundingPrepared);
+      const canStartWithSeed =
+        (seedMode === 'reuse' && Boolean(session?.seedAvailable)) ||
+        (seedMode === 'provided' && seedValue.length > 0);
+      const canStart = fundingPrepared && canStartWithSeed && passphraseValue.length > 0;
 
       setDisabled('prepareFunding', running || (seedMode === 'provided' && seedValue.length === 0));
-      setDisabled('startSession', running || unlocked || !fundingPrepared);
+      setDisabled('startSession', running || unlocked || !canStart);
       setDisabled('closeSession', !running && !unlocked);
       setDisabled('copyFundingAddress', !hasFundingAddress);
       setDisabled('selectProfile', running || unlocked);
@@ -597,7 +605,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
       setValue('fundingAddress', data?.unshieldedAddress || '');
       setValue('faucetUrl', data?.faucetUrl || '');
       setFundingUiForProfile(data?.profile);
-      setChecked('remember', data?.rememberUnlockedSession ?? true);
+      setChecked('remember', data?.rememberUnlockedSession ?? false);
       const connectionPhase = data?.connection?.phase || 'locked';
       setText('setupProfileName', data?.profileName || '-');
       setText('setupFundingAddress', data?.unshieldedAddress || '-');
@@ -1031,6 +1039,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
         });
       }
       seedEl?.addEventListener('input', updateActionState);
+      document.getElementById('passphrase')?.addEventListener('input', updateActionState);
       document.getElementById('remember')?.addEventListener('change', updateActionState);
 
       const applyGeneratedSeedResult = (generatedSeed) => {

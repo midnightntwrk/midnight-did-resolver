@@ -74,7 +74,10 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
     });
   });
 
-  await app.register(swagger, {
+  // Fastify plugin declarations resolve a second workspace copy of Fastify in
+  // some npm workspace layouts. Keep runtime registration unchanged while
+  // narrowing the compatibility cast to Fastify's own register parameter.
+  await app.register(swagger as unknown as Parameters<typeof app.register>[0], {
     openapi: {
       info: {
         title: 'Midnight DID Manager API',
@@ -83,7 +86,7 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
       },
     },
   });
-  await app.register(swaggerUi, { routePrefix: '/docs' });
+  await app.register(swaggerUi as unknown as Parameters<typeof app.register>[0], { routePrefix: '/docs' });
 
   const operations = new OperationStore();
 

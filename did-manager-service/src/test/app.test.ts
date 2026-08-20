@@ -494,7 +494,7 @@ describe('did-manager-service app', () => {
     const unlock = await app.inject({
       method: 'POST',
       url: '/api/session/start',
-      payload: { seedMode: 'generated' },
+      payload: { seedMode: 'generated', passphrase: 'test-passphrase' },
     });
     expect(unlock.statusCode).toBe(202);
     const operationId = unlock.json().data.id as string;
