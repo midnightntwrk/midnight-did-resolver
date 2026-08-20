@@ -319,9 +319,21 @@ describe('DidManagerService', () => {
     ));
     expect(stored.profiles.preprod.seed).toBeUndefined();
     expect(stored.profiles.preprod.unshieldedAddress).toBe('mn_addr_preprod1derived');
-    await expect(manager.unlock({ seedMode: 'generated' })).rejects.toThrow(
+    await expect(manager.unlock({ seedMode: 'generated', passphrase: 'test-passphrase' })).rejects.toThrow(
       'Seed mode generated is not allowed for Start session. Click Prepare funding first.',
     );
+  });
+
+  it('rejects a missing passphrase before starting wallet work', async () => {
+    const manager = new DidManagerService(createConfig(dataDir), pino({ enabled: false }));
+    await manager.prepareFunding({ seedMode: 'provided', seed: 'a'.repeat(64) });
+
+    await expect(manager.unlock({
+      seedMode: 'provided',
+      seed: 'a'.repeat(64),
+      passphrase: '',
+    })).rejects.toThrow('Secret-store passphrase is required to start a session.');
+    expect(api.buildWallet).not.toHaveBeenCalled();
   });
 
   it('rejects signing through a deactivated active DID', async () => {

@@ -506,6 +506,15 @@ test.describe.serial('did-manager-service UI', () => {
       errorCode: 'invalidRequest',
     });
 
+    const missingPassphrase = await page.request.post(`${env.baseUrl}/api/session/start`, {
+      data: { seedMode: 'provided', seed: 'a'.repeat(64) },
+    });
+    expect(missingPassphrase.status()).toBe(400);
+    expect(await missingPassphrase.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
     const missingOperation = await page.request.get(`${env.baseUrl}/api/operations/not-found`);
     expect(missingOperation.status()).toBe(404);
     expect(await missingOperation.json()).toMatchObject({

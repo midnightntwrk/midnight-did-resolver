@@ -103,4 +103,61 @@ describe('manager profile migration', () => {
     await expect(readFile(config.secretStorePath, 'utf8')).rejects.toThrow();
     expect(store.currentProfileState()?.unshieldedAddress).toBe('mn_addr_legacy');
   });
+
+  it('always assigns legacy state to the default profile', async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), 'midnight-did-profile-selected-'));
+    temporaryDirectories.push(dataDir);
+    const config = loadConfig({ DID_MANAGER_DATA_DIR: dataDir });
+    await mkdir(path.join(dataDir, 'profiles', 'standalone', 'other'), { recursive: true });
+    await writeFile(
+      path.join(dataDir, 'profiles', 'standalone', 'other', 'manager-session.json'),
+      JSON.stringify(defaultSessionStore(false)),
+      'utf8',
+    );
+    await writeFile(
+      path.join(dataDir, 'manager-profiles.json'),
+      JSON.stringify({
+        version: 1,
+        selectedProfiles: { standalone: 'other' },
+        legacyMigrationCompleted: {},
+      }),
+      'utf8',
+    );
+    await writeFile(
+      config.sessionFilePath,
+      JSON.stringify({
+        ...defaultSessionStore(false),
+        profiles: {
+          standalone: {
+            seed: 'd'.repeat(64),
+            unshieldedAddress: 'mn_addr_default_legacy',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      }),
+      'utf8',
+    );
+    await writeFile(config.secretStorePath, 'default legacy secret store', 'utf8');
+
+    const store = new ManagerProfileStore(config, () => 'standalone');
+    await store.ensureLoaded();
+
+    expect(store.selectedProfileName()).toBe('other');
+    expect(store.currentProfileState()).toBeUndefined();
+    const defaultSessionPath = path.join(
+      dataDir,
+      'profiles',
+      'standalone',
+      'default',
+      'manager-session.json',
+    );
+    const defaultSession = JSON.parse(await readFile(defaultSessionPath, 'utf8')) as {
+      profiles: { standalone?: { seed?: string; unshieldedAddress?: string } };
+    };
+    expect(defaultSession.profiles.standalone).toMatchObject({
+      unshieldedAddress: 'mn_addr_default_legacy',
+    });
+    await expect(readFile(config.sessionFilePath, 'utf8')).rejects.toThrow();
+    await expect(readFile(config.secretStorePath, 'utf8')).rejects.toThrow();
+  });
 });

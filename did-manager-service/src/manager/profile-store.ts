@@ -1,4 +1,4 @@
-import { readFile, rm } from 'node:fs/promises';
+import { access, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { ManagerConfig, SetupProfile } from '../config.js';
@@ -161,9 +161,9 @@ export class ManagerProfileStore {
   private async ensureLegacyProfileMigrated(): Promise<void> {
     const profile = this.currentSetupProfile();
     const legacySessionPath = this.profileLegacySessionFilePath();
-    const profileSessionPath = this.profileSessionFilePath();
+    const profileSessionPath = this.profileSessionFilePath('default');
     const legacySecretPath = this.profileLegacySecretFilePath();
-    const profileSecretPath = this.profileSecretStorePath();
+    const profileSecretPath = this.profileSecretStorePath('default');
     await migrateLegacyProfileFile(legacySessionPath, profileSessionPath);
     await migrateLegacyProfileFile(legacySecretPath, profileSecretPath);
     await this.sanitizeAndRemoveMigratedLegacyFiles(
@@ -200,7 +200,7 @@ export class ManagerProfileStore {
 
   private async fileExists(filePath: string): Promise<boolean> {
     try {
-      await readFile(filePath);
+      await access(filePath);
       return true;
     } catch {
       return false;
