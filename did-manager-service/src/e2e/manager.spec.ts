@@ -445,6 +445,8 @@ test.describe.serial('did-manager-service UI', () => {
     await clickAndWaitForJsonResponse<any>(page, '#closeSession', (url, method) => {
       return method === 'POST' && url.pathname === '/api/session/close';
     });
+    await expect(page.locator('#startSession')).toBeDisabled();
+    await page.fill('#passphrase', 'midnight-dev-passphrase');
     await expect(page.locator('#startSession')).toBeEnabled();
     await expect(page.locator('#closeSession')).toBeDisabled();
     await expect(page.locator('#profileSelect')).toBeEnabled();
