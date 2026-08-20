@@ -170,8 +170,9 @@ test.describe.serial('did-manager-service UI', () => {
     });
     expect(prepared.unshieldedAddress).toMatch(/^mn_/);
     await expect(page.locator('#fundingAddress')).not.toHaveValue('');
-    await expect(page.locator('#startSession')).toBeEnabled();
+    await expect(page.locator('#startSession')).toBeDisabled();
     await page.fill('#passphrase', 'midnight-dev-passphrase');
+    await expect(page.locator('#startSession')).toBeEnabled();
     await page.locator('#remember').check();
     const unlocked = await clickAndWaitForOperationResult<any>(page, '#startSession', (url, method) => {
       return method === 'POST' && url.pathname === '/api/session/start';

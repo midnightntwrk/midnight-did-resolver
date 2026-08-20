@@ -97,6 +97,10 @@ export class ManagerProfileStore {
 
   async selectProfile(profileName: string): Promise<void> {
     await this.ensureProfileIndexLoaded();
+    if (this.selectedProfileNameValue === profileName) {
+      await this.ensureLoaded();
+      return;
+    }
     this.selectedProfileNameValue = profileName;
     this.profileIndex.selectedProfiles[this.currentSetupProfile()] = profileName;
     await writeProfileIndex(this.profileIndexFilePath(), this.profileIndex);
@@ -160,27 +164,14 @@ export class ManagerProfileStore {
     const profileSessionPath = this.profileSessionFilePath();
     const legacySecretPath = this.profileLegacySecretFilePath();
     const profileSecretPath = this.profileSecretStorePath();
-    const migrationCompleted = this.profileIndex.legacyMigrationCompleted[profile] === true;
-    let shouldCleanLegacyFiles = migrationCompleted;
-
-    if (!migrationCompleted) {
-      const profilesRoot = path.join(this.baseDataDir(), 'profiles', profile);
-      const existingProfiles = await listProfileNames(profilesRoot);
-      if (existingProfiles.length === 0) {
-        await migrateLegacyProfileFile(legacySessionPath, profileSessionPath);
-        await migrateLegacyProfileFile(legacySecretPath, profileSecretPath);
-        shouldCleanLegacyFiles = true;
-      }
-    }
-
-    if (shouldCleanLegacyFiles) {
-      await this.sanitizeAndRemoveMigratedLegacyFiles(
-        legacySessionPath,
-        profileSessionPath,
-        legacySecretPath,
-        profileSecretPath,
-      );
-    }
+    await migrateLegacyProfileFile(legacySessionPath, profileSessionPath);
+    await migrateLegacyProfileFile(legacySecretPath, profileSecretPath);
+    await this.sanitizeAndRemoveMigratedLegacyFiles(
+      legacySessionPath,
+      profileSessionPath,
+      legacySecretPath,
+      profileSecretPath,
+    );
 
     if (!this.profileIndex.legacyMigrationCompleted[profile]) {
       this.profileIndex.legacyMigrationCompleted[profile] = true;

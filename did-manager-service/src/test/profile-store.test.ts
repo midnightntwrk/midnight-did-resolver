@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -59,10 +59,48 @@ describe('manager profile migration', () => {
     await store.saveCurrentProfileState({ unshieldedAddress: 'mn_addr_updated' });
     expect(store.currentProfileState()?.seed).toBeUndefined();
 
+    await store.saveCurrentProfileState({ seed: 'b'.repeat(64) });
+    await store.selectProfile('default');
+    expect(store.currentProfileState()?.seed).toBe('b'.repeat(64));
+
     await writeFile(config.sessionFilePath, JSON.stringify(legacySession), 'utf8');
     await writeFile(config.secretStorePath, 'stale legacy secret store', 'utf8');
     await new ManagerProfileStore(config, () => 'standalone').ensureLoaded();
     await expect(readFile(config.sessionFilePath, 'utf8')).rejects.toThrow();
     await expect(readFile(config.secretStorePath, 'utf8')).rejects.toThrow();
+  });
+
+  it('migrates legacy state even when another profile directory already exists', async () => {
+    const dataDir = await mkdtemp(path.join(os.tmpdir(), 'midnight-did-profile-existing-'));
+    temporaryDirectories.push(dataDir);
+    const config = loadConfig({ DID_MANAGER_DATA_DIR: dataDir });
+    await mkdir(path.join(dataDir, 'profiles', 'standalone', 'other'), { recursive: true });
+    await writeFile(
+      path.join(dataDir, 'profiles', 'standalone', 'other', 'manager-session.json'),
+      JSON.stringify(defaultSessionStore(false)),
+      'utf8',
+    );
+    await writeFile(
+      config.sessionFilePath,
+      JSON.stringify({
+        ...defaultSessionStore(false),
+        profiles: {
+          standalone: {
+            seed: 'c'.repeat(64),
+            unshieldedAddress: 'mn_addr_legacy',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        },
+      }),
+      'utf8',
+    );
+    await writeFile(config.secretStorePath, 'legacy secret store', 'utf8');
+
+    const store = new ManagerProfileStore(config, () => 'standalone');
+    await store.ensureLoaded();
+
+    await expect(readFile(config.sessionFilePath, 'utf8')).rejects.toThrow();
+    await expect(readFile(config.secretStorePath, 'utf8')).rejects.toThrow();
+    expect(store.currentProfileState()?.unshieldedAddress).toBe('mn_addr_legacy');
   });
 });
