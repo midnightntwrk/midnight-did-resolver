@@ -145,6 +145,21 @@ jobs:
           provenance: mode=max
           sbom: true
 
+      - name: Validate published image digests
+        env:
+          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
+          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${RESOLVER_DIGEST}" ]]; then
+            echo "::error::Resolver build did not produce an image digest" >&2
+            exit 1
+          fi
+          if [[ -z "${MANAGER_DIGEST}" ]]; then
+            echo "::error::Manager build did not produce an image digest" >&2
+            exit 1
+          fi
+
       - name: Install Cosign
         uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
 
@@ -167,7 +182,7 @@ jobs:
           MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
         run: |
           set -euo pipefail
-          IDENTITY="https://github.com/${GITHUB_REPOSITORY}/.github/workflows/.*@refs/(heads/main|tags/v.*)"
+          IDENTITY="^https://github.com/${GITHUB_REPOSITORY}/\.github/workflows/release-docker\.yml@refs/(heads/main|tags/v.*)$"
           ISSUER="https://token.actions.githubusercontent.com"
           cosign verify "${RESOLVER_IMAGE}@${RESOLVER_DIGEST}" \
             --certificate-identity-regexp "${IDENTITY}" \

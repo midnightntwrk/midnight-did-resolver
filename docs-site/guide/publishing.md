@@ -88,12 +88,12 @@ deployment:
 ```bash
 cosign verify \
   ghcr.io/midnightntwrk/midnight-did-resolver-service@sha256:<resolver-digest> \
-  --certificate-identity-regexp 'https://github.com/midnightntwrk/midnight-did-resolver/.github/workflows/.*@refs/(heads/main|tags/v.*)' \
+  --certificate-identity-regexp '^https://github.com/midnightntwrk/midnight-did-resolver/\.github/workflows/release-docker\.yml@refs/(heads/main|tags/v.*)$' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
 
 cosign verify \
   ghcr.io/midnightntwrk/midnight-did-manager-service@sha256:<manager-digest> \
-  --certificate-identity-regexp 'https://github.com/midnightntwrk/midnight-did-resolver/.github/workflows/.*@refs/(heads/main|tags/v.*)' \
+  --certificate-identity-regexp '^https://github.com/midnightntwrk/midnight-did-resolver/\.github/workflows/release-docker\.yml@refs/(heads/main|tags/v.*)$' \
   --certificate-oidc-issuer 'https://token.actions.githubusercontent.com'
 ```
 
