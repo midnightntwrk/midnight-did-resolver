@@ -56,7 +56,7 @@ stateDiagram-v2
 | `DID_MANAGER_DATA_DIR` | Persistent local data directory |
 | `DID_MANAGER_SESSION_FILE` | Optional explicit session file path |
 | `DID_MANAGER_SECRET_FILE` | Optional explicit secret store file path |
-| `DID_MANAGER_SECRET_PASSPHRASE` | Secret store passphrase; required for `preprod` and `mainnet` |
+| Secret-store passphrase | Entered in the browser when starting a session; required after every restart |
 | `DID_MANAGER_LOG_FILE` | Log output file |
 
 ## Run
@@ -85,7 +85,7 @@ npm run dev -w @midnight-ntwrk/midnight-did-manager-service
 
 Mutating API routes run through a single-flight operation store. Runtime wallet/session state is serialized inside `ManagerRuntimeState`, and unlock startup is generation-guarded so stale wallet contexts cannot attach after a newer lock or unlock begins.
 
-DID-based detached verification also checks that the requested verification method is bound to the DID returned by the resolver before checking the signature. `preprod` and `mainnet` manager profiles require `DID_MANAGER_SECRET_PASSPHRASE`; only standalone mode uses the development fallback.
+DID-based detached verification also checks that the requested verification method is bound to the DID returned by the resolver before checking the signature. The manager has no default secret-store passphrase: the browser must provide it after every restart.
 
 ## Architecture
 

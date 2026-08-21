@@ -119,13 +119,12 @@ export const joinExistingContract = async (
 
 export const createSecretStore = async (
   location: string,
-  passphrase: string | undefined,
-  defaultSecretPassphrase: string,
+  passphrase: string,
 ): Promise<FileSecretStore> => {
   const secretStore = new FileSecretStore();
   await secretStore.initialize({
     location,
-    passphrase: passphrase ?? defaultSecretPassphrase,
+    passphrase,
   });
   return secretStore;
 };

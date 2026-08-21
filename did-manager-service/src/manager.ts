@@ -330,12 +330,11 @@ export class DidManagerService {
     };
   }
 
-  private async createSecretStore(passphrase?: string): Promise<FileSecretStore> {
-    return await createSecretStore(
-      this.profileSecretStorePath(),
-      passphrase,
-      this.cfg.defaultSecretPassphrase,
-    );
+  private async createSecretStore(passphrase: string): Promise<FileSecretStore> {
+    if (passphrase.trim().length === 0) {
+      throw new Error('Secret-store passphrase is required to start a session.');
+    }
+    return await createSecretStore(this.profileSecretStorePath(), passphrase);
   }
 
   private async restorePersistedWalletState(seedHash: string) {
@@ -542,6 +541,9 @@ export class DidManagerService {
   }
 
   async unlock(input: UnlockRequest): Promise<{ status: SessionStatus; generatedSeed?: string }> {
+    if (typeof input.passphrase !== 'string' || input.passphrase.trim().length === 0) {
+      throw new Error('Secret-store passphrase is required to start a session.');
+    }
     await this.ensureSessionLoaded();
     const profileState = this.currentProfileState();
     if (!profileState?.unshieldedAddress) {
