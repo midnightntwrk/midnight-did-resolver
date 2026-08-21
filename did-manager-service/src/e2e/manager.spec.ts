@@ -170,8 +170,9 @@ test.describe.serial('did-manager-service UI', () => {
     });
     expect(prepared.unshieldedAddress).toMatch(/^mn_/);
     await expect(page.locator('#fundingAddress')).not.toHaveValue('');
-    await expect(page.locator('#startSession')).toBeEnabled();
+    await expect(page.locator('#startSession')).toBeDisabled();
     await page.fill('#passphrase', 'midnight-dev-passphrase');
+    await expect(page.locator('#startSession')).toBeEnabled();
     await page.locator('#remember').check();
     const unlocked = await clickAndWaitForOperationResult<any>(page, '#startSession', (url, method) => {
       return method === 'POST' && url.pathname === '/api/session/start';
@@ -444,6 +445,8 @@ test.describe.serial('did-manager-service UI', () => {
     await clickAndWaitForJsonResponse<any>(page, '#closeSession', (url, method) => {
       return method === 'POST' && url.pathname === '/api/session/close';
     });
+    await expect(page.locator('#startSession')).toBeDisabled();
+    await page.fill('#passphrase', 'midnight-dev-passphrase');
     await expect(page.locator('#startSession')).toBeEnabled();
     await expect(page.locator('#closeSession')).toBeDisabled();
     await expect(page.locator('#profileSelect')).toBeEnabled();
@@ -499,6 +502,15 @@ test.describe.serial('did-manager-service UI', () => {
     });
     expect(invalidSession.status()).toBe(400);
     expect(await invalidSession.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
+    const missingPassphrase = await page.request.post(`${env.baseUrl}/api/session/start`, {
+      data: { seedMode: 'provided', seed: 'a'.repeat(64) },
+    });
+    expect(missingPassphrase.status()).toBe(400);
+    expect(await missingPassphrase.json()).toMatchObject({
       ok: false,
       errorCode: 'invalidRequest',
     });

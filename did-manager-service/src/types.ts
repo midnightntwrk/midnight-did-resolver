@@ -24,7 +24,7 @@ export type SessionStore = {
 export type UnlockRequest = {
   seedMode: 'reuse' | 'provided' | 'generated';
   seed?: string;
-  passphrase?: string;
+  passphrase: string;
   rememberUnlockedSession?: boolean;
 };
 
