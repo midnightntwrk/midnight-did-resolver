@@ -7,7 +7,8 @@ This guide walks through the complete DID Manager flow and links each step to th
 > on localhost. Its DID CRUD operations demonstrate flows that a real
 > issuer/verifier should own in its bootstrap or business logic. The secret
 > store requires its passphrase again after every restart; recovery is not
-> implemented in this release.
+> implemented in this release. State-changing browser requests must come from
+> the manager's own origin; cross-origin requests are rejected.
 
 ## Before you start
 

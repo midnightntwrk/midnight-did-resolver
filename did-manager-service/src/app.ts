@@ -57,6 +57,22 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
     keepAliveTimeout: 5_000,
   });
 
+  app.addHook('onRequest', async (request, reply) => {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return;
+    const origin = request.headers.origin;
+    if (origin === undefined) return;
+    const expectedOrigin = request.headers.host === undefined
+      ? undefined
+      : `http://${request.headers.host}`;
+    if (origin !== expectedOrigin) {
+      return reply.code(403).send({
+        ok: false,
+        error: 'Request origin is not allowed.',
+        errorCode: 'originNotAllowed',
+      });
+    }
+  });
+
   app.addHook('onSend', async (_req, reply, payload) => {
     for (const [key, value] of Object.entries(baseHeaders)) {
       reply.header(key, value);
