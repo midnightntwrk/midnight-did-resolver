@@ -288,6 +288,22 @@ describe('did-manager-service app', () => {
     expect(close.json()).toEqual({ ok: true, data: defaultSessionStatus });
     expect(manager.closeSession).toHaveBeenCalledTimes(1);
 
+    const crossOriginClose = await app.inject({
+      method: 'POST',
+      url: '/api/session/close',
+      headers: { origin: 'http://attacker.example' },
+    });
+    expect(crossOriginClose.statusCode).toBe(403);
+    expect(manager.closeSession).toHaveBeenCalledTimes(1);
+
+    const sameOriginClose = await app.inject({
+      method: 'POST',
+      url: '/api/session/close',
+      headers: { origin: 'http://localhost:80' },
+    });
+    expect(sameOriginClose.statusCode).toBe(200);
+    expect(manager.closeSession).toHaveBeenCalledTimes(2);
+
     const contracts = await app.inject({ method: 'GET', url: '/api/contracts' });
     expect(contracts.statusCode).toBe(200);
     expect(contracts.json()).toEqual({
@@ -494,7 +510,7 @@ describe('did-manager-service app', () => {
     const unlock = await app.inject({
       method: 'POST',
       url: '/api/session/start',
-      payload: { seedMode: 'generated' },
+      payload: { seedMode: 'generated', passphrase: 'test-passphrase' },
     });
     expect(unlock.statusCode).toBe(202);
     const operationId = unlock.json().data.id as string;

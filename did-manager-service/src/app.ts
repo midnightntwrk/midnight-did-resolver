@@ -57,6 +57,22 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
     keepAliveTimeout: 5_000,
   });
 
+  app.addHook('onRequest', async (request, reply) => {
+    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method)) return;
+    const origin = request.headers.origin;
+    if (origin === undefined) return;
+    const expectedOrigin = request.headers.host === undefined
+      ? undefined
+      : `http://${request.headers.host}`;
+    if (origin !== expectedOrigin) {
+      return reply.code(403).send({
+        ok: false,
+        error: 'Request origin is not allowed.',
+        errorCode: 'originNotAllowed',
+      });
+    }
+  });
+
   app.addHook('onSend', async (_req, reply, payload) => {
     for (const [key, value] of Object.entries(baseHeaders)) {
       reply.header(key, value);
@@ -74,7 +90,10 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
     });
   });
 
-  await app.register(swagger, {
+  // Fastify plugin declarations resolve a second workspace copy of Fastify in
+  // some npm workspace layouts. Keep runtime registration unchanged while
+  // narrowing the compatibility cast to Fastify's own register parameter.
+  await app.register(swagger as unknown as Parameters<typeof app.register>[0], {
     openapi: {
       info: {
         title: 'Midnight DID Manager API',
@@ -83,7 +102,7 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
       },
     },
   });
-  await app.register(swaggerUi, { routePrefix: '/docs' });
+  await app.register(swaggerUi as unknown as Parameters<typeof app.register>[0], { routePrefix: '/docs' });
 
   const operations = new OperationStore();
 
