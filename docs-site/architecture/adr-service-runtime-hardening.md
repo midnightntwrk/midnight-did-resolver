@@ -32,9 +32,9 @@ Unlock startup uses an unlock generation guard. If a newer unlock or lock supers
 
 ### Non-dev secret storage requires explicit operator intent
 
-`DID_MANAGER_SECRET_PASSPHRASE` is required for `preprod` and `mainnet` manager profiles.
-
-There is no dev fallback for non-standalone profiles. Standalone mode may still use the development fallback because it is intended for local-only development.
+The manager has no configured default secret-store passphrase. The browser
+must provide the passphrase when starting a session, including after every
+restart. This applies to standalone, preprod, and mainnet profiles.
 
 ### Detached verification binds the method to the DID
 
