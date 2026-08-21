@@ -37,12 +37,6 @@ The `@midnight-ntwrk/contract` npm alias in `package.json` remains aligned with 
 ./run.sh docs
 ```
 
-## Non-Standalone Manager Secret Policy
+## Manager Secret Policy
 
-For `preprod` and `mainnet`, set an explicit manager secret passphrase before starting the manager:
-
-```bash
-export DID_MANAGER_SECRET_PASSPHRASE=replace-with-a-local-operator-secret
-```
-
-The development fallback is standalone-only. `preprod` and `mainnet` manager profiles always require `DID_MANAGER_SECRET_PASSPHRASE`.
+The manager has no default passphrase. Enter the secret-store passphrase in the browser when starting a session, including after every restart. Recovery is not implemented in the demo.

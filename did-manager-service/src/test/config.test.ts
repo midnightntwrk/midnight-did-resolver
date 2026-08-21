@@ -23,7 +23,6 @@ describe('did-manager-service config', () => {
       DID_MANAGER_REMEMBER_UNLOCKED: 'false',
       DID_MANAGER_SESSION_FILE: '/tmp/s.json',
       DID_MANAGER_SECRET_FILE: '/tmp/k.json',
-      DID_MANAGER_SECRET_PASSPHRASE: 'preprod-secret-passphrase',
     });
     expect(cfg.host).toBe('0.0.0.0');
     expect(cfg.port).toBe(9999);
@@ -36,7 +35,6 @@ describe('did-manager-service config', () => {
   it('supports mainnet defaults and explicit overrides', () => {
     const defaults = loadConfig({
       DID_MANAGER_SETUP: 'mainnet',
-      DID_MANAGER_SECRET_PASSPHRASE: 'mainnet-secret-passphrase',
     });
     expect(defaults.setupProfile).toBe('mainnet');
     expect(defaults.mainnet.indexer).toBe('https://indexer.mainnet.midnight.network/api/v4/graphql');
@@ -50,21 +48,17 @@ describe('did-manager-service config', () => {
       DID_MANAGER_MAINNET_INDEXER_WS: 'wss://indexer.mainnet.example/api/v4/graphql/ws',
       DID_MANAGER_MAINNET_NODE: 'https://rpc.mainnet.example',
       DID_MANAGER_MAINNET_PROOF_SERVER: 'https://proof.mainnet.example',
-      DID_MANAGER_SECRET_PASSPHRASE: 'mainnet-secret-passphrase',
     });
     expect(cfg.setupProfile).toBe('mainnet');
     expect(cfg.mainnet.indexer).toContain('mainnet.example');
   });
 
-  it('requires an explicit passphrase outside standalone', () => {
-    expect(() => loadConfig({ DID_MANAGER_SETUP: 'preprod' })).toThrow(
-      'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles.',
+  it('does not configure a default secret-store passphrase', () => {
+    expect(loadConfig({ DID_MANAGER_SETUP: 'standalone' })).not.toHaveProperty(
+      'defaultSecretPassphrase',
     );
-    expect(() => loadConfig({
-      DID_MANAGER_SETUP: 'preprod',
-      DID_MANAGER_ALLOW_DEV_SECRET_PASSPHRASE: 'true',
-    })).toThrow(
-      'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles.',
+    expect(loadConfig({ DID_MANAGER_SETUP: 'preprod' })).not.toHaveProperty(
+      'defaultSecretPassphrase',
     );
   });
 });
