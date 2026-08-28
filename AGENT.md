@@ -40,6 +40,12 @@ Nix setup:
 nix develop
 ```
 
+The Nix development shell provides the pinned Pi CLI and the project-local
+`dev-loops`, `pi-subagents`, and agent-peer-review packages. Enter `nix develop`
+before using Pi; it provisions the package pins from `.pi/settings.json`. When
+changing tool versions or environment dependencies, update the relevant files
+under `nix/`, `flake.lock`, and the setup documentation in the same PR.
+
 ## Validation and PR Gate
 
 Use DCO/GPG for repository-facing commits:
