@@ -13,9 +13,9 @@
     "docs:preview": "vitepress preview . --host 127.0.0.1 --port 4174"
   },
   "devDependencies": {
-    "mermaid": "^11.16.1",
+    "mermaid": "^11.17.2",
     "typedoc": "^0.28.13",
-    "typedoc-plugin-markdown": "^4.9.0",
+    "typedoc-plugin-markdown": "^4.13.0",
     "vitepress": "^1.6.4"
   }
 }
