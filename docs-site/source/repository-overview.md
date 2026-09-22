@@ -12,7 +12,14 @@ It contains:
 - Secret-storage package for local key custody, signing, verification, and HD derivation.
 - VitePress documentation that can be published to GitHub Pages.
 
-The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). This repository consumes the `0.5.0` release from the public npmjs registry.
+The core DID contract, domain model, and TypeScript API packages remain in [`midnight-did`](https://github.com/midnightntwrk/midnight-did). This repository consumes the `0.7.0` release from the public npmjs registry.
+
+> [!IMPORTANT]
+> Midnight DID 0.7.0 projects native ledger Jubjub JWK coordinates as canonical,
+> fixed-width big-endian values. Deployments upgrading from 0.6.0 or earlier
+> must invalidate cached or persisted DID Documents, re-resolve ledger-backed
+> DIDs, and rebuild JWK thumbprints and JWK-derived identifiers. Do not add an
+> unmarked little-endian fallback.
 
 ## Repository Layout
 

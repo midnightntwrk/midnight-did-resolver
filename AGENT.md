@@ -29,9 +29,9 @@ For lightweight day-to-day validation:
 
 ```bash
 ./run.sh --light
-./run.sh --light secret-storage
-./run.sh --light resolver --strict
-./run.sh --light manager --strict
+./run.sh secret-storage --light
+./run.sh resolver --light --strict
+./run.sh manager --light --strict
 ```
 
 Nix setup:
@@ -58,9 +58,9 @@ Before opening a PR, run:
 
 ```bash
 ./run.sh --light
-./run.sh --strict resolver
-./run.sh --strict manager
-./run.sh --strict secret-storage
+./run.sh resolver --strict
+./run.sh manager --strict
+./run.sh secret-storage --strict
 ./run.sh docs
 ```
 

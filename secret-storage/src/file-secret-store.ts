@@ -114,6 +114,9 @@ export class FileSecretStore implements SecretStorage {
       );
       this.store = JSON.parse(decrypted) as StoreFile;
       await chmodPrivate(this.location);
+      if (await this.migrateJubjubPublicKeys()) {
+        await this.persist();
+      }
     } catch (error) {
       const maybeErr = error as { code?: string };
       if (maybeErr.code === "ENOENT") {
@@ -297,6 +300,42 @@ export class FileSecretStore implements SecretStorage {
     this.encryptionSalt?.fill(0);
     this.encryptionKey = undefined;
     this.encryptionSalt = undefined;
+  }
+
+  private async migrateJubjubPublicKeys(): Promise<boolean> {
+    let migrated = false;
+
+    for (const entry of Object.values(this.store.keys)) {
+      if (
+        entry.privateRecord.kty !== "EC" ||
+        entry.privateRecord.crv !== "Jubjub"
+      ) {
+        continue;
+      }
+
+      const privateKey = Buffer.from(entry.privateRecord.privateKey, "base64");
+      try {
+        const imported = await importCurveKey({
+          kty: "EC",
+          crv: "Jubjub",
+          privateKey,
+        });
+        if (
+          entry.publicJwk.kty !== imported.publicJwk.kty ||
+          entry.publicJwk.crv !== imported.publicJwk.crv ||
+          entry.publicJwk.x !== imported.publicJwk.x ||
+          entry.publicJwk.y !== imported.publicJwk.y
+        ) {
+          entry.publicJwk = imported.publicJwk;
+          entry.meta.updatedAt = nowIso();
+          migrated = true;
+        }
+      } finally {
+        privateKey.fill(0);
+      }
+    }
+
+    return migrated;
   }
 
   private async persist(): Promise<void> {

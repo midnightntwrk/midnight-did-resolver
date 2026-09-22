@@ -1,3 +1,4 @@
+import { parseDID } from "@midnight-ntwrk/midnight-did-domain";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -18,6 +19,15 @@ describe("did-resolver-service resolution errors", () => {
     expect(classifyResolutionError(new Error("Invalid input"))).toBe(
       "invalidDid",
     );
+    expect(classifyResolutionError(new Error("Invalid DID: not-a-did"))).toBe(
+      "invalidDid",
+    );
+    expect(() => parseDID("not-a-did")).toThrowError();
+    try {
+      parseDID("not-a-did");
+    } catch (error) {
+      expect(classifyResolutionError(error)).toBe("invalidDid");
+    }
     expect(
       classifyResolutionError(new Error("indexerWsUrl must use ws or wss")),
     ).toBe("invalidDid");
