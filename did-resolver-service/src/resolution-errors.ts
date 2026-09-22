@@ -3,6 +3,8 @@ export type ResolutionErrorCode =
 
 const didInputErrorMessages = [
   "Invalid Midnight DID format",
+  "Invalid DID format",
+  /^Invalid DID:/,
   "Unknown network in Midnight DID",
   "Invalid contract address in Midnight DID",
   "Invalid method-specific identifier in Midnight DID",

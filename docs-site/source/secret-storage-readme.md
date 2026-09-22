@@ -57,7 +57,6 @@ Reusable encrypted secret storage for Midnight DID key lifecycle operations.
 | Library | Used for | Target/runtime aspect |
 |---|---|---|
 | `zod` | Seed schema and runtime validation | Keeps package boundaries explicit and safe for callers |
-| `circomlibjs` | Jubjub-compatible cryptographic support | Supports Midnight-compatible Jubjub operations in TS |
 | Node `crypto` | HKDF, AES-GCM, scrypt, Ed25519/P-256 primitives | Core cryptographic runtime on Node.js |
 | Node `fs/promises` | Encrypted file persistence | File backend implementation detail |
 
@@ -122,7 +121,12 @@ stateDiagram-v2
 - P-256
 - Jubjub
 
-Jubjub signing/verification is aligned with contract-compatible verification paths used in this repository.
+Jubjub signing/verification is aligned with contract-compatible verification
+paths used in this repository. Public JWK coordinates use the canonical
+fixed-width big-endian encoding introduced by Midnight DID 0.7.0. When an
+existing encrypted file store is opened, legacy Jubjub public coordinates are
+recomputed from the stored private seed and persisted without changing the key
+reference.
 
 ## Adoption Notes
 
