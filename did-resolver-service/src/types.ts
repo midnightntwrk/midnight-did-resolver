@@ -1,4 +1,1 @@
-export type ResolveRequestOptions = {
-  indexerUrl?: string;
-  indexerWsUrl?: string;
-};
+export type ResolveRequestOptions = Record<never, never>;

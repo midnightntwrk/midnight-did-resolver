@@ -36,23 +36,23 @@
     "check:demo": "./demo/run.sh config >/dev/null"
   },
   "dependencies": {
-    "@midnight-ntwrk/contract": "npm:@midnight-ntwrk/midnight-did-contract@0.5.0",
-    "@midnight-ntwrk/midnight-did": "0.5.0",
-    "@midnight-ntwrk/midnight-did-api": "0.5.0",
-    "@midnight-ntwrk/midnight-did-contract": "0.5.0",
-    "@midnight-ntwrk/midnight-did-domain": "0.5.0",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
+    "@midnight-ntwrk/contract": "npm:@midnight-ntwrk/midnight-did-contract@0.7.0",
+    "@midnight-ntwrk/midnight-did": "0.7.0",
+    "@midnight-ntwrk/midnight-did-api": "0.7.0",
+    "@midnight-ntwrk/midnight-did-contract": "0.7.0",
+    "@midnight-ntwrk/midnight-did-domain": "0.7.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.7.0",
     "@midnight-ntwrk/midnight-js-network-id": "4.0.2"
   },
   "overrides": {
     "@midnight-ntwrk/ledger-v8": "8.1.0",
     "@midnight-ntwrk/midnight-js-network-id": "4.0.2",
-    "@midnight-ntwrk/midnight-did": "0.5.0",
-    "@midnight-ntwrk/midnight-did-api": "0.5.0",
-    "@midnight-ntwrk/midnight-did-contract": "0.5.0",
-    "@midnight-ntwrk/midnight-did-domain": "0.5.0",
-    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.5.0",
-    "fast-uri": "3.1.5",
+    "@midnight-ntwrk/midnight-did": "0.7.0",
+    "@midnight-ntwrk/midnight-did-api": "0.7.0",
+    "@midnight-ntwrk/midnight-did-contract": "0.7.0",
+    "@midnight-ntwrk/midnight-did-domain": "0.7.0",
+    "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.7.0",
+    "fast-uri": "3.1.8",
     "find-my-way": "^9.7.0",
     "@fastify/swagger-ui": "^6.1.1",
     "@fastify/static": "^10.1.2",
@@ -62,6 +62,7 @@
         "ws": "8.21.2"
       }
     },
+    "js-yaml": "4.3.2",
     "ws": "^8.21.2"
   },
   "devDependencies": {
@@ -80,7 +81,7 @@
     "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-simple-import-sort": "^12.0.0",
     "globals": "^16.2.0",
-    "testcontainers": "^12.1.0",
+    "testcontainers": "^11.0.0",
     "ts-node": "^10.9.2",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3",

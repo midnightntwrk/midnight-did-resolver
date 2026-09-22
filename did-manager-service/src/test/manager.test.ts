@@ -58,7 +58,6 @@ const createConfig = (dataDir: string): ManagerConfig => ({
   sessionFilePath: path.join(dataDir, 'manager-session.json'),
   secretStorePath: path.join(dataDir, 'manager-secrets.json'),
   sessionIdleMs: 60_000,
-  defaultSecretPassphrase: 'midnight-dev-passphrase',
   rememberUnlockedSessionDefault: true,
   standalone: {
     indexer: 'http://127.0.0.1:8088/api/v3/graphql',
@@ -180,7 +179,8 @@ describe('DidManagerService', () => {
 
     const defaultStatus = await manager.getSessionStatus();
     expect(defaultStatus.profileName).toBe('default');
-    expect(defaultStatus.seedAvailable).toBe(true);
+    expect(defaultStatus.seedAvailable).toBe(false);
+    expect(defaultStatus.fundingPrepared).toBe(true);
 
     const isolatedStatus = await manager.selectProfile({ name: 'isolated' });
     expect(isolatedStatus.profileName).toBe('isolated');
@@ -193,7 +193,7 @@ describe('DidManagerService', () => {
         'utf8',
       ),
     );
-    expect(defaultProfileSession.profiles.preprod.seed).toBe('a'.repeat(64));
+    expect(defaultProfileSession.profiles.preprod.seed).toBeUndefined();
   });
 
   it('keeps the wallet unlocked and leaves stored DID selection for an explicit join', async () => {
@@ -250,7 +250,11 @@ describe('DidManagerService', () => {
     vi.mocked(api.waitForWalletSync).mockResolvedValue({ isSynced: true } as never);
     vi.mocked(api.waitForWalletFunds).mockResolvedValue(1n);
     vi.mocked(api.configureProviders).mockResolvedValue({ id: 'providers' } as never);
-    const accepted = await manager.unlock({ seedMode: 'reuse' });
+    const accepted = await manager.unlock({
+      seedMode: 'provided',
+      seed: 'a'.repeat(64),
+      passphrase: 'test-passphrase',
+    });
     expect(accepted.status.connection.phase).toBe('starting');
 
     for (let attempt = 0; attempt < 100; attempt += 1) {
@@ -284,6 +288,7 @@ describe('DidManagerService', () => {
 
     const accepted = await manager.unlock({
       seedMode: 'reuse',
+      passphrase: 'test-passphrase',
     });
     expect(accepted.status.connection.phase).toBe('starting');
 
@@ -312,11 +317,23 @@ describe('DidManagerService', () => {
       path.join(dataDir, 'profiles', 'preprod', 'default', 'manager-session.json'),
       'utf8',
     ));
-    expect(stored.profiles.preprod.seed).toBe(prepared.generatedSeed);
+    expect(stored.profiles.preprod.seed).toBeUndefined();
     expect(stored.profiles.preprod.unshieldedAddress).toBe('mn_addr_preprod1derived');
-    await expect(manager.unlock({ seedMode: 'generated' })).rejects.toThrow(
+    await expect(manager.unlock({ seedMode: 'generated', passphrase: 'test-passphrase' })).rejects.toThrow(
       'Seed mode generated is not allowed for Start session. Click Prepare funding first.',
     );
+  });
+
+  it('rejects a missing passphrase before starting wallet work', async () => {
+    const manager = new DidManagerService(createConfig(dataDir), pino({ enabled: false }));
+    await manager.prepareFunding({ seedMode: 'provided', seed: 'a'.repeat(64) });
+
+    await expect(manager.unlock({
+      seedMode: 'provided',
+      seed: 'a'.repeat(64),
+      passphrase: '',
+    })).rejects.toThrow('Secret-store passphrase is required to start a session.');
+    expect(api.buildWallet).not.toHaveBeenCalled();
   });
 
   it('rejects signing through a deactivated active DID', async () => {
@@ -439,7 +456,11 @@ describe('DidManagerService', () => {
     vi.mocked(api.waitForWalletFunds).mockResolvedValue(1n);
     vi.mocked(api.configureProviders).mockResolvedValue({ id: 'providers' } as never);
 
-    await manager.unlock({ seedMode: 'reuse' });
+    await manager.unlock({
+      seedMode: 'provided',
+      seed: 'a'.repeat(64),
+      passphrase: 'test-passphrase',
+    });
     for (let attempt = 0; attempt < 100; attempt += 1) {
       const status = await manager.getSessionStatus();
       if (status.connection.phase === 'ready') {

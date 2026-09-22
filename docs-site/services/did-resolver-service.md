@@ -64,9 +64,14 @@ npm run dev -w @midnight-ntwrk/midnight-did-resolver-service
 
 You can override both with `MIDNIGHT_INDEXER_HTTP_URL` and `MIDNIGHT_INDEXER_WS_URL`.
 
-## Endpoint override policy
+## Endpoint policy
 
-Request-level `indexerUrl` and `indexerWsUrl` overrides must use public network endpoints. The service rejects override URLs with embedded credentials or localhost/private/link-local/non-public IP literals. Configured defaults may still point at local standalone infrastructure.
+Indexer HTTP and WebSocket endpoints are immutable startup configuration. Set
+`MIDNIGHT_INDEXER_HTTP_URL` and `MIDNIGHT_INDEXER_WS_URL` before starting the
+service; request-level endpoint overrides are rejected. This keeps the
+resolver's outbound network boundary operator-controlled and prevents callers
+from turning it into an SSRF proxy. Configured defaults may still point at
+local standalone infrastructure.
 
 ## Container runtime
 

@@ -84,6 +84,8 @@ describe("curve-support", () => {
   });
 
   it("rejects unsupported curves and malformed Jubjub inputs", async () => {
+    const validJubjub = await generateCurveKey("EC", "Jubjub");
+
     await expect(generateCurveKey("OKP", "P-256" as never)).rejects.toThrow(
       UnsupportedCurveError,
     );
@@ -107,6 +109,9 @@ describe("curve-support", () => {
         payload,
         new Uint8Array(10),
       ),
+    ).rejects.toThrow("publicKeyJwk.x must decode to exactly 32 bytes");
+    await expect(
+      verifyWithPublicJwk(validJubjub.publicJwk, payload, new Uint8Array(10)),
     ).rejects.toThrow("Jubjub signature must be exactly 96 bytes");
   });
 });

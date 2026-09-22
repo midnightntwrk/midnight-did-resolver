@@ -1,8 +1,16 @@
 # Docker demo
 
-This demo runs the published `0.1.0-rc.2` resolver and manager images with a
+This demo runs the published `0.1.0-rc.1` resolver and manager images with a
 local Midnight node, indexer, and proof server. It is intended for evaluation
-and API/UI exploration, not production deployment.
+and API/UI exploration, not production deployment. Midnight DID Manager is a
+browser-only demo application; its DID CRUD flows are illustrative and should
+be implemented as issuer/verifier bootstrap or business logic in a real
+application.
+
+The demo binds both application ports to `127.0.0.1` by default. Do not change
+these mappings to `0.0.0.0` or expose the manager port on a shared network.
+Manager recovery is not implemented in this release, and the secret-store
+passphrase must be entered again after a manager restart.
 
 ## Prerequisites
 
@@ -78,11 +86,11 @@ names and should not be changed to `127.0.0.1`.
 The defaults are:
 
 ```text
-ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.2
-ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.2
+ghcr.io/midnightntwrk/midnight-did-resolver-service:0.1.0-rc.1
+ghcr.io/midnightntwrk/midnight-did-manager-service:0.1.0-rc.1
 ```
 
 The release workflow publishes exact RC tags and does not move `latest` for a
-pre-release. A release promotion to `main` followed by `v0.1.0-rc.2`, or the
+pre-release. A release promotion to `main` followed by `v0.1.0-rc.1`, or the
 manual workflow dispatch documented in the repository README, publishes both
 images.

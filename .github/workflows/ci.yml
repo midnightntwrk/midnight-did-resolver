@@ -88,6 +88,63 @@ jobs:
             did-manager-service/test-results
             did-resolver-service/test-results
 
+  docker-runtime:
+    name: Docker runtime smoke
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build resolver image
+        run: docker build --file did-resolver-service/Dockerfile --tag midnight-did-resolver:ci .
+
+      - name: Build manager image
+        run: docker build --file did-manager-service/Dockerfile --tag midnight-did-manager:ci .
+
+      - name: Start images with demo dependencies
+        env:
+          DEMO_PROJECT_NAME: midnight-did-ci
+          MANAGER_IMAGE: midnight-did-manager:ci
+          RESOLVER_IMAGE: midnight-did-resolver:ci
+          MANAGER_DATA_DIR: ${{ runner.temp }}/midnight-did-manager
+        run: |
+          mkdir -p "${MANAGER_DATA_DIR}"
+          chmod 777 "${MANAGER_DATA_DIR}"
+          ./demo/run.sh up
+
+      - name: Verify image health endpoints
+        if: always()
+        env:
+          DEMO_PROJECT_NAME: midnight-did-ci
+          MANAGER_IMAGE: midnight-did-manager:ci
+          RESOLVER_IMAGE: midnight-did-resolver:ci
+          MANAGER_DATA_DIR: ${{ runner.temp }}/midnight-did-manager
+        run: |
+          ./demo/run.sh health
+          curl --fail --retry 30 --retry-delay 2 http://127.0.0.1:3001/ready
+          curl --fail --retry 30 --retry-delay 2 http://127.0.0.1:3010/ready
+
+      - name: Print Docker runtime logs
+        if: always()
+        env:
+          DEMO_PROJECT_NAME: midnight-did-ci
+          MANAGER_IMAGE: midnight-did-manager:ci
+          RESOLVER_IMAGE: midnight-did-resolver:ci
+          MANAGER_DATA_DIR: ${{ runner.temp }}/midnight-did-manager
+        run: docker compose -p "${DEMO_PROJECT_NAME}" -f demo/docker-compose.yml logs --no-color
+
+      - name: Stop Docker runtime smoke
+        if: always()
+        env:
+          DEMO_PROJECT_NAME: midnight-did-ci
+          MANAGER_IMAGE: midnight-did-manager:ci
+          RESOLVER_IMAGE: midnight-did-resolver:ci
+          MANAGER_DATA_DIR: ${{ runner.temp }}/midnight-did-manager
+        run: ./demo/run.sh down
+
   coverage:
     name: Coverage thresholds
     runs-on: ubuntu-24.04

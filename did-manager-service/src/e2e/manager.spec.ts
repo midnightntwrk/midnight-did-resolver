@@ -48,6 +48,30 @@ const waitForOperation = async <T>(
   throw new Error(`Timed out waiting for operation ${operationId}.\nLast payload:\n${JSON.stringify(lastPayload, null, 2)}`);
 };
 
+const waitForFailedOperation = async (
+  page: Page,
+  operationId: string,
+): Promise<{ status: string; error?: { errorCode?: string; statusCode?: number; message?: string } }> => {
+  const deadline = Date.now() + 30_000;
+  let lastPayload: unknown;
+
+  while (Date.now() < deadline) {
+    const response = await page.request.get(`${env.baseUrl}/api/operations/${operationId}`);
+    expect(response.ok()).toBe(true);
+    lastPayload = await response.json();
+    const operation = (lastPayload as { data?: { status?: string; error?: { errorCode?: string; statusCode?: number; message?: string } } }).data;
+    if (operation?.status === 'failed') {
+      return operation as { status: string; error?: { errorCode?: string; statusCode?: number; message?: string } };
+    }
+    if (operation?.status === 'succeeded') {
+      throw new Error(`Operation ${operationId} unexpectedly succeeded`);
+    }
+    await delay(250);
+  }
+
+  throw new Error(`Timed out waiting for failed operation ${operationId}.\nLast payload:\n${JSON.stringify(lastPayload, null, 2)}`);
+};
+
 const clickAndWaitForOperationResult = async <T>(
   page: Page,
   triggerSelector: string,
@@ -146,8 +170,9 @@ test.describe.serial('did-manager-service UI', () => {
     });
     expect(prepared.unshieldedAddress).toMatch(/^mn_/);
     await expect(page.locator('#fundingAddress')).not.toHaveValue('');
-    await expect(page.locator('#startSession')).toBeEnabled();
+    await expect(page.locator('#startSession')).toBeDisabled();
     await page.fill('#passphrase', 'midnight-dev-passphrase');
+    await expect(page.locator('#startSession')).toBeEnabled();
     await page.locator('#remember').check();
     const unlocked = await clickAndWaitForOperationResult<any>(page, '#startSession', (url, method) => {
       return method === 'POST' && url.pathname === '/api/session/start';
@@ -420,6 +445,8 @@ test.describe.serial('did-manager-service UI', () => {
     await clickAndWaitForJsonResponse<any>(page, '#closeSession', (url, method) => {
       return method === 'POST' && url.pathname === '/api/session/close';
     });
+    await expect(page.locator('#startSession')).toBeDisabled();
+    await page.fill('#passphrase', 'midnight-dev-passphrase');
     await expect(page.locator('#startSession')).toBeEnabled();
     await expect(page.locator('#closeSession')).toBeDisabled();
     await expect(page.locator('#profileSelect')).toBeEnabled();
@@ -456,6 +483,70 @@ test.describe.serial('did-manager-service UI', () => {
         verified: true,
         source: 'didDocument',
         verificationMethodId: edVerificationMethodId,
+      },
+    });
+  });
+
+  test('rejects malformed browser requests with structured errors', async ({ page }) => {
+    const invalidProfile = await page.request.post(`${env.baseUrl}/api/profiles/select`, {
+      data: { unexpected: true },
+    });
+    expect(invalidProfile.status()).toBe(400);
+    expect(await invalidProfile.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
+    const invalidSession = await page.request.post(`${env.baseUrl}/api/session/start`, {
+      data: { seedMode: 'unsupported' },
+    });
+    expect(invalidSession.status()).toBe(400);
+    expect(await invalidSession.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
+    const missingPassphrase = await page.request.post(`${env.baseUrl}/api/session/start`, {
+      data: { seedMode: 'provided', seed: 'a'.repeat(64) },
+    });
+    expect(missingPassphrase.status()).toBe(400);
+    expect(await missingPassphrase.json()).toMatchObject({
+      ok: false,
+      errorCode: 'invalidRequest',
+    });
+
+    const missingOperation = await page.request.get(`${env.baseUrl}/api/operations/not-found`);
+    expect(missingOperation.status()).toBe(404);
+    expect(await missingOperation.json()).toMatchObject({
+      ok: false,
+      errorCode: 'operationNotFound',
+    });
+  });
+
+  test('reports closed-session and failed-operation guards', async ({ page }) => {
+    const closedDeploy = await page.request.post(`${env.baseUrl}/api/did/deploy`);
+    expect(closedDeploy.status()).toBe(202);
+    const closedDeployOperation = (await closedDeploy.json()).data.id as string;
+    const closedDeployFailure = await waitForFailedOperation(page, closedDeployOperation);
+    expect(closedDeployFailure).toMatchObject({
+      status: 'failed',
+      error: {
+        errorCode: 'sessionLocked',
+        statusCode: 409,
+      },
+    });
+
+    const invalidFunding = await page.request.post(`${env.baseUrl}/api/session/prepare-funding`, {
+      data: { seedMode: 'provided', seed: 'zz' },
+    });
+    expect(invalidFunding.status()).toBe(202);
+    const invalidFundingOperation = (await invalidFunding.json()).data.id as string;
+    const invalidFundingFailure = await waitForFailedOperation(page, invalidFundingOperation);
+    expect(invalidFundingFailure).toMatchObject({
+      status: 'failed',
+      error: {
+        errorCode: 'invalidSeed',
+        statusCode: 400,
       },
     });
   });

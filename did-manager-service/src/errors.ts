@@ -162,6 +162,7 @@ export const classifyManagerHttpError = (error: unknown): ManagerHttpError => {
     message.includes("Funding is not prepared") ||
     message.includes("does not match the prepared funding seed") ||
     message.includes("Prepared funding state is inconsistent") ||
+    message.includes("Secret-store passphrase is required") ||
     message.includes("Seed mode generated is not allowed for Start session") ||
     invalidRequestMessagePatterns.some((pattern) => message.includes(pattern))
   ) {

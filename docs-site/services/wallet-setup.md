@@ -33,12 +33,12 @@ This workspace isolates wallet/runtime concerns from DID mutation concerns:
 
 | Field | Purpose | Notes |
 | --- | --- | --- |
-| `Seed mode` | Choose seed source | `reuse`, `provided`, `generated` (`reuse` is disabled for brand new profiles) |
-| `Seed` | Manual seed input | Used only in `provided` mode |
-| `Secret passphrase` | Override secret-store passphrase | Optional |
+| `Seed mode` | Choose seed source | `reuse`, `provided`, `generated` (`reuse` is disabled for new profiles and after restart) |
+| `Seed` | Manual seed input | Used only in `provided` mode; required again after restart |
+| `Secret passphrase` | Unlock the encrypted secret store | Required for every session start; not persisted by the service |
 | `Remember started session` | Persist session preference | Checkbox |
-| `Prepare funding` | Resolve seed and derive funding address | Stores seed+address in profile |
-| `Start Session` | Start wallet session | Async operation; enabled only after `Prepare funding` succeeds |
+| `Prepare funding` | Resolve seed and derive funding address | Persists the address; the seed remains in memory only |
+| `Start Session` | Start wallet session | Async operation; enabled only after funding, seed, and passphrase prerequisites are supplied |
 | `Close session` | Hard stop current runtime session | Explicitly releases backend resources and clears in-memory runtime state |
 | `Refresh status` | Force immediate status pull | Icon button in panel header |
 
@@ -78,6 +78,7 @@ Wallet Setup controls are gated by backend state so users cannot disrupt in-flig
 ## Operational guidance
 
 1. For a new profile, set name and click `Use profile` first.
+2. After a restart, select `provided`, re-enter the prepared seed, and enter the secret-store passphrase before starting the session.
 2. Use `generated` + `Prepare funding` for new bootstrap.
 3. Fund address, then start the session.
 4. Move to Secret Storage and DID Management only after `ready`.

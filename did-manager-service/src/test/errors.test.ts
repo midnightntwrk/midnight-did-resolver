@@ -51,6 +51,16 @@ describe("classifyManagerHttpError", () => {
     });
   });
 
+  it("maps a missing secret-store passphrase to invalidRequest", () => {
+    const message = "Secret-store passphrase is required to start a session.";
+
+    expect(classifyManagerHttpError(new Error(message))).toEqual({
+      statusCode: 400,
+      errorCode: "invalidRequest",
+      message,
+    });
+  });
+
   it("maps missing local signing keys to secretNotFound", () => {
     const message = "Key not found in secret storage: key-ref-1";
 

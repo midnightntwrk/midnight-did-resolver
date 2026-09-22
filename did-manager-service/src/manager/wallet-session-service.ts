@@ -76,7 +76,7 @@ export const buildSessionStatus = (
   contractAddress: currentContractAddress ?? profileState?.contractAddress ?? null,
   knownContractAddresses: profileState?.contractAddresses ?? [],
   seedAvailable: Boolean(profileState?.seed),
-  fundingPrepared: Boolean(profileState?.seed && profileState?.unshieldedAddress),
+  fundingPrepared: Boolean(profileState?.unshieldedAddress),
   unshieldedAddress: profileState?.unshieldedAddress ?? null,
   faucetUrl: faucetUrl(profile),
   walletBalances,

@@ -6,7 +6,8 @@ export type SignatureFormat = 'ed25519-raw' | 'jubjub-raw-96' | 'ecdsa-der';
 export type VerificationSource = 'localKey' | 'publicJwk' | 'didDocument';
 
 export type SessionProfileState = {
-  seed: string;
+  /** In-memory only; never serialized to manager-session.json. */
+  seed?: string;
   unshieldedAddress?: string;
   contractAddress?: string;
   contractAddresses?: string[];
@@ -23,7 +24,7 @@ export type SessionStore = {
 export type UnlockRequest = {
   seedMode: 'reuse' | 'provided' | 'generated';
   seed?: string;
-  passphrase?: string;
+  passphrase: string;
   rememberUnlockedSession?: boolean;
 };
 

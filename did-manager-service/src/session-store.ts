@@ -1,4 +1,5 @@
-import { copyFile, mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { chmod, copyFile, mkdir, open, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { NetworkProfile, SessionStore } from './types.js';
@@ -22,6 +23,42 @@ export const defaultSessionStore = (rememberUnlockedSession: boolean): SessionSt
   profiles: {},
 });
 
+const PRIVATE_FILE_MODE = 0o600;
+
+const writePrivateAtomic = async (filePath: string, contents: string): Promise<void> => {
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let handle: Awaited<ReturnType<typeof open>> | undefined;
+
+  try {
+    handle = await open(temporaryPath, 'wx', PRIVATE_FILE_MODE);
+    await handle.writeFile(contents, 'utf8');
+    await handle.sync();
+    await handle.close();
+    handle = undefined;
+    await rename(temporaryPath, filePath);
+    await chmod(filePath, PRIVATE_FILE_MODE);
+  } catch (error) {
+    if (handle !== undefined) await handle.close().catch(() => undefined);
+    await rm(temporaryPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
+};
+
+const persistedProfile = (profileState: SessionStore['profiles'][keyof SessionStore['profiles']]) => {
+  if (profileState === undefined) return undefined;
+  return {
+    unshieldedAddress: profileState.unshieldedAddress,
+    contractAddress: profileState.contractAddress,
+    contractAddresses:
+      Array.isArray(profileState.contractAddresses)
+        ? profileState.contractAddresses
+        : typeof profileState.contractAddress === 'string'
+          ? [profileState.contractAddress]
+          : [],
+    updatedAt: profileState.updatedAt,
+  };
+};
+
 export const readSessionStore = async (
   filePath: string,
   rememberUnlockedSession: boolean,
@@ -40,20 +77,11 @@ export const readSessionStore = async (
           : rememberUnlockedSession,
       lastProfile: parsed.lastProfile ?? null,
       profiles: Object.fromEntries(
-        Object.entries(parsed.profiles).map(([profile, state]) => {
-          const profileState = state as SessionStore['profiles'][keyof SessionStore['profiles']];
-          if (profileState === undefined) return [profile, profileState];
-          return [profile, {
-            ...profileState,
-            contractAddresses:
-              Array.isArray(profileState.contractAddresses)
-                ? profileState.contractAddresses
-                : typeof profileState.contractAddress === 'string'
-                  ? [profileState.contractAddress]
-                  : [],
-          }];
-        }),
-      ),
+        Object.entries(parsed.profiles).map(([profile, state]) => [
+          profile,
+          persistedProfile(state as SessionStore['profiles'][keyof SessionStore['profiles']]),
+        ]),
+      ) as SessionStore['profiles'],
     };
   } catch {
     return defaultSessionStore(rememberUnlockedSession);
@@ -62,7 +90,13 @@ export const readSessionStore = async (
 
 export const writeSessionStore = async (filePath: string, store: SessionStore): Promise<void> => {
   await mkdir(path.dirname(filePath), { recursive: true });
-  await writeFile(filePath, JSON.stringify(store, null, 2), 'utf8');
+  const persisted: SessionStore = {
+    ...store,
+    profiles: Object.fromEntries(
+      Object.entries(store.profiles).map(([profile, state]) => [profile, persistedProfile(state)]),
+    ) as SessionStore['profiles'],
+  };
+  await writePrivateAtomic(filePath, JSON.stringify(persisted, null, 2));
 };
 
 export const readProfileIndex = async (filePath: string): Promise<ProfileIndex> => {

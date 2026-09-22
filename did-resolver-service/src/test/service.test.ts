@@ -40,7 +40,7 @@ vi.mock("@midnight-ntwrk/midnight-did-contract", () => ({
   },
 }));
 
-import { RESOLVER_CACHE_MAX_SIZE, ResolverService } from "../service";
+import { ResolverService } from "../service";
 
 describe("did-resolver-service service", () => {
   beforeEach(() => {
@@ -83,23 +83,6 @@ describe("did-resolver-service service", () => {
     expect(result.payload.didResolutionMetadata.error).toBe("notFound");
   });
 
-  it("derives ws indexer URL from provided http override", async () => {
-    resolveResultMock.mockResolvedValue(null);
-    const service = new ResolverService({
-      indexerHttpUrl: "http://indexer.example/api/v3/graphql",
-      indexerWsUrl: "ws://indexer.example/api/v3/graphql/ws",
-    });
-
-    await service.resolve("did:midnight:devnet:abc", {
-      indexerUrl: "https://another.example/api/v3/graphql",
-    });
-
-    expect(providerFactoryMock).toHaveBeenCalledWith(
-      "https://another.example/api/v3/graphql",
-      "wss://another.example/api/v3/graphql/ws",
-    );
-  });
-
   it("reuses resolver instances for same endpoint pair", async () => {
     resolveResultMock.mockResolvedValue(null);
     const service = new ResolverService({
@@ -111,28 +94,6 @@ describe("did-resolver-service service", () => {
     await service.resolve("did:midnight:devnet:def");
 
     expect(resolverCtorMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("evicts least recently used resolver when cache size is exceeded", async () => {
-    resolveResultMock.mockResolvedValue(null);
-    const service = new ResolverService({
-      indexerHttpUrl: "http://indexer.example/api/v3/graphql",
-      indexerWsUrl: "ws://indexer.example/api/v3/graphql/ws",
-    });
-
-    for (let i = 0; i <= RESOLVER_CACHE_MAX_SIZE; i += 1) {
-      await service.resolve("did:midnight:devnet:abc", {
-        indexerUrl: `http://idx-${i}.example/api/v3/graphql`,
-      });
-    }
-
-    expect(resolverCtorMock).toHaveBeenCalledTimes(RESOLVER_CACHE_MAX_SIZE + 1);
-
-    await service.resolve("did:midnight:devnet:abc", {
-      indexerUrl: "http://idx-0.example/api/v3/graphql",
-    });
-
-    expect(resolverCtorMock).toHaveBeenCalledTimes(RESOLVER_CACHE_MAX_SIZE + 2);
   });
 
   it("maps contract state through DIDContract.ledger in resolver reader", async () => {
