@@ -38,7 +38,7 @@
     "@midnight-ntwrk/midnight-did-domain": "0.7.0",
     "@midnight-ntwrk/midnight-did-jubjub-schnorr": "0.7.0",
     "@midnight-ntwrk/wallet-sdk-hd": "^3.0.2",
-    "zod": "^4.1.0"
+    "zod": "^4.6.5"
   },
   "files": [
     "dist/**",
