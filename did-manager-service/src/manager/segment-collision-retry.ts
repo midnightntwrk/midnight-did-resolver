@@ -37,8 +37,11 @@ const balancingTransactionOf = (recipe: BalancingRecipe) => {
  * estimating the fee in `balanceUnboundTransaction`, where nothing is reserved yet, and in
  * `finalizeRecipe`. The latter fails before submission, but the facade only reverts on a
  * failed submit, so the colliding fee transaction is reverted here to release its reserved
- * dust. Unshielded balancing of the base transaction happens in place and is reused when the
- * transaction is balanced again, so the base transaction is left untouched.
+ * dust. Estimation reserves nothing only because DID contract calls need no shielded
+ * balancing; a call that did could leave shielded coins or dust reserved after an
+ * estimation collision, and this wrapper would not release them. Unshielded balancing of the
+ * base transaction happens in place and is reused when the transaction is balanced again, so
+ * the base transaction is left untouched.
  */
 export const withCollisionRevert = (wallet: WalletFacade, logger: Logger): WalletFacade => {
   const balanceUnboundTransaction: WalletFacade['balanceUnboundTransaction'] = async (...args) => {
