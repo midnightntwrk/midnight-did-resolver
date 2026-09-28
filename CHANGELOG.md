@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encrypted private seeds on first open, preserving existing key references
   while replacing legacy little-endian coordinates with canonical 0.7 values.
 
+### Fixed
+
+- Rebalance manager DID transactions whose dust fee transaction draws the same
+  random intent segment id, releasing the dust reserved by the failed merge
+  instead of failing the operation.
+- Stop pull-request scans from `develop` cancelling the `develop` push scan.
+
 ### Security
 
 - Remove the unused `circomlibjs` runtime dependency and its vulnerable
