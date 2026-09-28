@@ -6,7 +6,7 @@ type BalancingRecipe = Parameters<WalletFacade['finalizeRecipe']>[0];
 type WalletAndMidnightProvider = Awaited<ReturnType<typeof api.configureProviders>>['walletProvider'];
 
 // midnight-js call transactions and wallet-sdk dust fee transactions each pick a random
-// intent segment id, so merging them in `finalizeRecipe` occasionally fails with this error.
+// intent segment id, so merging them occasionally fails with this error.
 const segmentCollisionPattern = /segment_id\) collision during intents merge/;
 
 export const maxBalanceAttempts = 3;
@@ -32,13 +32,23 @@ const balancingTransactionOf = (recipe: BalancingRecipe) => {
 };
 
 /**
- * Wraps the wallet so a colliding merge releases the dust spends reserved for the fee
- * transaction. The merge fails before submission, and the facade only reverts on a failed
- * submit, so without this the reserved dust stays pending for the rest of the session.
- * Only the balancing transaction is reverted: unshielded balancing of the base transaction
- * happens in place and is reused when the transaction is balanced again.
+ * Wraps the wallet so fee transaction segment collisions surface as `SegmentCollisionError`.
+ * The wallet merges a random-segment fee transaction into the call transaction twice: while
+ * estimating the fee in `balanceUnboundTransaction`, where nothing is reserved yet, and in
+ * `finalizeRecipe`. The latter fails before submission, but the facade only reverts on a
+ * failed submit, so the colliding fee transaction is reverted here to release its reserved
+ * dust. Unshielded balancing of the base transaction happens in place and is reused when the
+ * transaction is balanced again, so the base transaction is left untouched.
  */
 export const withCollisionRevert = (wallet: WalletFacade, logger: Logger): WalletFacade => {
+  const balanceUnboundTransaction: WalletFacade['balanceUnboundTransaction'] = async (...args) => {
+    try {
+      return await wallet.balanceUnboundTransaction(...args);
+    } catch (error) {
+      throw isSegmentCollision(error) ? new SegmentCollisionError(error) : error;
+    }
+  };
+
   const finalizeRecipe: WalletFacade['finalizeRecipe'] = async (recipe) => {
     try {
       return await wallet.finalizeRecipe(recipe);
@@ -58,6 +68,7 @@ export const withCollisionRevert = (wallet: WalletFacade, logger: Logger): Walle
 
   return new Proxy(wallet, {
     get(target, property) {
+      if (property === 'balanceUnboundTransaction') return balanceUnboundTransaction;
       if (property === 'finalizeRecipe') return finalizeRecipe;
       const value: unknown = Reflect.get(target, property, target);
       return typeof value === 'function' ? value.bind(target) : value;

@@ -95,6 +95,25 @@ describe('segment collision retry', () => {
     expect(wallet.revert).not.toHaveBeenCalled();
   });
 
+  it('reports fee estimation collisions without reverting anything', async () => {
+    const { wallet } = createWallet();
+    wallet.balanceUnboundTransaction.mockRejectedValueOnce(collision());
+    const guarded = withCollisionRevert(wallet as never, logger);
+
+    await expect(guarded.balanceUnboundTransaction({ id: 'call-tx' } as never, {} as never, {} as never))
+      .rejects.toBeInstanceOf(SegmentCollisionError);
+    expect(wallet.revert).not.toHaveBeenCalled();
+  });
+
+  it('passes other fee estimation errors through', async () => {
+    const { wallet } = createWallet();
+    const failure = new Error('Insufficient funds');
+    wallet.balanceUnboundTransaction.mockRejectedValueOnce(failure);
+
+    await expect(withCollisionRevert(wallet as never, logger)
+      .balanceUnboundTransaction({ id: 'call-tx' } as never, {} as never, {} as never)).rejects.toBe(failure);
+  });
+
   it('stops rebalancing after the attempt limit', async () => {
     const balanceTx = vi.fn().mockRejectedValue(new SegmentCollisionError(collision()));
     const provider = withSegmentCollisionRetry({ balanceTx } as never, logger);
@@ -131,5 +150,19 @@ describe('segment collision retry', () => {
     await expect(providers.walletProvider.balanceTx({ id: 'call-tx' } as never)).resolves.toEqual({ id: 'finalized-tx' });
     expect(wallet.balanceUnboundTransaction).toHaveBeenCalledTimes(2);
     expect(wallet.revert).toHaveBeenCalledExactlyOnceWith(balancingTransaction);
+  });
+
+  it('rebalances after a fee estimation collision through the configured providers', async () => {
+    const { wallet } = createWallet();
+    wallet.balanceUnboundTransaction.mockRejectedValueOnce(collision());
+    wallet.finalizeRecipe.mockResolvedValueOnce({ id: 'finalized-tx' });
+    apiMock.configureProviders.mockImplementation(configureProvidersLikeDidApi);
+
+    const providers = await configureProvidersWithCollisionRetry({ wallet } as never, {} as never, logger);
+
+    await expect(providers.walletProvider.balanceTx({ id: 'call-tx' } as never)).resolves.toEqual({ id: 'finalized-tx' });
+    expect(wallet.balanceUnboundTransaction).toHaveBeenCalledTimes(2);
+    expect(wallet.finalizeRecipe).toHaveBeenCalledOnce();
+    expect(wallet.revert).not.toHaveBeenCalled();
   });
 });
