@@ -11,12 +11,13 @@ const packageFiles = [
   "secret-storage/package.json",
 ];
 
+const didPackageVersion = "0.7.0";
 const didPackageRefs = new Map([
-  ["@midnight-ntwrk/midnight-did", "0.5.0"],
-  ["@midnight-ntwrk/midnight-did-api", "0.5.0"],
-  ["@midnight-ntwrk/midnight-did-contract", "0.5.0"],
-  ["@midnight-ntwrk/midnight-did-domain", "0.5.0"],
-  ["@midnight-ntwrk/midnight-did-jubjub-schnorr", "0.5.0"],
+  ["@midnight-ntwrk/midnight-did", didPackageVersion],
+  ["@midnight-ntwrk/midnight-did-api", didPackageVersion],
+  ["@midnight-ntwrk/midnight-did-contract", didPackageVersion],
+  ["@midnight-ntwrk/midnight-did-domain", didPackageVersion],
+  ["@midnight-ntwrk/midnight-did-jubjub-schnorr", didPackageVersion],
 ]);
 
 const readJson = (relativePath) =>
@@ -27,10 +28,10 @@ const rootPackageJson = readJson("package.json");
 
 if (
   rootPackageJson.dependencies?.["@midnight-ntwrk/contract"] !==
-  "npm:@midnight-ntwrk/midnight-did-contract@0.5.0"
+  `npm:@midnight-ntwrk/midnight-did-contract@${didPackageVersion}`
 ) {
   failures.push(
-    "package.json dependencies.@midnight-ntwrk/contract must alias the 0.5.0 contract package for the DID API default ZK artifact path",
+    `package.json dependencies.@midnight-ntwrk/contract must alias the ${didPackageVersion} contract package for the DID API default ZK artifact path`,
   );
 }
 

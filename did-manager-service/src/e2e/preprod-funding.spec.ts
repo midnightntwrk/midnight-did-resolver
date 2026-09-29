@@ -61,7 +61,7 @@ test.describe.serial('did-manager-service preprod funding', () => {
     }
   });
 
-  test('prepares and persists a reusable preprod seed/address pair', async ({ page }) => {
+  test('preserves preprod funding address and requires seed re-entry after restart', async ({ page }) => {
     dataDir = await mkdtemp(path.join(os.tmpdir(), 'did-manager-preprod-funding-'));
     env = await startManagerPreprodFundingEnv(dataDir);
 
@@ -93,15 +93,15 @@ test.describe.serial('did-manager-service preprod funding', () => {
     });
     expect(status.ok).toBe(true);
     expect(status.data.profile).toBe('preprod');
-    expect(status.data.seedAvailable).toBe(true);
+    expect(status.data.seedAvailable).toBe(false);
+    expect(status.data.fundingPrepared).toBe(true);
     expect(status.data.unshieldedAddress).toBe(preparedAddress);
+    await expect(page.locator('#seedMode')).toHaveValue('provided');
+    await expect(page.locator('#startSession')).toBeDisabled();
 
-    await page.selectOption('#seedMode', 'reuse');
-    const reusedAccepted = await clickAndWaitForJsonResponse<any>(page, '#prepareFunding', (url, method) => {
-      return method === 'POST' && url.pathname === '/api/session/prepare-funding';
-    });
-    const reused = await waitForOperation<any>(page, env.baseUrl, reusedAccepted.data.id);
-    expect(reused.generatedSeed).toBeUndefined();
-    expect(reused.unshieldedAddress).toBe(preparedAddress);
+    await page.fill('#seed', generatedSeed);
+    await expect(page.locator('#startSession')).toBeDisabled();
+    await page.fill('#passphrase', 'preprod-test-passphrase');
+    await expect(page.locator('#startSession')).toBeEnabled();
   });
 });

@@ -90,10 +90,10 @@ describe('manager helper coverage', () => {
     expect(networkMock.setNetworkId).toHaveBeenCalledWith('undeployed');
     expect(networkMock.setNetworkId).toHaveBeenCalledWith('preprod');
     expect(networkMock.setNetworkId).toHaveBeenCalledWith('mainnet');
-    const store = await createSecretStore('/tmp/secrets', undefined, 'default-passphrase');
+    const store = await createSecretStore('/tmp/secrets', 'explicit-passphrase');
     expect(store).toBeDefined();
     expect(secretStorageMock.initialize).toHaveBeenCalledWith({
-      location: '/tmp/secrets', passphrase: 'default-passphrase',
+      location: '/tmp/secrets', passphrase: 'explicit-passphrase',
     });
   });
 

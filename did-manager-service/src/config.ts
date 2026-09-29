@@ -16,7 +16,6 @@ export type ManagerConfig = {
   sessionFilePath: string;
   secretStorePath: string;
   sessionIdleMs: number;
-  defaultSecretPassphrase: string;
   rememberUnlockedSessionDefault: boolean;
   standalone: SetupEndpoints;
   preprod: SetupEndpoints;
@@ -50,24 +49,10 @@ const parseBoolean = (value: string | undefined, fallback: boolean): boolean => 
 };
 
 const defaultDataDir = `${process.env.HOME ?? process.cwd()}/.midnight-did`;
-const devDefaultSecretPassphrase = 'midnight-dev-passphrase';
-
 const parseSetupProfile = (value: string | undefined): SetupProfile => {
   const raw = value?.trim() || 'standalone';
   if (raw === 'standalone' || raw === 'preprod' || raw === 'mainnet') return raw;
   throw new Error(`Invalid DID_MANAGER_SETUP value: ${raw}`);
-};
-
-const resolveDefaultSecretPassphrase = (
-  env: Record<string, string | undefined>,
-  setupProfile: SetupProfile,
-): string => {
-  const explicit = env.DID_MANAGER_SECRET_PASSPHRASE?.trim();
-  if (explicit !== undefined && explicit.length > 0) return explicit;
-  if (setupProfile === 'standalone') return devDefaultSecretPassphrase;
-  throw new Error(
-    'DID_MANAGER_SECRET_PASSPHRASE is required for preprod/mainnet manager profiles.',
-  );
 };
 
 export const loadConfig = (env: Record<string, string | undefined> = process.env): ManagerConfig => {
@@ -83,8 +68,7 @@ export const loadConfig = (env: Record<string, string | undefined> = process.env
     sessionFilePath,
     secretStorePath,
     sessionIdleMs: parsePositiveMs(env.DID_MANAGER_SESSION_IDLE_MS, 5 * 60 * 1000),
-    defaultSecretPassphrase: resolveDefaultSecretPassphrase(env, setupProfile),
-    rememberUnlockedSessionDefault: parseBoolean(env.DID_MANAGER_REMEMBER_UNLOCKED, true),
+    rememberUnlockedSessionDefault: parseBoolean(env.DID_MANAGER_REMEMBER_UNLOCKED, false),
     standalone: {
       indexer: env.DID_MANAGER_STANDALONE_INDEXER ?? 'http://127.0.0.1:8088/api/v3/graphql',
       indexerWS: env.DID_MANAGER_STANDALONE_INDEXER_WS ?? 'ws://127.0.0.1:8088/api/v3/graphql/ws',

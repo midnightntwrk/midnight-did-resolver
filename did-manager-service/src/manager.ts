@@ -10,7 +10,6 @@ import {
   type FileSecretStore,
   type GenerateKeyInput,
   type ImportKeyInput,
-  parseSeed,
 } from '@midnight-ntwrk/midnight-did-secret-storage';
 import type { Logger } from 'pino';
 
@@ -45,6 +44,7 @@ import {
 } from './manager/helpers.js';
 import { ManagerProfileStore } from './manager/profile-store.js';
 import { ManagerRuntimeState } from './manager/runtime-state.js';
+import { configureProvidersWithCollisionRetry } from './manager/segment-collision-retry.js';
 import {
   buildSessionStatus,
   buildSetupStatus,
@@ -331,12 +331,11 @@ export class DidManagerService {
     };
   }
 
-  private async createSecretStore(passphrase?: string): Promise<FileSecretStore> {
-    return await createSecretStore(
-      this.profileSecretStorePath(),
-      passphrase,
-      this.cfg.defaultSecretPassphrase,
-    );
+  private async createSecretStore(passphrase: string): Promise<FileSecretStore> {
+    if (passphrase.trim().length === 0) {
+      throw new Error('Secret-store passphrase is required to start a session.');
+    }
+    return await createSecretStore(this.profileSecretStorePath(), passphrase);
   }
 
   private async restorePersistedWalletState(seedHash: string) {
@@ -498,7 +497,7 @@ export class DidManagerService {
         { profile: this.setupProfile(), profileName: this.selectedProfileName(), seedHash },
         'Wallet ready, configuring providers',
       );
-      const providers = await api.configureProviders(walletCtx, providerConfig);
+      const providers = await configureProvidersWithCollisionRetry(walletCtx, providerConfig, this.logger);
       if (await this.stopCancelledWallet(generation, walletCtx)) return;
       const secretStore = await this.createSecretStore(input.passphrase);
 
@@ -543,9 +542,12 @@ export class DidManagerService {
   }
 
   async unlock(input: UnlockRequest): Promise<{ status: SessionStatus; generatedSeed?: string }> {
+    if (typeof input.passphrase !== 'string' || input.passphrase.trim().length === 0) {
+      throw new Error('Secret-store passphrase is required to start a session.');
+    }
     await this.ensureSessionLoaded();
     const profileState = this.currentProfileState();
-    if (!profileState?.seed || !profileState.unshieldedAddress) {
+    if (!profileState?.unshieldedAddress) {
       throw new Error('Funding is not prepared for this profile. Click Prepare funding first.');
     }
     if (input.seedMode === 'generated') {
@@ -553,8 +555,7 @@ export class DidManagerService {
     }
 
     const { seed, generatedSeed } = resolveSeedInput(this.setupProfile(), profileState, input);
-    const preparedSeed = parseSeed(profileState.seed);
-    if (preparedSeed !== seed) {
+    if (profileState.seed !== undefined && profileState.seed !== seed) {
       throw new Error('Provided seed does not match the prepared funding seed for this profile. Click Prepare funding again.');
     }
     this.ensureNetworkInitialized();

@@ -8,6 +8,10 @@ import {
 
 import { maxField } from "@midnight-ntwrk/ledger-v8";
 import {
+  decodeJubjubJwkCoordinate,
+  encodeJubjubJwkCoordinate,
+} from "@midnight-ntwrk/midnight-did-domain";
+import {
   decodeJubjubSignature,
   deriveJubjubPublicKeyFromSeed,
   encodeJubjubSignature,
@@ -54,33 +58,10 @@ const isDistinctBuffer = (candidate: Buffer, source: Buffer): boolean =>
   candidate.byteOffset + candidate.byteLength >
     source.byteOffset + source.byteLength;
 
-const bufferToBase64url = (value: Buffer): string =>
-  value
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/g, "");
-
 const bufferToBigint = (buf: Buffer): bigint => {
   if (buf.length === 0) return 0n;
   return BigInt(`0x${buf.toString("hex")}`);
 };
-
-const bigintTo32LeBase64url = (value: bigint): string => {
-  const bytes = Buffer.alloc(32);
-  let remaining = value;
-  for (let index = 0; index < bytes.length; index += 1) {
-    bytes[index] = Number(remaining & 0xffn);
-    remaining >>= 8n;
-  }
-  if (remaining !== 0n) {
-    throw new Error("Jubjub public key coordinate does not fit in 32 bytes");
-  }
-  return bufferToBase64url(bytes);
-};
-
-const bufferToBigintLe = (buf: Buffer): bigint =>
-  bufferToBigint(Buffer.from(buf).reverse());
 
 const curveFromJwk = (jwk: LocalJsonWebKey): PublicJwk => {
   if (
@@ -101,13 +82,17 @@ const curveFromJwk = (jwk: LocalJsonWebKey): PublicJwk => {
 const publicJwkToLedgerBigints = (
   publicJwk: PublicJwk,
 ): { x: bigint; y: bigint } => {
-  const decode =
-    publicJwk.kty === "EC" && publicJwk.crv === "Jubjub"
-      ? bufferToBigintLe
-      : bufferToBigint;
+  if (publicJwk.kty === "EC" && publicJwk.crv === "Jubjub") {
+    return {
+      x: decodeJubjubJwkCoordinate(publicJwk.x, "publicKeyJwk.x"),
+      y: publicJwk.y
+        ? decodeJubjubJwkCoordinate(publicJwk.y, "publicKeyJwk.y")
+        : 0n,
+    };
+  }
   return {
-    x: decode(base64urlToBuffer(publicJwk.x)),
-    y: publicJwk.y ? decode(base64urlToBuffer(publicJwk.y)) : 0n,
+    x: bufferToBigint(base64urlToBuffer(publicJwk.x)),
+    y: publicJwk.y ? bufferToBigint(base64urlToBuffer(publicJwk.y)) : 0n,
   };
 };
 
@@ -251,8 +236,8 @@ export const generateCurveKey = async (
       const publicJwk = {
         kty,
         crv,
-        x: bigintTo32LeBase64url(pub.x),
-        y: bigintTo32LeBase64url(pub.y),
+        x: encodeJubjubJwkCoordinate(pub.x),
+        y: encodeJubjubJwkCoordinate(pub.y),
       };
       assertPublicJwkLedgerCompatible(publicJwk, "Generated Jubjub public key");
       return {
@@ -359,8 +344,8 @@ export const importCurveKey = async (
           publicJwk: {
             kty: params.kty,
             crv: params.crv,
-            x: bigintTo32LeBase64url(pub.x),
-            y: bigintTo32LeBase64url(pub.y),
+            x: encodeJubjubJwkCoordinate(pub.x),
+            y: encodeJubjubJwkCoordinate(pub.y),
           },
         };
         assertPublicJwkLedgerCompatible(
@@ -432,8 +417,8 @@ export const verifyWithPublicJwk = async (
     }
 
     const publicKey = {
-      x: bufferToBigintLe(base64urlToBuffer(publicJwk.x)),
-      y: bufferToBigintLe(base64urlToBuffer(publicJwk.y)),
+      x: decodeJubjubJwkCoordinate(publicJwk.x, "publicKeyJwk.x"),
+      y: decodeJubjubJwkCoordinate(publicJwk.y, "publicKeyJwk.y"),
     };
 
     return verifyJubjubPayload(

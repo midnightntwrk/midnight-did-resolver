@@ -64,6 +64,21 @@ describe("did-resolver-service config", () => {
     ).toThrow("Invalid RESOLVER_TIMEOUT_MS value");
   });
 
+  it("rejects credentials in configured indexer urls", () => {
+    expect(() =>
+      loadConfig({
+        MIDNIGHT_INDEXER_HTTP_URL:
+          "https://user:password@indexer.example/graphql",
+      }),
+    ).toThrow("Invalid MIDNIGHT_INDEXER_HTTP_URL value");
+    expect(() =>
+      loadConfig({
+        MIDNIGHT_INDEXER_WS_URL:
+          "wss://user:password@indexer.example/graphql/ws",
+      }),
+    ).toThrow("Invalid MIDNIGHT_INDEXER_WS_URL value");
+  });
+
   it("fails on invalid indexer urls", () => {
     expect(() =>
       loadConfig({

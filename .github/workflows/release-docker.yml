@@ -29,6 +29,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
 
     steps:
       - name: Checkout repository
@@ -121,6 +122,7 @@ jobs:
           } >> "${GITHUB_OUTPUT}"
 
       - name: Build and push resolver image
+        id: build_resolver
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
@@ -132,6 +134,7 @@ jobs:
           sbom: true
 
       - name: Build and push manager image
+        id: build_manager
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
           context: .
@@ -142,10 +145,58 @@ jobs:
           provenance: mode=max
           sbom: true
 
-      - name: Print image refs
+      - name: Validate published image digests
+        env:
+          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
+          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${RESOLVER_DIGEST}" ]]; then
+            echo "::error::Resolver build did not produce an image digest" >&2
+            exit 1
+          fi
+          if [[ -z "${MANAGER_DIGEST}" ]]; then
+            echo "::error::Manager build did not produce an image digest" >&2
+            exit 1
+          fi
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
+
+      - name: Sign published image digests
+        env:
+          RESOLVER_IMAGE: ${{ steps.meta.outputs.resolver_image }}
+          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
+          MANAGER_IMAGE: ${{ steps.meta.outputs.manager_image }}
+          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
+        run: |
+          set -euo pipefail
+          cosign sign --yes "${RESOLVER_IMAGE}@${RESOLVER_DIGEST}"
+          cosign sign --yes "${MANAGER_IMAGE}@${MANAGER_DIGEST}"
+
+      - name: Verify published image signatures
+        env:
+          RESOLVER_IMAGE: ${{ steps.meta.outputs.resolver_image }}
+          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
+          MANAGER_IMAGE: ${{ steps.meta.outputs.manager_image }}
+          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
+        run: |
+          set -euo pipefail
+          IDENTITY="^https://github.com/${GITHUB_REPOSITORY}/\.github/workflows/release-docker\.yml@refs/(heads/main|tags/v.*)$"
+          ISSUER="https://token.actions.githubusercontent.com"
+          cosign verify "${RESOLVER_IMAGE}@${RESOLVER_DIGEST}" \
+            --certificate-identity-regexp "${IDENTITY}" \
+            --certificate-oidc-issuer "${ISSUER}"
+          cosign verify "${MANAGER_IMAGE}@${MANAGER_DIGEST}" \
+            --certificate-identity-regexp "${IDENTITY}" \
+            --certificate-oidc-issuer "${ISSUER}"
+
+      - name: Print image refs and digests
         env:
           MANAGER_IMAGE: ${{ steps.meta.outputs.manager_image }}
+          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
           RESOLVER_IMAGE: ${{ steps.meta.outputs.resolver_image }}
+          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
         run: |
-          echo "resolver=${RESOLVER_IMAGE}"
-          echo "manager=${MANAGER_IMAGE}"
+          echo "resolver=${RESOLVER_IMAGE}@${RESOLVER_DIGEST}"
+          echo "manager=${MANAGER_IMAGE}@${MANAGER_DIGEST}"

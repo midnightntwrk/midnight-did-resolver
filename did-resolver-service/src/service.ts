@@ -17,7 +17,6 @@ import {
   type ResolutionErrorCode,
   statusCodeForResolutionError,
 } from "./resolution-errors.js";
-import { type ResolveRequestOptions } from "./types.js";
 
 export type MidnightResolutionResult = NonNullable<
   Awaited<ReturnType<MidnightDIDResolver["resolveResult"]>>
@@ -143,7 +142,6 @@ export class ResolverService {
 
   private logResolutionFailure(
     did: string,
-    options: ResolveRequestOptions | undefined,
     errorCode: ResolutionErrorCode,
     error: unknown,
   ): void {
@@ -153,7 +151,6 @@ export class ResolverService {
     const stack = error instanceof Error ? error.stack : undefined;
     this.logger.error("[did-resolver-service] resolve failed", {
       did,
-      options,
       errorCode,
       message,
       stack,
@@ -174,9 +171,8 @@ export class ResolverService {
     }
   }
 
-  private resolverFor(options?: ResolveRequestOptions): MidnightDIDResolver {
-    const { indexerHttpUrl, indexerWsUrl } =
-      this.endpointPolicy.resolve(options);
+  private resolverFor(): MidnightDIDResolver {
+    const { indexerHttpUrl, indexerWsUrl } = this.endpointPolicy.resolve();
     const cacheKey = `${indexerHttpUrl}|${indexerWsUrl}|${this.expectedNetwork ?? "any"}`;
     const cached = this.resolverCache.get(cacheKey);
     if (cached !== undefined) {
@@ -203,7 +199,6 @@ export class ResolverService {
 
   private async resolveResultWithTimeout(
     did: string,
-    options?: ResolveRequestOptions,
   ): Promise<Awaited<ReturnType<MidnightDIDResolver["resolveResult"]>>> {
     const abortController = new AbortController();
     let timer: ReturnType<typeof globalThis.setTimeout> | null = null;
@@ -220,7 +215,7 @@ export class ResolverService {
 
     try {
       return await Promise.race([
-        this.resolverFor(options).resolveResult(did),
+        this.resolverFor().resolveResult(did),
         timeout,
       ]);
     } finally {
@@ -231,12 +226,9 @@ export class ResolverService {
     }
   }
 
-  async resolve(
-    did: string,
-    options?: ResolveRequestOptions,
-  ): Promise<ResolveResponse> {
+  async resolve(did: string): Promise<ResolveResponse> {
     try {
-      const result = await this.resolveResultWithTimeout(did, options);
+      const result = await this.resolveResultWithTimeout(did);
       if (result === null) {
         return {
           statusCode: 404,
@@ -256,7 +248,7 @@ export class ResolverService {
       };
     } catch (error) {
       const resolveError = classifyResolutionError(error);
-      this.logResolutionFailure(did, options, resolveError, error);
+      this.logResolutionFailure(did, resolveError, error);
       const statusCode = statusCodeForResolutionError(resolveError);
       return {
         statusCode,

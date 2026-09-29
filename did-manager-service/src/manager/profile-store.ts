@@ -1,3 +1,4 @@
+import { access, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { ManagerConfig, SetupProfile } from '../config.js';
@@ -76,6 +77,9 @@ export class ManagerProfileStore {
 
     await this.ensureLegacyProfileMigrated();
     this.session = await readSessionStore(sessionPath, this.cfg.rememberUnlockedSessionDefault);
+    // Rewrite legacy files immediately so a plaintext seed is removed even if
+    // the manager is only started to inspect profiles.
+    await writeSessionStore(sessionPath, this.session);
     this.loadedSessionPath = sessionPath;
     this.sessionLoaded = true;
   }
@@ -93,6 +97,10 @@ export class ManagerProfileStore {
 
   async selectProfile(profileName: string): Promise<void> {
     await this.ensureProfileIndexLoaded();
+    if (this.selectedProfileNameValue === profileName) {
+      await this.ensureLoaded();
+      return;
+    }
     this.selectedProfileNameValue = profileName;
     this.profileIndex.selectedProfiles[this.currentSetupProfile()] = profileName;
     await writeProfileIndex(this.profileIndexFilePath(), this.profileIndex);
@@ -115,7 +123,7 @@ export class ManagerProfileStore {
 
     this.session.lastProfile = profile;
     this.session.profiles[profile] = {
-      seed: next.seed ?? current?.seed ?? '',
+      seed: next.seed ?? current?.seed,
       unshieldedAddress: next.unshieldedAddress ?? current?.unshieldedAddress,
       contractAddress,
       contractAddresses: this.mergeContractAddresses(
@@ -152,17 +160,56 @@ export class ManagerProfileStore {
 
   private async ensureLegacyProfileMigrated(): Promise<void> {
     const profile = this.currentSetupProfile();
-    if (this.profileIndex.legacyMigrationCompleted[profile]) return;
+    const legacySessionPath = this.profileLegacySessionFilePath();
+    const profileSessionPath = this.profileSessionFilePath('default');
+    const legacySecretPath = this.profileLegacySecretFilePath();
+    const profileSecretPath = this.profileSecretStorePath('default');
+    await migrateLegacyProfileFile(legacySessionPath, profileSessionPath);
+    await migrateLegacyProfileFile(legacySecretPath, profileSecretPath);
+    await this.sanitizeAndRemoveMigratedLegacyFiles(
+      legacySessionPath,
+      profileSessionPath,
+      legacySecretPath,
+      profileSecretPath,
+    );
 
-    const profilesRoot = path.join(this.baseDataDir(), 'profiles', profile);
-    const existingProfiles = await listProfileNames(profilesRoot);
-    if (existingProfiles.length === 0) {
-      await migrateLegacyProfileFile(this.profileLegacySessionFilePath(), this.profileSessionFilePath());
-      await migrateLegacyProfileFile(this.profileLegacySecretFilePath(), this.profileSecretStorePath());
+    if (!this.profileIndex.legacyMigrationCompleted[profile]) {
+      this.profileIndex.legacyMigrationCompleted[profile] = true;
+      await writeProfileIndex(this.profileIndexFilePath(), this.profileIndex);
     }
+  }
 
-    this.profileIndex.legacyMigrationCompleted[profile] = true;
-    await writeProfileIndex(this.profileIndexFilePath(), this.profileIndex);
+  private async sanitizeAndRemoveMigratedLegacyFiles(
+    legacySessionPath: string,
+    profileSessionPath: string,
+    legacySecretPath: string,
+    profileSecretPath: string,
+  ): Promise<void> {
+    if (await this.fileExists(profileSessionPath)) {
+      const sanitizedSession = await readSessionStore(
+        profileSessionPath,
+        this.cfg.rememberUnlockedSessionDefault,
+      );
+      await writeSessionStore(profileSessionPath, sanitizedSession);
+      await this.removeMigratedLegacyFile(legacySessionPath, profileSessionPath);
+    }
+    if (await this.fileExists(profileSecretPath)) {
+      await this.removeMigratedLegacyFile(legacySecretPath, profileSecretPath);
+    }
+  }
+
+  private async fileExists(filePath: string): Promise<boolean> {
+    try {
+      await access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async removeMigratedLegacyFile(legacyPath: string, targetPath: string): Promise<void> {
+    if (path.resolve(legacyPath) === path.resolve(targetPath)) return;
+    await rm(legacyPath, { force: true });
   }
 
   private mergeContractAddresses(existing: string[] | undefined, next?: string | null): string[] {

@@ -94,6 +94,13 @@ describeIntegration("did-resolver-service docker integration", () => {
     expect(await response.json()).toEqual({ status: "ok" });
   });
 
+  it("serves readiness endpoint from container image", async () => {
+    if (!baseUrl) throw new Error("Resolver base URL is not configured");
+    const response = await fetch(`${baseUrl}/ready`);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ status: "ready" });
+  });
+
   it("returns invalidDid for malformed DID request", async () => {
     if (!baseUrl) throw new Error("Resolver base URL is not configured");
     const response = await fetch(`${baseUrl}/resolve/not-a-did`);

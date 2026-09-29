@@ -83,11 +83,11 @@ export const routeSchemas = {
   unlockBody: {
     type: 'object',
     additionalProperties: false,
-    required: ['seedMode'],
+    required: ['seedMode', 'passphrase'],
     properties: {
       seedMode: { type: 'string', enum: seedModes },
       seed: { type: 'string' },
-      passphrase: { type: 'string' },
+      passphrase: { type: 'string', minLength: 1 },
       rememberUnlockedSession: { type: 'boolean' },
     },
   },

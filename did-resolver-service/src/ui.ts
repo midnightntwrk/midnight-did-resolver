@@ -198,7 +198,7 @@ export const resolverPage = `<!doctype html>
           <h1>Resolve DID Documents from ledger state</h1>
           <p>
             Resolve <span class="mono">did:midnight</span> identifiers through the resolver API,
-            inspect resolution metadata, and optionally override indexer endpoints for debugging.
+            inspect resolution metadata from the indexer configured by the operator.
           </p>
         </div>
         <nav class="nav">
@@ -214,8 +214,7 @@ export const resolverPage = `<!doctype html>
           <div class="card notice">
             <h2>Resolver Input</h2>
             <p>
-              The resolver runs against its configured network. Use the override fields only when you
-              intentionally want to query a different indexer endpoint.
+              The resolver uses immutable startup configuration for its network and indexer endpoints.
             </p>
             <div class="status warn" id="statusBadge">Idle</div>
           </div>
@@ -224,12 +223,6 @@ export const resolverPage = `<!doctype html>
             <h2>Resolve DID</h2>
             <label for="did">DID</label>
             <input id="did" placeholder="did:midnight:preprod:..." />
-
-            <label for="indexerUrl">Indexer URL override</label>
-            <input id="indexerUrl" placeholder="https://.../api/v3/graphql" />
-
-            <label for="indexerWsUrl">Indexer WS URL override</label>
-            <input id="indexerWsUrl" placeholder="wss://.../api/v3/graphql/ws" />
 
             <div class="row" style="margin-top: 10px;">
               <button class="primary" id="resolve">Resolve</button>
@@ -241,7 +234,7 @@ export const resolverPage = `<!doctype html>
             <h2>Resolution Notes</h2>
             <div class="hint-list">
               <div class="hint">Use a canonical Midnight DID subject, for example <span class="mono">did:midnight:preprod:&lt;64-hex&gt;</span>.</div>
-              <div class="hint">The GET API endpoint is <span class="mono">/resolve/:did</span>. The POST endpoint accepts JSON body fields for DID and optional indexer overrides.</div>
+              <div class="hint">The GET API endpoint is <span class="mono">/resolve/:did</span>. The POST endpoint accepts a JSON body containing the DID.</div>
               <div class="hint">Resolver errors are returned inside DID Resolution metadata. The raw JSON output remains available for debugging.</div>
             </div>
           </div>
@@ -281,8 +274,6 @@ export const resolverPage = `<!doctype html>
 
     <script>
       const didInput = document.getElementById("did");
-      const indexerUrlInput = document.getElementById("indexerUrl");
-      const indexerWsUrlInput = document.getElementById("indexerWsUrl");
       const output = document.getElementById("output");
       const statusBadge = document.getElementById("statusBadge");
       const summaryDid = document.getElementById("summaryDid");
@@ -316,8 +307,6 @@ export const resolverPage = `<!doctype html>
 
       document.getElementById("clear").addEventListener("click", () => {
         didInput.value = "";
-        indexerUrlInput.value = "";
-        indexerWsUrlInput.value = "";
         resetSummary();
         setStatus("Idle", "warn");
         output.textContent = JSON.stringify({ message: "Enter a DID and click Resolve" }, null, 2);
@@ -325,9 +314,6 @@ export const resolverPage = `<!doctype html>
 
       document.getElementById("resolve").addEventListener("click", async () => {
         const did = (didInput.value || "").trim();
-        const indexerUrl = (indexerUrlInput.value || "").trim();
-        const indexerWsUrl = (indexerWsUrlInput.value || "").trim();
-
         if (!did) {
           const errorPayload = { error: "DID is required" };
           setStatus("DID is required", "error");
@@ -339,11 +325,7 @@ export const resolverPage = `<!doctype html>
         setStatus("Resolving...", "warn");
 
         try {
-          const query = new URLSearchParams();
-          if (indexerUrl) query.set("indexerUrl", indexerUrl);
-          if (indexerWsUrl) query.set("indexerWsUrl", indexerWsUrl);
-          const suffix = query.toString() ? "?" + query.toString() : "";
-          const res = await fetch("/resolve/" + encodeURIComponent(did) + suffix);
+          const res = await fetch("/resolve/" + encodeURIComponent(did));
           const json = await res.json();
           output.textContent = JSON.stringify(json, null, 2);
           renderSummary(json, res.status);

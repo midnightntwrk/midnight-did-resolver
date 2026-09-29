@@ -13,7 +13,6 @@ import {
   statusCodeForResolutionError,
 } from "./resolution-errors.js";
 import { type ResolverService } from "./service.js";
-import { type ResolveRequestOptions } from "./types.js";
 import { resolverPage } from "./ui.js";
 
 const didResolutionRequiredFields = [
@@ -55,14 +54,6 @@ const resolveResponseSchema = {
   500: errorResolveSchema,
 } as const;
 
-type ResolveQuery = ResolveRequestOptions;
-
-const resolveDidWithOptions = async (
-  resolverService: ResolverService,
-  did: string,
-  options: ResolveQuery,
-) => resolverService.resolve(did, options);
-
 const hasValidationErrors = (
   error: unknown,
 ): error is { validation: unknown[] } =>
@@ -79,6 +70,7 @@ export const createApp = async (
         requestTimeout: 15_000,
         connectionTimeout: 10_000,
         keepAliveTimeout: 5_000,
+        ajv: { customOptions: { removeAdditional: false } },
         routerOptions: {
           maxParamLength: 1024,
         },
@@ -89,6 +81,7 @@ export const createApp = async (
         requestTimeout: 15_000,
         connectionTimeout: 10_000,
         keepAliveTimeout: 5_000,
+        ajv: { customOptions: { removeAdditional: false } },
         routerOptions: {
           maxParamLength: 1024,
         },
@@ -121,20 +114,28 @@ export const createApp = async (
   });
 
   if (options?.enableDocs ?? true) {
-    await app.register(swagger, {
-      openapi: {
-        info: {
-          title: "Midnight DID Resolver API",
-          description:
-            "Resolve did:midnight identifiers to DID Resolution output.",
-          version: "0.1.0",
+    // Fastify plugin declarations can resolve a second workspace copy of
+    // Fastify; keep runtime registration while narrowing the compatibility cast.
+    await app.register(
+      swagger as unknown as Parameters<typeof app.register>[0],
+      {
+        openapi: {
+          info: {
+            title: "Midnight DID Resolver API",
+            description:
+              "Resolve did:midnight identifiers to DID Resolution output.",
+            version: "0.1.0",
+          },
         },
       },
-    });
+    );
 
-    await app.register(swaggerUi, {
-      routePrefix: "/docs",
-    });
+    await app.register(
+      swaggerUi as unknown as Parameters<typeof app.register>[0],
+      {
+        routePrefix: "/docs",
+      },
+    );
   }
 
   app.get("/", async (_request, reply) => {
@@ -195,10 +196,6 @@ export const createApp = async (
         querystring: {
           type: "object",
           additionalProperties: false,
-          properties: {
-            indexerUrl: { type: "string", maxLength: 2048 },
-            indexerWsUrl: { type: "string", maxLength: 2048 },
-          },
         },
         response: resolveResponseSchema,
       },
@@ -206,15 +203,14 @@ export const createApp = async (
     async (
       request: FastifyRequest<{
         Params: { did: string };
-        Querystring: ResolveQuery;
+        Querystring: Record<string, unknown>;
       }>,
       reply,
     ) => {
-      const result = await resolveDidWithOptions(
-        resolverService,
-        request.params.did,
-        request.query,
-      );
+      if (Object.keys(request.query).length > 0) {
+        return reply.code(400).send(didResolutionErrorPayload("invalidDid"));
+      }
+      const result = await resolverService.resolve(request.params.did);
       return reply.code(result.statusCode).send(result.payload);
     },
   );
@@ -230,8 +226,6 @@ export const createApp = async (
           additionalProperties: false,
           properties: {
             did: { type: "string", minLength: 1, maxLength: 512 },
-            indexerUrl: { type: "string", maxLength: 2048 },
-            indexerWsUrl: { type: "string", maxLength: 2048 },
           },
         },
         response: resolveResponseSchema,
@@ -239,18 +233,14 @@ export const createApp = async (
     },
     async (
       request: FastifyRequest<{
-        Body: { did: string } & ResolveQuery;
+        Body: { did: string; [key: string]: unknown };
       }>,
       reply,
     ) => {
-      const result = await resolveDidWithOptions(
-        resolverService,
-        request.body.did,
-        {
-          indexerUrl: request.body.indexerUrl,
-          indexerWsUrl: request.body.indexerWsUrl,
-        },
-      );
+      if (Object.keys(request.body).some((key) => key !== "did")) {
+        return reply.code(400).send(didResolutionErrorPayload("invalidDid"));
+      }
+      const result = await resolverService.resolve(request.body.did);
       return reply.code(result.statusCode).send(result.payload);
     },
   );

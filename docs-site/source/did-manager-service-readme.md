@@ -140,7 +140,7 @@ Treat this directory as sensitive local state and do not commit it.
 - `DID_MANAGER_DATA_DIR` (default `~/.midnight-did`)
 - `DID_MANAGER_SESSION_FILE`
 - `DID_MANAGER_SECRET_FILE`
-- `DID_MANAGER_SECRET_PASSPHRASE`
+- Secret-store passphrase is entered in the browser when starting a session; it is required after every restart and is not configured by the service.
 - `DID_MANAGER_REMEMBER_UNLOCKED` (`true|false`)
 - `DID_MANAGER_SETUP` (`standalone|preprod|mainnet`)
 - `DID_MANAGER_LOG_FILE`

@@ -13,5 +13,8 @@ playwright-report/
 test-results/
 midnight-level-db/
 .midnight-test/
+.pi/git/
+.pi/npm/
+.pi/harness/
 docs-site/.vitepress/cache/
 docs-site/.vitepress/dist/

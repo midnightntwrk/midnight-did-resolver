@@ -76,7 +76,11 @@ const parseUrl = (
 ): string => {
   const raw = (value ?? fallback).trim();
   const parsed = new URL(raw);
-  if (!protocols.includes(parsed.protocol)) {
+  if (
+    !protocols.includes(parsed.protocol) ||
+    parsed.username !== "" ||
+    parsed.password !== ""
+  ) {
     throw new Error(`Invalid ${envName} value: ${raw}`);
   }
   return parsed.toString().replace(/\/+$/, "");

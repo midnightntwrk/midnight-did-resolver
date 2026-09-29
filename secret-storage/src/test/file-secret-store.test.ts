@@ -1,9 +1,17 @@
-import { mkdtemp, readdir, readFile, rm, stat } from "node:fs/promises";
+import {
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { decryptJson, type EncryptedPayload, encryptJson } from "../crypto.js";
 import {
   SecretNotFoundError,
   SecretStoreInitError,
@@ -15,6 +23,43 @@ const tempDirs: string[] = [];
 const payload = Buffer.from("file-secret-store-payload", "utf8");
 const seedHex =
   "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
+const passphrase = "midnight-passphrase";
+
+type TestStoreFile = {
+  version: 1;
+  keys: Record<
+    string,
+    {
+      publicJwk: { kty: string; crv: string; x: string; y?: string };
+    }
+  >;
+};
+
+const toLegacyLittleEndianCoordinate = (coordinate: string): string => {
+  const bytes = Buffer.from(coordinate, "base64url");
+  return Buffer.from(bytes).reverse().toString("base64url");
+};
+
+const rewriteJubjubCoordinatesAsLegacy = async (
+  location: string,
+  keyRef: string,
+): Promise<void> => {
+  const envelope = JSON.parse(await readFile(location, "utf8")) as {
+    version: 1;
+    encrypted: EncryptedPayload;
+  };
+  const store = JSON.parse(
+    await decryptJson(envelope.encrypted, passphrase),
+  ) as TestStoreFile;
+  const publicJwk = store.keys[keyRef]?.publicJwk;
+  if (!publicJwk?.y) throw new Error("Expected a stored Jubjub public key");
+  publicJwk.x = toLegacyLittleEndianCoordinate(publicJwk.x);
+  publicJwk.y = toLegacyLittleEndianCoordinate(publicJwk.y);
+  envelope.encrypted = await encryptJson(JSON.stringify(store), passphrase);
+  await writeFile(location, JSON.stringify(envelope, null, 2), {
+    mode: 0o600,
+  });
+};
 
 const createTempPath = async (): Promise<string> => {
   const dir = await mkdtemp(path.join(os.tmpdir(), "midnight-secret-store-"));
@@ -55,7 +100,7 @@ describe("FileSecretStore", () => {
   it("creates, persists, lists, signs, verifies and deletes keys", async () => {
     const location = await createTempPath();
     const store = new FileSecretStore();
-    await store.initialize({ location, passphrase: "midnight-passphrase" });
+    await store.initialize({ location, passphrase });
 
     await expectPrivateFileMode(location);
     await expectNoTempWritesLeftBehind(location);
@@ -113,7 +158,7 @@ describe("FileSecretStore", () => {
   it("imports and derives keys, then persists encrypted state on disk", async () => {
     const location = await createTempPath();
     const store = new FileSecretStore();
-    await store.initialize({ location, passphrase: "midnight-passphrase" });
+    await store.initialize({ location, passphrase });
 
     const derived = await store.deriveKeyFromSeed({
       id: "seeded-p256",
@@ -140,7 +185,7 @@ describe("FileSecretStore", () => {
     expect(rawFile.keys).toBeUndefined();
 
     const reopened = new FileSecretStore();
-    await reopened.initialize({ location, passphrase: "midnight-passphrase" });
+    await reopened.initialize({ location, passphrase });
     await expectPrivateFileMode(location);
     expect(await reopened.getPublicKey(derived.keyRef)).toEqual(
       derived.publicJwk,
@@ -150,10 +195,38 @@ describe("FileSecretStore", () => {
     );
   });
 
+  it("migrates persisted Jubjub public keys to canonical 0.7 coordinates", async () => {
+    const location = await createTempPath();
+    const store = new FileSecretStore();
+    await store.initialize({ location, passphrase });
+    const imported = await store.importKey({
+      id: "legacy-jubjub",
+      privateKey: new Uint8Array(32).fill(9),
+      kty: "EC",
+      crv: "Jubjub",
+    });
+
+    await rewriteJubjubCoordinatesAsLegacy(location, imported.keyRef);
+
+    const reopened = new FileSecretStore();
+    await reopened.initialize({ location, passphrase });
+
+    expect(await reopened.getPublicKey(imported.keyRef)).toEqual(
+      imported.publicJwk,
+    );
+    await expectPrivateFileMode(location);
+
+    const reopenedAgain = new FileSecretStore();
+    await reopenedAgain.initialize({ location, passphrase });
+    expect(await reopenedAgain.getPublicKey(imported.keyRef)).toEqual(
+      imported.publicJwk,
+    );
+  });
+
   it("rejects invalid reopen/verify flows", async () => {
     const location = await createTempPath();
     const store = new FileSecretStore();
-    await store.initialize({ location, passphrase: "midnight-passphrase" });
+    await store.initialize({ location, passphrase });
 
     await expect(
       store.verify({ payload, signature: new Uint8Array(64) }),

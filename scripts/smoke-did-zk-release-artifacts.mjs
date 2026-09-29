@@ -12,13 +12,13 @@ import { NodeZkConfigProvider } from "@midnight-ntwrk/midnight-js-node-zk-config
 const execFileAsync = promisify(execFile);
 const require = createRequire(import.meta.url);
 
-const VERSION = "0.4.0";
+const VERSION = "0.7.0";
 const RELEASE_ARCHIVE_URL =
   process.env.MIDNIGHT_DID_ZK_RELEASE_ARCHIVE_URL ??
-  "https://api.github.com/repos/midnightntwrk/midnight-did/releases/assets/442733108";
+  "https://api.github.com/repos/midnightntwrk/midnight-did/releases/assets/579975758";
 const RELEASE_SHA256_URL =
   process.env.MIDNIGHT_DID_ZK_RELEASE_SHA256_URL ??
-  "https://api.github.com/repos/midnightntwrk/midnight-did/releases/assets/442733106";
+  "https://api.github.com/repos/midnightntwrk/midnight-did/releases/assets/579975763";
 const RELEASE_FETCH_BASE_URL =
   "https://midnight-did-release-assets.local/zk-artifacts";
 
