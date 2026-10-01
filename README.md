@@ -122,10 +122,10 @@ The workflow is configured for:
   `latest`.
 - Registry provenance and SBOM attestations for both images.
 
-For the second release candidate, the manual release command is:
+For the third release candidate, the manual release command is:
 
 ```bash
-gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.2
+gh workflow run "Release application Docker images" --ref main -f version=0.1.0-rc.3
 ```
 
 ## Configuration
