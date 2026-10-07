@@ -24,7 +24,7 @@
     "dev": "node --experimental-specifier-resolution=node --loader ts-node/esm src/index.ts"
   },
   "dependencies": {
-    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger": "^9.9.0",
     "@fastify/swagger-ui": "^6.1.1",
     "@midnight-ntwrk/midnight-did": "0.7.0",
     "@midnight-ntwrk/midnight-did-contract": "0.7.0",
