@@ -40,7 +40,7 @@
     "@midnight-ntwrk/midnight-did-api": "1.0.0-rc1",
     "@midnight-ntwrk/midnight-did-secret-storage": "*",
     "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "5.0.0",
-    "@midnight-ntwrk/wallet-sdk-address-format": "4.0.0",
+    "@midnight-ntwrk/wallet-sdk-address-format": "4.0.1",
     "canonicalize": "^3.0.0",
     "fastify": "^5.12.5",
     "pino": "^9.7.0"
