@@ -77,7 +77,7 @@ After installing the hook, every `git commit` in this repo will include a `Signe
 * **Commit Messages:** Write clear Conventional Commit style messages, for example `fix(resolver): handle invalid DID input`.
 * **Sign-off and Signatures:** Include a DCO sign-off (`Signed-off-by: Name <email>`) and use GPG-signed commits where possible.
 * **Submit Pull Request:** Submit your pull request against `develop` unless a maintainer requests a release or hotfix branch.
-* **Release promotion:** See [Docker publication and stable promotion](docs-site/guide/publishing.md#stable-promotion-and-approval-prerequisites). With the channel-aware workflow installed, RC source eligibility includes `develop`; stable publication still requires a separately reviewed `main` promotion and deliberate history/changelog reconciliation. The durable promotion strategy remains tracked in #137; branch eligibility does not waive #109 security/release approval gates.
+* **Release promotion:** Follow the [promotion and reconciliation process](docs-site/guide/publishing.md#promotion-and-reconciliation-process): reviewed `develop` → `main` squash promotions must be followed immediately by a signed, normally merged `main` → `develop` history-attachment PR. RCs may use eligible `develop` source without a stable promotion. Preserve changelog/release metadata, never reset or force-push either protected branch, and keep #109 security/release approval gates.
 * **Please do not `--force` pushes** - doing so means that reviewers will have to re-review all
   commits in the PR rather than commits since last review.
 * **Code Review:** All pull requests undergo code review by project maintainers.

@@ -160,9 +160,71 @@ review/promotion process or the reconciliation decision tracked in
 Before stable approval, deliberately reconcile `main` history and changelog/release
 metadata with the candidate line; review the exact resulting `main` commit and
 retain evidence for both images. Do not equate a tested develop SHA with a later
-squashed/merged main SHA. #137 remains open for the durable promotion strategy
-and outstanding reconciliation; this workflow change neither chooses a merge
-method nor performs that reconciliation.
+squashed/merged main SHA. The process below records the strategy from
+[#137](https://github.com/midnightntwrk/midnight-did-resolver/issues/137);
+installing this documentation does not itself authorize a stable promotion.
+
+### Promotion and reconciliation process
+
+Keep the existing **squash promotion followed by a normal reconciliation merge**
+(issue #137, option A). A release owner must perform the following cycle:
+
+1. Prepare the changelog and exact candidate source on `develop`, preserving all
+   previously released sections. Review and validate the proposed promotion and
+   retain its exact source identity; branch eligibility is not release approval.
+2. For an approved stable release, squash-promote the reviewed `develop` changes
+   to `main` through a normal protected PR. A develop RC does not require this
+   application promotion. Validate the resulting `main` commit independently:
+   its SHA is not the tested develop SHA, even when their file trees match.
+3. Immediately open a `main` → `develop` reconciliation PR, conventionally named
+   `chore: attach main history after <version>`, from a branch such as
+   `chore/attach-main-history-after-<version>`. Start from current `develop`, fetch
+   `main`, and prepare a non-fast-forward merge with `--no-commit`; review every
+   conflict before creating the signed, DCO-signed-off merge commit. The PR must
+   target `develop` and be **normally merged, not squashed**, so `main` becomes an
+   ancestor. Do not treat the reconciliation as complete merely because a PR was
+   opened or a merge command returned zero.
+4. Require current-head CI/security checks and eligible code-owner approval as
+   usual. Verify the merged result contains `main` in its ancestry and preserves
+   the reviewed runtime, dependency, publication and security changes. Complete
+   the attachment before declaring the release cycle reconciled or treating
+   subsequent develop work as a stable source line.
+5. Keep the changelog byte-identical across the branches at promotion and its
+   immediate reconciliation checkpoint. Release-cut edits must be carried to
+   both branches through reviewed cherry-pick/promotion/reconciliation changes
+   in the same release cycle. After attachment, new `Unreleased` develop work
+   may diverge again; previously released sections must not be silently lost or
+   reverted. Never call planned candidate/stable notes proof of publication.
+
+A normal content merge is the default. Never resolve a conflict by blindly
+keeping every file from one side. A **history-only** attachment is acceptable
+only when every main-only commit's complete tree has an identical, already
+ancestral develop counterpart, with the identities and tree comparisons retained
+for review. Verify the attachment's file tree equals the pre-attachment candidate
+before adding any separately reviewed documentation changes. If that proof is
+missing, preserve and reconcile the actual main-only changes instead.
+
+For the outstanding RC3 attachment before `1.0.0-rc.1`, the proof is:
+
+| Main-only commit | Content-identical develop ancestor | Complete tree |
+| --- | --- | --- |
+| `07a1032ff6f3f8a96f4dfbcb0b5aab97f8e81f30` (PR #127 squash) | `a6589ac77061754073b49ec0bb8e21286639c9e1` | `c93a8d547011959e22b28ccc99f8e2db0e62fa15` |
+| `ed40847dfbedc7188ab2abe0563f401bb069ab3b` (RC3 changelog) | `2c33a7884db78bd389a902803d9c56990accd7d5` | `ced85a7700c4539d046cf160e100f3b41e89e673` |
+
+Both develop counterparts are ancestors of the reviewed `bcb73b4ea3fcea3bef921a63d222db23185c3288`
+candidate. The changelog commits also have identical stable patch IDs. Thus the
+attachment preserves Ledger9/SDK5, base `1.0.0`, the manual-only publisher and all
+released changelog sections rather than reapplying the older main runtime or
+publisher. This evidence applies to these two commits, not arbitrary future
+conflicts or source changes.
+
+**Option C (resetting develop to main) is closed:** resets, force-pushes, branch
+replacement/deletion and weakening protections are not part of this process.
+Option B (changing future promotions to real merges) needs a separate reviewed
+strategy change. Automated drift notices (option D) are optional follow-up, not
+permission to reset or merge branches unattended. Historical DCO gaps must use
+only the repository-enabled, genuine author-remediation process; never rewrite
+an author's identity, certify on someone else's behalf or bypass the DCO app.
 
 Publication eligibility is not release approval. Preserve signed commits,
 code-owner/release reviews, branch protections, registry permissions and all
