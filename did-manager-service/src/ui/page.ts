@@ -61,7 +61,7 @@ const renderPage = (page: 'wallet' | 'secret-storage' | 'signatures' | 'did', ti
 export const walletPage = renderPage(
   'wallet',
   'Midnight DID Manager | Wallet',
-  'Prepare the Midnight wallet for the configured backend setup and persist the shared seed/address before DID operations.',
+  'Prepare the Midnight wallet for the configured backend setup before DID operations. The shared seed is held only in memory for the current process; back it up separately and re-enter it in provided mode after a restart.',
   walletContent,
 );
 

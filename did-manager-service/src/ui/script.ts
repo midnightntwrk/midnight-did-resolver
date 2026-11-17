@@ -448,7 +448,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
       if (reuseOption) {
         reuseOption.disabled = !canReuse;
         reuseOption.title = canReuse
-          ? 'Reuse the stored profile seed.'
+          ? 'Reuse the seed loaded for this profile in the current process.'
           : 'Available after this profile has a prepared seed.';
       }
       if (!canReuse && seedModeEl.value === 'reuse') {
@@ -457,7 +457,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
       const seedModeHintEl = document.getElementById('seedModeHint');
       if (seedModeHintEl) {
         seedModeHintEl.textContent = canReuse
-          ? 'Reuse is available for this profile because a shared seed is stored.'
+          ? 'Reuse is available for this profile because a shared seed is loaded in the current process.'
           : fundingPrepared
             ? 'This profile has prepared funding, but its seed is not retained after restart. Re-enter it in provided mode to start a session.'
             : 'This profile is new. Choose generated or provided, then click Prepare funding.';
@@ -625,7 +625,7 @@ export const sharedScript = (page: 'wallet' | 'secret-storage' | 'signatures' | 
         data?.fundingPrepared
           ? 'Shared seed and prepared funding address are available for this profile.'
           : data?.seedAvailable
-            ? 'A shared seed is stored, but funding is not prepared. Click Prepare funding.'
+            ? 'A shared seed is loaded in the current process, but funding is not prepared. Click Prepare funding.'
             : 'No shared seed prepared yet. Generate or provide one first.',
       );
 
