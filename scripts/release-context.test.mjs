@@ -75,6 +75,26 @@ test("canonical full version grammar and RC positive integer semantics", () => {
   assert.throws(() => contextFor({ INPUT_VERSION: `${longest}9` }), /128/);
 });
 
+test("checked-in 1.0 base versions align with the selected planned Docker candidate", () => {
+  const actualVersions = manifests.map((path) =>
+    JSON.parse(readFileSync(new URL('../' + path, import.meta.url), 'utf8')).version);
+  assert.deepEqual(actualVersions, Array(4).fill("1.0.0"));
+  assert.equal(readFileSync(new URL("../version", import.meta.url), "utf8").trim(), "1.0.0");
+  const context = contextFor({ INPUT_VERSION: "1.0.0-rc.1" }, actualVersions);
+  assert.equal(context.base, "1.0.0");
+  assert.equal(context.version, "1.0.0-rc.1");
+  for (const service of ["resolver", "manager"]) {
+    const image = `ghcr.io/midnightntwrk/midnight-did-${service}-service:1.0.0-rc.1`;
+    assert.equal(context[`${service}_image`], image);
+    assert.deepEqual(context[`${service}_tags`].split("\n"), [image]);
+  }
+  for (let i = 0; i < actualVersions.length; i++) {
+    const mismatched = [...actualVersions]; mismatched[i] = "0.1.0";
+    assert.throws(() => contextFor({ INPUT_VERSION: "1.0.0-rc.1" }, mismatched));
+  }
+  assert.throws(() => contextFor({ INPUT_VERSION: "0.1.0-rc.4" }, actualVersions));
+});
+
 test("all four runtime manifests must match the canonical base", () => {
   for (let i = 0; i < 4; i++) {
     for (const bad of [undefined, "", "0.2.0", "0.1.0-rc.3", "0.01.0"]) {

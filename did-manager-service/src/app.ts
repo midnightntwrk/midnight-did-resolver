@@ -97,7 +97,7 @@ export const createApp = async (manager: DidManagerService, logger?: Logger) => 
     openapi: {
       info: {
         title: 'Midnight DID Manager API',
-        version: '0.1.0',
+        version: '1.0.0',
         description: 'Single-user web manager for DID lifecycle operations.',
       },
     },

@@ -123,6 +123,10 @@ describe('did-manager-service app', () => {
 
     const app = await createApp(manager);
 
+    const docs = await app.inject({ method: 'GET', url: '/docs/json' });
+    expect(docs.statusCode).toBe(200);
+    expect(docs.json().info.version).toBe('1.0.0');
+
     const root = await app.inject({ method: 'GET', url: '/' });
     expect(root.statusCode).toBe(302);
     expect(root.headers.location).toBe('/wallet');

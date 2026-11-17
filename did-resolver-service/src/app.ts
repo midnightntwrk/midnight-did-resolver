@@ -124,7 +124,7 @@ export const createApp = async (
             title: "Midnight DID Resolver API",
             description:
               "Resolve did:midnight identifiers to DID Resolution output.",
-            version: "0.1.0",
+            version: "1.0.0",
           },
         },
       },

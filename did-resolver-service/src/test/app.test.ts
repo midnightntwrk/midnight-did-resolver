@@ -18,6 +18,10 @@ describe("did-resolver-service app", () => {
     expect(response.statusCode).toBe(200);
     expect(response.json()).toEqual({ status: "ok" });
 
+    const docs = await app.inject({ method: "GET", url: "/docs/json" });
+    expect(docs.statusCode).toBe(200);
+    expect(docs.json().info.version).toBe("1.0.0");
+
     await app.close();
   });
 

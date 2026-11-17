@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Prepare selected next Docker candidate `1.0.0-rc.1` (planned, not published),
+  aligning runtime package, legacy stamp and OpenAPI base versions to `1.0.0`.
+  No candidate or stable publication is authorized; #109 security/release gates
+  and #137 main-history/changelog reconciliation remain outstanding.
+
 - Coordinate public DID 1.0.0-rc1, SDK5, Ledger9, Compact runtime 0.21.0,
   serialized-state adapters and manager wallet/provider compatibility.
 - Use the Ledger9 standalone node/indexer/proof cohort, v4 endpoints and locally

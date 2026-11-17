@@ -91,6 +91,12 @@ do not create a tag or dispatch an older publisher to test this transition.
 The manual-only rule applies to refs containing the changed workflow. Existing
 tags, images and historical signature identities are not rewritten or removed.
 
+The selected next Docker candidate is **`1.0.0-rc.1` (planned, not published)**,
+with root, resolver, manager and secret-storage package base versions `1.0.0`.
+This metadata alignment does not authorize candidate or stable publication.
+Stable `1.0.0` examples are future illustrative usage only after separate
+approval, reviewed `main` promotion and the reconciliation required by #137.
+
 ### Inputs and source eligibility
 
 | Channel | Exact allowed source refs | Required full version | Tags on **each** service image |
@@ -101,10 +107,10 @@ tags, images and historical signature identities are not rewritten or removed.
 Both `channel` and `version` are required. `channel` defaults to `rc` in the UI,
 not in runtime validation. There is no implicit version fallback. Base components
 must be canonical decimal integers (`0` or a nonzero digit followed by digits).
-The RC index must be positive with no leading zero: `0.1.0-rc.3` is valid;
-`0.1.0-rc.0`, `0.1.0-rc.03`, `0.1.0-rc3`, `v0.1.0`, whitespace, build metadata
+The RC index must be positive with no leading zero: `1.0.0-rc.1` is valid;
+`1.0.0-rc.0`, `1.0.0-rc.01`, `1.0.0-rc1`, `v1.0.0`, whitespace, build metadata
 and other prerelease suffixes are rejected. The full version tag must be at most
-128 characters. The base (`0.1.0` in this example) must match all four checked-in
+128 characters. The base (`1.0.0` in this example) must match all four checked-in
 versions: root, resolver, manager and secret-storage `package.json`. The docs
 workspace is unversioned and excluded. The workflow does not rewrite package
 manifests: image tags and OCI version labels use the full publication version;
@@ -122,10 +128,11 @@ this workflow**, not instructions to publish as part of implementing #165:
 
 ```bash
 # RC source eligibility; main is also eligible for rc.
-gh workflow run release-docker.yml --ref develop -f channel=rc -f version=0.1.0-rc.3
+gh workflow run release-docker.yml --ref develop -f channel=rc -f version=1.0.0-rc.1
 
-# Stable source eligibility; never dispatch release from develop.
-gh workflow run release-docker.yml --ref main -f channel=release -f version=0.1.0
+# Future illustrative stable usage, only after separate approval/main promotion.
+# Never dispatch release from develop.
+gh workflow run release-docker.yml --ref main -f channel=release -f version=1.0.0
 ```
 
 Dispatch selects an allowed branch, not a tag, arbitrary SHA or nested/lookalike
@@ -175,7 +182,7 @@ checks, and an authoritative release evidence/rollback record. The current
 sequential builds/signing are **not atomic**, do not enforce exact-tag immutability,
 and can leave partial or unsigned publication on failure; do not blindly rerun
 or overwrite a version. This bounded policy change does not complete those
-controls, waive their gates or authorize RC3/stable publication. Binary/artifact
+controls, waive their gates or authorize candidate/stable publication. Binary/artifact
 scope in [#40](https://github.com/midnightntwrk/midnight-did-resolver/issues/40)
 is also separate. Passing non-publishing tests is not publication evidence.
 

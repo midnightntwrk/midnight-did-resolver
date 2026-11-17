@@ -129,12 +129,17 @@ characters. Both images use the same version and exact dispatched source SHA,
 with default `linux/amd64,linux/arm64` builds, provenance/SBOM attestations and
 keyless digest signatures verified against the exact source workflow identity.
 
+The selected next Docker candidate is **`1.0.0-rc.1` (planned, not published)**.
+The four runtime manifests retain base `1.0.0`, not the full prerelease version.
+Stable `1.0.0` below is future illustrative usage only, requiring separate
+approval and reviewed `main` promotion; this alignment authorizes no publication.
+
 Examples **only after separate release approval and installation of the changed
 workflow at the selected ref**:
 
 ```bash
-gh workflow run release-docker.yml --ref develop -f channel=rc -f version=0.1.0-rc.3
-gh workflow run release-docker.yml --ref main -f channel=release -f version=0.1.0
+gh workflow run release-docker.yml --ref develop -f channel=rc -f version=1.0.0-rc.1
+gh workflow run release-docker.yml --ref main -f channel=release -f version=1.0.0
 ```
 
 Pushes, merges and `v*` tags do not publish from refs containing the changed
