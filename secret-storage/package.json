@@ -38,7 +38,7 @@
     "@midnight-ntwrk/midnight-did-jubjub-schnorr": "1.0.0-rc1",
     "@midnight-ntwrk/wallet-sdk-hd": "4.0.0",
     "zod": "^4.6.7",
-    "@midnightntwrk/ledger-v9": "1.0.0"
+    "@midnightntwrk/ledger-v9": "1.0.1"
   },
   "files": [
     "dist/**",
