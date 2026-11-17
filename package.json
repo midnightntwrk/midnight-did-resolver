@@ -36,7 +36,7 @@
     "check:run-target-catalog": "node scripts/check-run-target-catalog.mjs",
     "check:demo": "./demo/run.sh config >/dev/null && npm run check:standalone-node-schemes",
     "check:standalone-node-schemes": "node scripts/check-standalone-node-schemes.mjs",
-    "test:release-policy": "node --test scripts/release-context.test.mjs scripts/release-workflow.test.mjs"
+    "test:release-policy": "node --test scripts/release-context.test.mjs scripts/release-workflow.test.mjs scripts/release-execution.test.mjs scripts/release-publication.test.mjs scripts/release-scan-evidence.test.mjs scripts/export-runtime.test.mjs"
   },
   "dependencies": {
     "@midnight-ntwrk/contract": "npm:@midnight-ntwrk/midnight-did-contract@1.0.0-rc1",

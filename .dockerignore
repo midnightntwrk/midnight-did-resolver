@@ -7,3 +7,25 @@ coverage
 .git
 .gitignore
 .DS_Store
+
+# Local secrets, runtime state, and caches. Build guards still receive repository
+# manifests, README/docs/scripts and other checked-in build inputs.
+**/.env
+**/.env.*
+**/.npmrc
+**/.netrc
+**/.aws
+**/.ssh
+**/*.pem
+**/*.key
+**/.data
+**/.midnight-test
+**/.midnight-db
+**/.midnight-did
+**/logs
+**/*.log
+**/.cache
+**/.npm
+**/.pnpm-store
+**/.yarn
+**/*.tsbuildinfo

@@ -57,7 +57,7 @@ describeIntegration("did-resolver-service docker integration", () => {
       "compose.integration.yml",
     )
       .withProjectName(projectName)
-      .withWaitStrategy("did-resolver", Wait.forHttp("/health", 3001));
+      .withWaitStrategy("did-resolver-1", Wait.forHttp("/health", 3001));
 
     env = await dockerEnv.up();
     if (!baseUrl) {

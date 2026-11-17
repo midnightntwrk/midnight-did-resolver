@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "policyID": "glibc-cna-severity-2026-11-17",
+  "observedAt": "2026-11-17T08:32:35Z",
+  "reviewValidUntil": "2026-11-24T08:32:35Z",
+  "entries": [
+    {
+      "vulnerabilityID": "CVE-2026-100290",
+      "packageName": "libc6",
+      "installedVersion": "2.41-12+deb13u4",
+      "os": {
+        "family": "debian",
+        "version": "13.7"
+      },
+      "cna": {
+        "name": "glibc",
+        "orgID": "3ff69d7a-14f2-4f67-a097-88dee7810d18"
+      },
+      "source": "https://cveawg.mitre.org/api/cve/CVE-2026-100290",
+      "rawSHA256": "b6934af827b05e2b6d4dd959203d86043deac6367d016d5ae346d40463a3e508",
+      "recordUpdatedAt": "2026-11-11T15:56:08.323Z",
+      "cvssVector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:L",
+      "cvssScore": 3.7,
+      "effectiveSeverity": "LOW",
+      "reachability": "UNVERIFIED",
+      "affectedStatus": "affected-unfixed"
+    },
+    {
+      "vulnerabilityID": "CVE-2026-115819",
+      "packageName": "libc6",
+      "installedVersion": "2.41-12+deb13u4",
+      "os": {
+        "family": "debian",
+        "version": "13.7"
+      },
+      "cna": {
+        "name": "glibc",
+        "orgID": "3ff69d7a-14f2-4f67-a097-88dee7810d18"
+      },
+      "source": "https://cveawg.mitre.org/api/cve/CVE-2026-115819",
+      "rawSHA256": "8ce8faa72fca71320a47725835d8aa2eca0b37a50cf5ab5677dda7462fe1b00b",
+      "recordUpdatedAt": "2026-11-11T15:36:38.804Z",
+      "cvssVector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:L",
+      "cvssScore": 4.8,
+      "effectiveSeverity": "MEDIUM",
+      "reachability": "UNVERIFIED",
+      "affectedStatus": "affected-unfixed"
+    }
+  ]
+}

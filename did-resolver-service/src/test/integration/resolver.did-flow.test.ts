@@ -220,11 +220,11 @@ describeDidFlow("did-resolver-service e2e DID lifecycle", () => {
           .withProjectName(projectName)
           .withStartupTimeout(180_000)
           .withWaitStrategy(
-            "indexer",
+            "indexer-1",
             Wait.forHealthCheck().withStartupTimeout(180000),
           )
           .withWaitStrategy(
-            "did-resolver",
+            "did-resolver-1",
             Wait.forHttp("/health", 3001).withStartupTimeout(180_000),
           );
         try {

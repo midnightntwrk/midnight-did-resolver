@@ -42,16 +42,23 @@ export function resolveContext(env, versions) {
   const source_sha = env.GITHUB_SHA;
   requireThat(typeof source_sha === "string" && /^[0-9a-f]{40}$/.test(source_sha) && source_sha.length === 40,
     "Full dispatched source SHA required");
+  requireThat(env.INPUT_EXPECTED_SOURCE_SHA === source_sha, "Expected reviewed source SHA mismatch");
+  const publish = env.INPUT_PUBLISH ?? "false";
+  requireThat(publish === "true" || publish === "false", "Explicit boolean publish required");
   const workflow_ref = `${workflow}@${ref}`;
   requireThat(env.GITHUB_WORKFLOW_REF === workflow_ref, "Unexpected workflow identity");
   requireThat(env.GITHUB_WORKFLOW_SHA === source_sha, "Workflow/source SHA mismatch");
   const platforms = env.INPUT_PLATFORMS || "linux/amd64,linux/arm64";
   requireThat(/^linux\/(amd64|arm64)(,linux\/(amd64|arm64))*$/.test(platforms) && !/\s/.test(platforms),
     "Unsupported build platforms");
-  const image = (service) => `ghcr.io/midnightntwrk/midnight-did-${service}-service:${version}`;
+  requireThat(platforms === "linux/amd64,linux/arm64", "Both canonical platforms required");
+  const imageRepository = (service) => `ghcr.io/midnightntwrk/midnight-did-${service}-service`;
+  const image = (service) => `${imageRepository(service)}:${version}`;
   const tags = (service) => [image(service), ...(channel === "release" ? [image(service).replace(/:[^:]+$/, ":latest")] : [])].join("\n");
   return {
-    channel, version, base, ref, source_sha, platforms,
+    schemaVersion: 1, channel, version, base, ref, source_sha, platforms, publish,
+    build_context: `https://github.com/${repository}.git#${source_sha}`,
+    resolver_repository: imageRepository("resolver"), manager_repository: imageRepository("manager"),
     identity: `https://github.com/${workflow_ref}`,
     issuer: "https://token.actions.githubusercontent.com",
     resolver_image: image("resolver"), manager_image: image("manager"),
@@ -88,7 +95,7 @@ export function run(command, env = process.env) {
     validateDigests(env);
     for (const service of ["resolver", "manager"]) {
       const digest = env[`${service.toUpperCase()}_DIGEST`];
-      const image = `${context[`${service}_image`]}@${digest}`;
+      const image = `${context[`${service}_repository`]}@${digest}`;
       if (command === "sign") {
         execFileSync("cosign", ["sign", "--yes", image], { stdio: "inherit" });
       } else if (command === "verify") {

@@ -18,9 +18,30 @@ on:
         required: false
         default: "linux/amd64,linux/arm64"
         type: string
+      expected_source_sha:
+        description: "Independently reviewed full source SHA (must equal event SHA)"
+        required: true
+        type: string
+      publish:
+        description: "Explicit final publication; false only stages and verifies"
+        required: true
+        type: boolean
+        default: false
+      external_fixture_approved:
+        description: "Explicit approval for a supplied external fixture override"
+        required: false
+        type: boolean
+        default: false
+      runtime_fixture:
+        description: "Optional approved public fixture override JSON; absent creates an owned standalone fixture"
+        required: false
+        type: string
 
 permissions:
   contents: read
+concurrency:
+  group: midnight-did-release-publication
+  cancel-in-progress: false
 
 jobs:
   validate-dispatch:
@@ -28,12 +49,14 @@ jobs:
     runs-on: ubuntu-24.04
     permissions: {}
     steps:
-      - name: Require exact event, channel and branch ref
+      - name: Require exact event, channel, branch and approved source SHA
         env:
           EVENT_NAME: ${{ github.event_name }}
           REF_TYPE: ${{ github.ref_type }}
           REF: ${{ github.ref }}
           CHANNEL: ${{ inputs.channel }}
+          EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+          SOURCE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           [[ "${EVENT_NAME}" == workflow_dispatch && "${REF_TYPE}" == branch ]]
@@ -41,122 +64,296 @@ jobs:
             rc:refs/heads/develop|rc:refs/heads/main|release:refs/heads/main) ;;
             *) echo "::error::Unsupported publication channel/source ref"; exit 1 ;;
           esac
+          [[ "${EXPECTED_SOURCE_SHA}" =~ ^[0-9a-f]{40}$ && "${EXPECTED_SOURCE_SHA}" == "${SOURCE_SHA}" ]]
 
-  release:
-    name: Build and push resolver + manager images
+  stage-and-verify:
+    name: Stage BOTH digest-only indexes and verify every platform
     needs: validate-dispatch
     if: >-
-      github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' &&
-      ((inputs.channel == 'rc' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')) ||
-       (inputs.channel == 'release' && github.ref == 'refs/heads/main'))
+      github.event_name == 'workflow_dispatch' && github.ref_type == 'branch' && ((inputs.channel == 'rc' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')) || (inputs.channel == 'release' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 120
     permissions:
       contents: read
       packages: write
       id-token: write
+    outputs:
+      context: ${{ steps.meta.outputs.context }}
+      evidence_sha256: ${{ steps.verify.outputs.evidence_sha256 }}
     env:
       INPUT_CHANNEL: ${{ inputs.channel }}
       INPUT_VERSION: ${{ inputs.version }}
       INPUT_PLATFORMS: ${{ inputs.platforms }}
-
+      INPUT_EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      INPUT_PUBLISH: ${{ inputs.publish }}
+      INPUT_RUNTIME_FIXTURE: ${{ inputs.runtime_fixture }}
+      INPUT_EXTERNAL_FIXTURE_APPROVED: ${{ inputs.external_fixture_approved }}
+      DOCKER_BUILD_RECORD_UPLOAD: "false"
     steps:
       - name: Checkout exact dispatched source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-
-      - name: Set up Node.js
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.4.0
+      - name: Set up Node.js without dependency caches
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: "24"
-          # Stdlib-only helper: never restore/save dependency caches in a publishing job.
           package-manager-cache: false
-
-      - name: Resolve and validate publication context
+      - name: Resolve canonical publication context
         id: meta
         run: node scripts/release-context.mjs resolve
-
+      - name: Reject occupied final tags and unavailable pre-provisioned record
+        env:
+          RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/release-execution.mjs preflight
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
-
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130
+      - name: Set up pinned Buildx and immutable BuildKit
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+        with:
+          version: v0.30.1
+          driver-opts: image=moby/buildkit:v0.25.1@sha256:79cc6476ab1a3371c9afd8b44e7c55610057c43e18d9b39b68e2b0c2475cc1b6
+          cache-binary: false
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Revalidate actual resolver publication inputs
+      - name: Install checksum-verified official Trivy
+        env:
+          RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
+          EVIDENCE_DIR: release-tools
+        run: node scripts/release-execution.mjs install-tools
+      - name: Revalidate actual resolver stage inputs
         id: resolver_context
         env:
           RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
         run: node scripts/release-context.mjs boundary
-
-      - name: Build and push resolver image
+      - name: Stage resolver index by digest only
         id: build_resolver
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
-          context: .
+          context: https://github.com/midnightntwrk/midnight-did-resolver.git#${{ steps.resolver_context.outputs.source_sha }}
           file: did-resolver-service/Dockerfile
           platforms: ${{ steps.resolver_context.outputs.platforms }}
-          tags: ${{ steps.resolver_context.outputs.resolver_tags }}
+          outputs: type=image,name=${{ steps.resolver_context.outputs.resolver_repository }},push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true
           labels: |
             org.opencontainers.image.revision=${{ steps.resolver_context.outputs.source_sha }}
             org.opencontainers.image.source=https://github.com/midnightntwrk/midnight-did-resolver
             org.opencontainers.image.version=${{ steps.resolver_context.outputs.version }}
-          push: true
-          provenance: mode=max
+          provenance: mode=max,version=v0.2
           sbom: true
-
-      - name: Revalidate actual manager publication inputs
+      - name: Revalidate actual manager stage inputs
         id: manager_context
         env:
           RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
         run: node scripts/release-context.mjs boundary
-
-      - name: Build and push manager image
+      - name: Stage manager index by digest only
         id: build_manager
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
         with:
-          context: .
+          context: https://github.com/midnightntwrk/midnight-did-resolver.git#${{ steps.manager_context.outputs.source_sha }}
           file: did-manager-service/Dockerfile
           platforms: ${{ steps.manager_context.outputs.platforms }}
-          tags: ${{ steps.manager_context.outputs.manager_tags }}
+          outputs: type=image,name=${{ steps.manager_context.outputs.manager_repository }},push-by-digest=true,name-canonical=true,oci-mediatypes=true,push=true
           labels: |
             org.opencontainers.image.revision=${{ steps.manager_context.outputs.source_sha }}
             org.opencontainers.image.source=https://github.com/midnightntwrk/midnight-did-resolver
             org.opencontainers.image.version=${{ steps.manager_context.outputs.version }}
-          push: true
-          provenance: mode=max
+          provenance: mode=max,version=v0.2
           sbom: true
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 # v3.10.1
+      - name: Install pinned Cosign
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5
         with:
           cosign-release: v2.6.1
-
-      - name: Revalidate and sign published image digests
+      - name: Validate graphs and scans, managed standalone fixture, native probes, lifecycles and signatures
+        id: verify
         env:
           RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
           RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
           MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
-        run: node scripts/release-context.mjs sign
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/release-execution.mjs verify
+      - name: Upload exact prepared evidence bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: prepared-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Retain failed-stage scans and owned-fixture cleanup evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: stage-failed-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            release-evidence/*.json
+            release-evidence/*.raw
+            release-evidence/*.txt
+          if-no-files-found: error
+          retention-days: 90
 
-      - name: Revalidate and verify published image signatures
+  record-prepare:
+    name: record-prepare
+    needs: [stage-and-verify]
+    if: ${{ inputs.publish == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+    outputs:
+      evidence_sha256: ${{ steps.execute.outputs.evidence_sha256 }}
+    env:
+      INPUT_CHANNEL: ${{ inputs.channel }}
+      INPUT_VERSION: ${{ inputs.version }}
+      INPUT_PLATFORMS: ${{ inputs.platforms }}
+      INPUT_EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      INPUT_PUBLISH: ${{ inputs.publish }}
+      RELEASE_CONTEXT: ${{ needs.stage-and-verify.outputs.context }}
+      EXPECTED_EVIDENCE_SHA256: ${{ needs.stage-and-verify.outputs.evidence_sha256 }}
+    steps:
+      - name: Checkout exact dispatched source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Node.js without dependency caches
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Download exact prepared bundle from this run
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: prepared-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+      - name: Revalidate source, checksums and record-prepare boundary
+        id: execute
         env:
-          RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
-          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
-          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
-        run: node scripts/release-context.mjs verify
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/release-execution.mjs record-prepare
+      - name: Upload exact record-prepared evidence bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: record-prepared-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+          if-no-files-found: error
+          retention-days: 90
 
-      - name: Print exact source and image digests
+  promote:
+    name: promote
+    needs: [stage-and-verify, record-prepare]
+    if: ${{ inputs.publish == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      evidence_sha256: ${{ steps.execute.outputs.evidence_sha256 }}
+    env:
+      INPUT_CHANNEL: ${{ inputs.channel }}
+      INPUT_VERSION: ${{ inputs.version }}
+      INPUT_PLATFORMS: ${{ inputs.platforms }}
+      INPUT_EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      INPUT_PUBLISH: ${{ inputs.publish }}
+      RELEASE_CONTEXT: ${{ needs.stage-and-verify.outputs.context }}
+      EXPECTED_EVIDENCE_SHA256: ${{ needs.record-prepare.outputs.evidence_sha256 }}
+    steps:
+      - name: Checkout exact dispatched source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Node.js without dependency caches
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Download exact record-prepared bundle from this run
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: record-prepared-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+      - name: Authenticate readback and signature lookup
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install pinned Cosign
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5
+        with:
+          cosign-release: v2.6.1
+      - name: Revalidate source, checksums and promote boundary
+        id: execute
         env:
-          RELEASE_CONTEXT: ${{ steps.meta.outputs.context }}
-          RESOLVER_DIGEST: ${{ steps.build_resolver.outputs.digest }}
-          MANAGER_DIGEST: ${{ steps.build_manager.outputs.digest }}
-        run: node scripts/release-context.mjs summary
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/release-execution.mjs promote
+      - name: Upload exact promoted evidence bundle
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: promoted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+          if-no-files-found: error
+          retention-days: 90
+      - name: Retain read-only incomplete-publication reconciliation on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: incomplete-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/incomplete-publication.json
+          if-no-files-found: error
+          retention-days: 90
+
+  record-finalize:
+    name: record-finalize
+    needs: [stage-and-verify, record-prepare, promote]
+    if: ${{ inputs.publish == true }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      packages: read
+    env:
+      INPUT_CHANNEL: ${{ inputs.channel }}
+      INPUT_VERSION: ${{ inputs.version }}
+      INPUT_PLATFORMS: ${{ inputs.platforms }}
+      INPUT_EXPECTED_SOURCE_SHA: ${{ inputs.expected_source_sha }}
+      INPUT_PUBLISH: ${{ inputs.publish }}
+      RELEASE_CONTEXT: ${{ needs.stage-and-verify.outputs.context }}
+      EXPECTED_EVIDENCE_SHA256: ${{ needs.promote.outputs.evidence_sha256 }}
+    steps:
+      - name: Checkout exact dispatched source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Set up Node.js without dependency caches
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: "24"
+          package-manager-cache: false
+      - name: Download exact promoted bundle from this run
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: promoted-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+      - name: Authenticate readback and signature lookup
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install pinned Cosign
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5
+        with:
+          cosign-release: v2.6.1
+      - name: Revalidate source, checksums and record-finalize boundary
+        id: execute
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/release-execution.mjs record-finalize

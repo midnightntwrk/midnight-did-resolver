@@ -128,11 +128,13 @@ this workflow**, not instructions to publish as part of implementing #165:
 
 ```bash
 # RC source eligibility; main is also eligible for rc.
-gh workflow run release-docker.yml --ref develop -f channel=rc -f version=1.0.0-rc.1
+gh workflow run release-docker.yml --ref develop -f channel=rc -f version=1.0.0-rc.1 \
+  -f expected_source_sha="<approved full source SHA>" -F publish=false
 
 # Future illustrative stable usage, only after separate approval/main promotion.
 # Never dispatch release from develop.
-gh workflow run release-docker.yml --ref main -f channel=release -f version=1.0.0
+gh workflow run release-docker.yml --ref main -f channel=release -f version=1.0.0 \
+  -f expected_source_sha="<approved full main SHA>" -F publish=false
 ```
 
 Dispatch selects an allowed branch, not a tag, arbitrary SHA or nested/lookalike
@@ -150,6 +152,129 @@ cannot trigger Docker publication. Ordinary CI, security scanning and the
 separate Pages workflow retain their existing triggers. Git tags are no longer
 a publication mechanism in the changed workflow; any release-record/tag policy
 remains a separately authorized concern.
+
+### Staged digest publication (implementation under review)
+
+The staged workflow supersedes the earlier sequential-build description above.
+It is not publication evidence or stable-release approval. Dispatch requires
+`expected_source_sha`, independently checked against the approved commit; it
+must equal the actual event/workflow/checkout SHA. `publish` defaults to
+`false`: this stages and verifies a new pair but cannot create final image tags
+or publish a GitHub record. An explicit `true` builds and verifies its own pair;
+it does not silently reuse an earlier experimental pair.
+
+The DAG is validate-dispatch → stage-and-verify → record-prepare → promote →
+record-finalize, with one constant publication concurrency namespace and no
+active-run cancellation. Builds use the literal canonical remote Git repository
+at that exact SHA, digest-only OCI exports (no version/latest build tags), pinned
+Buildx v0.30.1 and BuildKit v0.25.1, maximum v0.2 provenance and SBOMs.
+The privileged helpers use only Node stdlib; dependency/YAML tests remain in
+ordinary CI. Publisher jobs do not install npm dependencies or use dependency
+caches. Buildx's automatic build-record export is disabled; only explicitly
+named evidence bundles cross publication jobs.
+
+Both service indexes must have verified raw descriptor/blob/source/subject
+chains, four fresh complete Trivy inventories (official checksum-pinned
+v0.76.2), zero HIGH/CRITICAL and unresolved UNKNOWN findings including unfixed
+vulnerabilities, four actual digest-pinned runtime lifecycles, and literal
+keyless signature identity/SHA/event verification. The full scan JSON retains
+all original classifications. The source-reviewed, seven-day advisory policy
+resolves only two exact UNKNOWN glibc rows to their authoritative CNA LOW/MEDIUM
+scores; it never downgrades a scanner HIGH/CRITICAL finding. Policy bytes, raw
+primary records, checksums and per-row resolution receipts are attached alongside
+the unchanged scans. Both advisories remain affected/unfixed with unverified
+service reachability; this is classification evidence, not a vulnerability waiver
+or a claim of non-exploitability. Missing, changed or expired classifications fail
+closed. A Node policy failure is the nonzero publication exit gate.
+Signatures authenticate the root indexes; unsigned BuildKit statements are not
+passed to `cosign verify-attestation`.
+
+After both graphs and all four scans pass, runtime automatically provisions an
+owned standalone node 2.1.101, indexer 4.4.101 and proof server 9.0.1 when no
+override is supplied. Official dependency index digests are pinned in
+`scripts/release-standalone-fixture.mjs`. Generated JSON Compose has only those
+three dependencies, dynamic loopback ports, exact standalone presets/health
+checks and no service builds. A unique project/file scopes every operation;
+bounded startup has no whole-project retry, and finally retains status/cleanup
+evidence and removes only that owned project and volumes.
+
+A read-only, source-hashed helper runs inside the verified manager amd64 child
+with public candidate package exports, not host workspace dependencies. It uses
+only the owned standalone's deterministic public genesis fixture, registers
+Dust, configures providers, deploys a DID (at most two 8-second Dust-only
+retries), adds a known public verification method and obtains a positive
+reference document through the owning Ledger9 public resolver/provider.
+Wallet stop is in finally; the external chain remains alive through all four
+service/platform consumers. No public network funds or source build fallback
+is allowed. The helper prints only sanitized fixture JSON, never seeds/keys.
+
+An explicit external override remains available as a **public, nonsecret**
+`runtime_fixture` JSON object:
+`{schemaVersion:1,kind:"standalone-external-state",did,expectedResolution,indexerHTTP,indexerWS}`.
+It additionally requires `external_fixture_approved=true`. The expected
+resolution must contain the same positive `didDocument.id`, a known public
+method and null resolution error. Indexer endpoints must be loopback HTTP/WS.
+Missing/empty/error reference results never become passing fixtures.
+The runner is native amd64; arm64 results are QEMU, not native certification.
+Both services bind only loopback using Linux host networking. Tests inspect
+Node 24.22.3, uid 1000, process architecture, health, readiness, OpenAPI 1.0.0
+and Swagger assets. Manager selection/list metadata must survive restart and
+remove/recreate on the **same owned mount and default data directory**.
+Resolver repeats positive resolution against external state; it has no local
+filesystem persistence claim. Each exact child is pulled with its explicit
+platform before `digestPullVerified/pulledReference` are recorded. A separate
+read-only mounted, source-hashed candidate-native probe executes HD4 role-4
+derivation, owning Ledger9/WASM/public API loading, ClassicLevel
+open/put/get/close/reopen, manager storage sign/verify, packaged proving assets
+and the public Ledger9 executable-runtime configuration/version guard under
+Node 24.22.3 and uid 1000. No host npm install or producer/private imports occur.
+These probes supplement—not replace—HTTP/persistence assertions. Full manager
+funded session/contract restoration and native-arm64 guarantees remain
+separate, unproven coverage.
+
+For `publish=true`, the parent/maintainer must pre-provision the exact-source
+Git tag `v<version>` and a matching draft prerelease **after the final source
+is reviewed**. The workflow never creates them and never receives a PAT or
+imaginary `workflows:write` permission. GitHub's workflow-file-difference
+restriction can otherwise prevent record creation with `GITHUB_TOKEN`.
+The contents-write-only prepare job validates this record and uploads
+run/attempt/source-bound, checksummed prepared assets before any final image tag.
+Unknown API errors are failures, not evidence of absence or permission.
+
+Promotion revalidates all prepared evidence and both signatures, checks both
+version tags absent before the pair and each own write, then uses the core
+client's same-repository raw-index PUT and digest readback. No rebuild,
+overwrite, automatic retry, deletion or rollback is allowed. GHCR has no
+two-repository transaction or portable create-if-absent guarantee: a partial
+or ambiguous result remains an incomplete draft with read-only tag
+reconciliation; owner-directed recovery is separate. A record-only recovery
+must not rerun builds or tag writes. RC never writes `latest`.
+
+The final contents-write/packages-read job independently verifies both tags,
+signatures and source tag, uploads final checksums/receipts, and only then
+publishes with `prerelease:true, make_latest:"false"`. GitHub assets are **not
+intrinsically immutable**; preserve the hash manifests and approved previous
+rollback digest pair. Rollback changes deployment digests, never version tags.
+
+For separately approved stable publication, main-only/full prepared gates
+remain mandatory. Both immutable version tags and exact-byte/signature
+readbacks must pass **before either latest update**. Only then may the guarded
+core `promoteStableLatest` operation update each fixed latest pointer, once.
+Previous latest digests and partial/ambiguous outcomes are recorded; no
+automatic rollback/retry/overwrite of version tags occurs. Before each latest
+write both immutable versions/signatures are checked again. Finalization
+independently rechecks both version and latest pairs. RC performs no latest
+registry calls and always uses GitHub `make_latest:"false"`. This preserves
+stable policy, not stable publication approval or a cross-repository transaction.
+
+**Remaining real-experiment/integration blockers:** standalone startup and SDK
+deployment, actual BuildKit exporter/provenance shape, scanner schema/DB
+coverage, both-platform native probes/runtime persistence and GHCR exact-byte/
+signature/latest behavior are not established by offline recording fixtures.
+Core's approved Node bookworm base policy is not weakened to accept a different
+experimental runtime variant.
+The full combined final-source checks, source approval, protections/P1
+requirements and separately approved stable/history work remain mandatory.
 
 ### Stable promotion and approval prerequisites
 

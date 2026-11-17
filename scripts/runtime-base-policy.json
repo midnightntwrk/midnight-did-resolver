@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "reference": "gcr.io/distroless/nodejs24-debian13:nonroot@sha256:6abfcb367ebc291572c774c1592a986be2ab26a2486f73093401327495a5962a",
+  "indexDigest": "sha256:6abfcb367ebc291572c774c1592a986be2ab26a2486f73093401327495a5962a",
+  "nodeVersion": "24.22.3",
+  "platforms": {
+    "linux/amd64": {
+      "manifestDigest": "sha256:d4b8c34560df58c821ebda89a2897d7d183220c0debaf474a2b67a6c7cc22064"
+    },
+    "linux/arm64": {
+      "manifestDigest": "sha256:6ff17c676ac284211c900bc2f512dd0b4e90ec6188657c91a4d6440c1f100b90"
+    }
+  },
+  "builder": {
+    "reference": "docker.io/library/node:24.22.3-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54",
+    "indexDigest": "sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54",
+    "nodeVersion": "24.22.3",
+    "platforms": {
+      "linux/amd64": {
+        "manifestDigest": "sha256:0e2646ab57e77b7a384a0cb59b6815b182c77e1f9c3ba36bd8435bd9c4e6680e"
+      },
+      "linux/arm64": {
+        "manifestDigest": "sha256:5f8fabfed57b75127de2f584593d67a9e8c90e6b0f65652871f9ef0f759c0299"
+      }
+    }
+  }
+}
