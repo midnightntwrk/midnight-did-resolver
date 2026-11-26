@@ -1,6 +1,6 @@
 services:
   proof-server:
-    image: "${PROOF_SERVER_IMAGE:-midnightntwrk/proof-server:9.0.1}"
+    image: "${PROOF_SERVER_IMAGE:-midnightntwrk/proof-server:9.0.2@sha256:787ef99db4b4706eb14d94ad389ca45f1c09bcdf740afecb01899bfbda63dc64}"
     command: ["midnight-proof-server", "-v"]
     ports:
       - "0:6300"
